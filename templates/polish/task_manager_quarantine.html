@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/task_manager.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-4">
+      <h1 class="title is-4">Quarantine Workflow</h1>
+      <div class="buttons">
+        <a class="button is-light" href="{% url 'task-manager-admin:index' %}?active_tab=quarantine">Back to Task Manager</a>
+      </div>
+    </div>
+
+    {% if active_filter_chips %}
+    <div class="box mb-4" style="position: sticky; top: 1rem; z-index: 10;">
+      <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
+        <p class="is-size-7 has-text-weight-semibold">Active Constraints</p>
+        <a class="is-size-7" href="{{ clear_filters_url }}">Clear All</a>
+      </div>
+      <div class="tags">
+        {% for chip in active_filter_chips %}
+        <span class="tag is-warning is-light">
+          {{ chip.label }}
+          <a href="{{ chip.remove_url }}" class="ml-2" aria-label="Remove {{ chip.label }}">x</a>
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="box mb-4">
+      <form method="get" class="columns is-multiline is-mobile">
+        <div class="column is-12-mobile is-4-tablet">
+          <label class="label">Search</label>
+          <input class="input" type="text" name="q" value="{{ search_query }}" placeholder="filename, reason, assignment, uploader">
+        </div>
+
+        <div class="column is-6-mobile is-3-tablet">
+          <label class="label">Scan Status</label>
+          <div class="select is-fullwidth">
+            <select name="scan_status">
+              <option value="">All</option>
+              {% for value, label in scan_status_choices %}
+              <option value="{{ value }}" {% if scan_status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="column is-6-mobile is-3-tablet">
+          <label class="label">Review Status</label>
+          <div class="select is-fullwidth">
+            <select name="review_status">
+              <option value="">All</option>
+              {% for value, label in review_status_choices %}
+              <option value="{{ value }}" {% if review_status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="column is-6-mobile is-2-tablet">
+          <label class="label">Sort</label>
+          <div class="select is-fullwidth">
+            <select name="sort">
+              {% for value, label in sort_choices %}
+              <option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="column is-12-mobile is-12-tablet is-flex is-align-items-flex-end">
+          <button class="button is-dark mr-2" type="submit">Filter</button>
+          <a class="button is-light" href="{% url 'polish:task-manager:quarantine-list' %}">Reset</a>
+        </div>
+      </form>
+
+      {% if active_filter_chips %}
+      <div class="mt-3">
+        <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
+          <p class="is-size-7">Active Filters</p>
+          <a class="is-size-7" href="{{ clear_filters_url }}">Clear All</a>
+        </div>
+        <div class="tags">
+          {% for chip in active_filter_chips %}
+          <span class="tag is-info is-light">
+            {{ chip.label }}
+            <a href="{{ chip.remove_url }}" class="ml-2" aria-label="Remove {{ chip.label }}">x</a>
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="columns">
+      <div class="column is-6">
+        <div class="box">
+          <h2 class="title is-6">Queue</h2>
+          {% if quarantine_items %}
+          <ul>
+            {% for item in quarantine_items %}
+            <li class="mb-2">
+              <a href="{% url 'polish:task-manager:quarantine-detail' item.id %}?q={{ search_query|urlencode }}&scan_status={{ scan_status|urlencode }}&review_status={{ review_status|urlencode }}&sort={{ sort|urlencode }}&page={{ page_obj.number }}">
+                #{{ item.id }} {{ item.original_filename }}
+              </a>
+              <div class="is-size-7">Assignment #{{ item.assignment_id }} | scan {{ item.scan_status|default:"n/a" }} | review {{ item.review_status }}</div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="is-size-7">No quarantined items found for this filter.</p>
+          {% endif %}
+
+          <nav class="pagination is-small mt-4" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+            <a class="pagination-previous" href="?q={{ search_query|urlencode }}&scan_status={{ scan_status|urlencode }}&review_status={{ review_status|urlencode }}&sort={{ sort|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            {% else %}
+            <a class="pagination-previous" disabled>Previous</a>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+            <a class="pagination-next" href="?q={{ search_query|urlencode }}&scan_status={{ scan_status|urlencode }}&review_status={{ review_status|urlencode }}&sort={{ sort|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+            {% else %}
+            <a class="pagination-next" disabled>Next</a>
+            {% endif %}
+          </nav>
+          <p class="is-size-7">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        </div>
+      </div>
+
+      <div class="column is-6">
+        <div class="box">
+          {% if selected_quarantine_item %}
+          <h2 class="title is-6">Detail #{{ selected_quarantine_item.id }}</h2>
+          <p class="is-size-7">Filename: {{ selected_quarantine_item.original_filename }}</p>
+          <p class="is-size-7">Reason: {{ selected_quarantine_item.reason }}</p>
+          <p class="is-size-7">Content Type: {{ selected_quarantine_item.content_type|default:"n/a" }}</p>
+          <p class="is-size-7">Scan: {{ selected_quarantine_item.scan_status|default:"n/a" }}</p>
+          <p class="is-size-7">Review: {{ selected_quarantine_item.review_status }}</p>
+          <p class="is-size-7">Reviewer Notes: {{ selected_quarantine_item.review_notes|default:"-" }}</p>
+
+          {% if is_staff_user %}
+          <form method="post" action="{% url 'polish:task-manager:quarantine-actions' selected_quarantine_item.id %}" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ current_full_path }}">
+            <div class="field">
+              <label class="label">Review Notes</label>
+              <div class="control">
+                <input class="input" type="text" name="review_notes" placeholder="Optional staff note">
+              </div>
+            </div>
+            <div class="buttons are-small">
+              <button class="button is-success is-light" type="submit" name="action" value="approve">Approve</button>
+              <button class="button is-warning is-light" type="submit" name="action" value="rescan">Re-scan</button>
+              <button class="button is-danger is-light" type="submit" name="action" value="delete">Delete</button>
+            </div>
+          </form>
+          {% else %}
+          <p class="is-size-7 has-text-warning mt-2">Staff access is required to execute review actions.</p>
+          {% endif %}
+
+          <hr>
+
+          <h3 class="title is-6">History</h3>
+          {% if quarantine_history %}
+          <ul>
+            {% for log in quarantine_history %}
+            <li class="is-size-7 mb-1">
+              {{ log.created_at|date:"Y-m-d H:i" }} - {{ log.event_type }} by {{ log.actor.username|default:log.actor.email }}
+              {% if log.reason %}- {{ log.reason }}{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="is-size-7">No audit history available for this item yet.</p>
+          {% endif %}
+          {% else %}
+          <h2 class="title is-6">Detail</h2>
+          <p class="is-size-7">Select a quarantine item from the queue to review details and actions.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

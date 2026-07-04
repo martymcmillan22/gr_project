@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+
+<div class="bt-brand-header">
+  <div class="bt-brand-text">
+    <h1>Invoice Download Center</h1>
+    <p class="bt-brand-sub">Signed invoice artifacts and billing history</p>
+  </div>
+</div>
+
+<p class="bt-note">Tenant {{ billing_filters.tenant|default:"all" }} · Client {{ billing_filters.client|default:"all" }} · Window {{ billing_filters.window_days }} days</p>
+
+{% if billing_access.link %}
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Signed Access Link</h2>
+  <p class="bt-twist-row"><span>{{ billing_access.link.label|default:"Customer billing portal" }}</span><strong>{{ billing_access.link.status|title }}</strong></p>
+  <p class="bt-note">Expires {{ billing_access.link.expires_at|default:"n/a" }} · Uses {{ billing_access.link.use_count }}</p>
+</section>
+{% endif %}
+
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    {% for row in billing_summary.summary %}
+      <article class="bt-insight-card">
+        <h3>{{ row.invoice_number }}</h3>
+        <strong>{{ row.estimated_amount }}</strong>
+        <p>{{ row.tenant_key }} / {{ row.client_key }} · Plan {{ row.billing_plan }}</p>
+        <p>Signature {{ row.invoice_signature|truncatechars:24 }}</p>
+        <p><a class="bt-inline-link" href="{{ row.invoice_export_csv }}">CSV</a> · <a class="bt-inline-link" href="{{ row.invoice_export_json }}">JSON</a> · <a class="bt-inline-link" href="{{ row.invoice_export_txt }}">TXT</a> · <a class="bt-inline-link" href="{{ row.invoice_export_pdf }}">PDF</a></p>
+      </article>
+    {% empty %}
+      <article class="bt-insight-card">
+        <h3>No invoices available</h3>
+        <p>No invoice artifacts are available for this billing window.</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="bt-center-panel bt-q-red bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Customer Invoice Timeline</h2>
+  {% for item in invoice_timeline %}
+    <p class="bt-twist-row"><span>{{ item.event }}</span><strong class="bt-threshold-{{ item.tone }}">{{ item.timestamp }}</strong></p>
+    <p class="bt-note">{{ item.detail }}</p>
+  {% empty %}
+    <p class="bt-note">No invoice timeline events yet.</p>
+  {% endfor %}
+</section>
+
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Customer Invoice Event Feed</h2>
+  {% for item in invoice_event_feed %}
+    <p class="bt-twist-row"><span>{{ item.title }}</span><strong class="bt-threshold-{{ item.tone }}">{{ item.category|title }}</strong></p>
+    <p class="bt-note">{{ item.timestamp }} · {{ item.detail }}</p>
+  {% empty %}
+    <p class="bt-note">No invoice feed events yet.</p>
+  {% endfor %}
+</section>
+
+<section class="bt-center-panel bt-q-green bt-insight-panel">
+  <h2>Snapshot History</h2>
+  {% for row in billing_history %}
+    <p class="bt-twist-row"><span>{{ row.created_at }}</span><strong>{{ row.tenant_key }} / {{ row.client_key }} · {{ row.window_days }}d</strong></p>
+    <p class="bt-note">Period {{ row.period_start }} to {{ row.period_end }}</p>
+  {% empty %}
+    <p class="bt-note">No billing history yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

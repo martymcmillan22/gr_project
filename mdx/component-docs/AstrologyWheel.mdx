@@ -1,0 +1,41 @@
+---
+title: Astrology Wheel Component
+description: A token-driven astrology wheel visual implemented from deterministic structural directives
+category: UI
+status: active
+---
+
+# Astrology Wheel
+
+The AstrologyWheel component is a structured SVG-based visual that uses design tokens for consistent color treatment and a typed API for integration into the grassroots component layer.
+
+## Usage
+
+```jsx
+import { AstrologyWheel } from '@/components/grassroots';
+
+export function Example() {
+  return <AstrologyWheel />;
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `className` | `string` | - | Additional wrapper classes |
+| `size` | `number` | `450` | SVG render size in pixels |
+| `label` | `string` | `Astrology wheel diagram` | Accessible label for the SVG |
+
+## Design Notes
+
+- **Colors**: Uses Penpot tokens from `tokens.colors.green`, `tokens.colors.pink`, `tokens.colors.primary`, `tokens.colors.orange`, and `tokens.colors.neutral`
+- **Typography**: Uses Tailwind utilities for the Bastetrue text overlay
+- **Accessibility**: Includes `role="img"`, `aria-label`, `title`, and `desc`
+- **Structure**: Preserves the approved wheel geometry while using token-driven production component patterns
+
+## Example
+
+```jsx
+<AstrologyWheel size={520} label="Astrology chart overview" />
+```

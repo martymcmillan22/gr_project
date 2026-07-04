@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load bulma_tags %}
+
+{% block title %}Log in{% endblock %}
+
+{% block bodyclass %}has-background-light{% endblock %}
+
+{% block content %}
+<div class="box p-6">
+  <h1 class="title">Log In</h1>
+  <form class="login" method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+    {{ form|bulma }}
+    <div class="buttons">
+
+      <a class="button" href="{% url 'password_reset' %}">Forgot Password?</a>
+      <button class="button is-primary" type="submit">Log In</button>
+      <input type="hidden" name="next" value="{{ next }}"/>
+    </div>
+  </form>
+</div>
+<div class="block ml-6">
+  No account?
+  <a class="is-secondary" href="{% url 'users:signup' %}">Sign up</a>
+</div>
+
+{% endblock %}

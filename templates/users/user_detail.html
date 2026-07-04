@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ object.name }}{% endblock %}
+{% block bodyclass %}has-background-light{% endblock %}
+
+{% block content %}
+<div class="box p-6">
+  <div class="is-flex is-justify-content-space-between is-align-items-center mb-4">
+    <h2 class="mb-0">User profile</h2>
+    <a
+      class="button is-light"
+      href="{% url 'index' %}"
+      onclick="if (window.history.length > 1) { window.history.back(); return false; }"
+      aria-label="Close profile page"
+      title="Close"
+    >
+      Close
+    </a>
+  </div>
+
+  <div class="is-flex">
+    <figure class="image is-128x128 ml-2 mt-5 is-rounded">
+      <img class="is-rounded" src="{{ user.avatar_url }}">
+    </figure>
+    <div class="block ml-3">
+      {% include "users/partials/user_field.html" with label="Username" value=object.username %}
+      {% include "users/partials/user_field.html" with label="Name" value=object.name %}
+      {% include "users/partials/user_field.html" with label="Email" value=object.email %}
+    </div>
+  </div>
+
+  {% if object == user %}
+  <div class="control">
+    <a class="button is-primary" href="{% url 'users:update' %}" role="button">Edit</a>
+  </div>
+  {% endif %}
+
+
+</div>
+{% endblock %}

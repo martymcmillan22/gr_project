@@ -1,0 +1,209 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+
+<div class="bt-brand-header">
+  <div class="bt-brand-text">
+    <h1>Customer Billing</h1>
+    <p class="bt-brand-sub">Contract usage, enforcement, and invoice history</p>
+  </div>
+</div>
+
+<p class="bt-note">Tenant {{ billing_filters.tenant|default:"all" }} · Client {{ billing_filters.client|default:"all" }} · Window {{ billing_filters.window_days }} days</p>
+
+{% if billing_access.link %}
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Access Link Status</h2>
+  <p class="bt-twist-row"><span>{{ billing_access.link.label|default:"Customer billing portal" }}</span><strong>{{ billing_access.link.status|title }}</strong></p>
+  <p class="bt-note">Expires {{ billing_access.link.expires_at|default:"n/a" }} · Uses {{ billing_access.link.use_count }}</p>
+  {% if billing_access.link.invoice_center_url %}
+    <p><a class="bt-inline-link" href="{{ billing_access.link.invoice_center_url }}">Open invoice center with current link</a></p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if billing_memberships %}
+<section class="bt-center-panel bt-q-green bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Customer Tenant Identity</h2>
+  {% for row in billing_memberships %}
+    <p class="bt-twist-row"><span>{{ row.tenant_key }} / {{ row.client_key }}</span><strong>{{ row.role|title }}</strong></p>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Customer Billing Insights</h2>
+  <div class="bt-insight-grid">
+    <article class="bt-insight-card">
+      <h3>Billing Health</h3>
+      <strong class="bt-threshold-{{ billing_insights.health_score.threshold_key }}">{{ billing_insights.health_score.score }}</strong>
+      <p>{{ billing_insights.health_score.label }}</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Access-Link Anomalies</h3>
+      <strong>{{ billing_insights.anomalies.total }}</strong>
+      <p>Detected anomalies in your current access scope.</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Invoice Email Success</h3>
+      <strong>{{ billing_insights.email_diagnostics.success_rate }}%</strong>
+      <p>Failures {{ billing_insights.email_diagnostics.failed }} · Bounce-like {{ billing_insights.email_diagnostics.bounce_like }}</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Access-Link Risk</h3>
+      <strong class="bt-threshold-{{ billing_insights.access_link_risk.threshold_key }}">{{ billing_insights.access_link_risk.score }}</strong>
+      <p>{{ billing_insights.access_link_risk.label }} risk</p>
+    </article>
+  </div>
+
+  <section class="bt-twist-box" style="margin-top:12px;">
+    <h3>Billing Health Explainer</h3>
+    <p class="bt-note">{{ billing_insights.health_explainer.summary }}</p>
+    {% for tip in billing_insights.health_explainer.actions %}
+      <p class="bt-note">- {{ tip }}</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box" style="margin-top:12px;">
+    <h3>Why Your Score Changed</h3>
+    <p class="bt-twist-row"><span>Current vs prior</span><strong class="bt-threshold-{% if billing_insights.health_score_change.direction == 'up' %}green{% elif billing_insights.health_score_change.direction == 'down' %}red{% else %}yellow{% endif %}">{{ billing_insights.health_score_change.current_score }} / {{ billing_insights.health_score_change.estimated_previous_score }}</strong></p>
+    <p class="bt-note">Delta {{ billing_insights.health_score_change.delta }}</p>
+    {% for reason in billing_insights.health_score_change.reasons %}
+      <p class="bt-note">- {{ reason }}</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box" style="margin-top:12px;">
+    <h3>Customer Billing Forecast</h3>
+    <p class="bt-twist-row"><span>Projected amount (next cycle)</span><strong>{{ billing_insights.billing_forecast.projected_amount }}</strong></p>
+    <p class="bt-note">Current {{ billing_insights.billing_forecast.current_amount }} · Delta {{ billing_insights.billing_forecast.amount_delta }}</p>
+    <p class="bt-note">Projected units {{ billing_insights.billing_forecast.projected_units }} · Current units {{ billing_insights.billing_forecast.current_units }}</p>
+    <p class="bt-note">Confidence {{ billing_insights.billing_forecast.confidence|title }}</p>
+  </section>
+
+  <section class="bt-twist-box" style="margin-top:12px;">
+    <h3>Customer Link-Usage Insights</h3>
+    <p class="bt-twist-row"><span>Utilization</span><strong>{{ billing_insights.link_usage_insights.utilization_rate }}%</strong></p>
+    <p class="bt-note">Used links {{ billing_insights.link_usage_insights.used_links }} / {{ billing_insights.link_usage_insights.total_links }} · Never used {{ billing_insights.link_usage_insights.never_used_links }}</p>
+    <p class="bt-note">High-usage links {{ billing_insights.link_usage_insights.high_usage_count }}</p>
+    {% for row in billing_insights.link_usage_insights.top_links %}
+      <p class="bt-note">{{ row.label|default:"Customer billing portal" }} · {{ row.tenant_key }}/{{ row.client_key }} · uses {{ row.use_count }}</p>
+    {% empty %}
+      <p class="bt-note">No link usage data available yet.</p>
+    {% endfor %}
+  </section>
+
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Access-Link Activity ({{ billing_insights.micro_trends.window_days }}d)</h3>
+      <div class="bt-mini-trend-chart" aria-label="Customer access-link trend">
+        {% for row in billing_insights.micro_trends.link_activity_rows %}
+          <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.count }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.day|slice:":1" }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Invoice Email Success ({{ billing_insights.micro_trends.window_days }}d)</h3>
+      <div class="bt-mini-trend-chart" aria-label="Customer invoice email trend">
+        {% for row in billing_insights.micro_trends.invoice_email_rows %}
+          <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.success_rate }}%">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.day|slice:":1" }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Access-Link Risk Trend ({{ billing_insights.access_link_risk_trend.window_days }}d)</h3>
+      <div class="bt-mini-trend-chart" aria-label="Customer access-link risk trend">
+        {% for row in billing_insights.access_link_risk_trend.rows %}
+          <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.score }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.day|slice:":1" }}</span>
+          </button>
+        {% endfor %}
+      </div>
+      <p class="bt-note">{{ billing_insights.access_link_risk_trend.window_days }}-day avg risk {{ billing_insights.access_link_risk_trend.avg_score }}</p>
+    </section>
+  </div>
+
+  {% if billing_insights.anomalies.rows %}
+    <h3 style="margin-top:12px;">Anomaly Details</h3>
+    {% for row in billing_insights.anomalies.rows %}
+      <p class="bt-twist-row"><span>{{ row.label }}</span><strong class="bt-threshold-{{ row.severity }}">{{ row.type }}</strong></p>
+      <p class="bt-note">Risk {{ row.risk_score|default:0 }} · {{ row.explanation|default:"Operational anomaly detected." }}</p>
+      <p class="bt-note">{{ row.detail }}</p>
+    {% endfor %}
+  {% endif %}
+
+  {% if billing_insights.email_diagnostics.rows %}
+    <h3 style="margin-top:12px;">Bounce Diagnostics</h3>
+    {% for row in billing_insights.email_diagnostics.rows %}
+      <p class="bt-twist-row"><span>{{ row.recipient }}</span><strong class="bt-threshold-{{ row.severity }}">{{ row.status|title }}</strong></p>
+      <p class="bt-note">Category {{ row.category|default:"uncategorized"|title }}</p>
+      <p class="bt-note">Guidance: {{ row.retry_guidance|default:"Inspect delivery logs and retry." }}</p>
+      <p class="bt-note">{{ row.error }}</p>
+    {% endfor %}
+  {% endif %}
+
+  {% if billing_insights.email_diagnostics.categories %}
+    <h3 style="margin-top:12px;">Bounce Categories</h3>
+    {% for row in billing_insights.email_diagnostics.categories %}
+      <p class="bt-twist-row"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></p>
+      <p class="bt-note">{{ row.guidance|default:"Review and retry." }}</p>
+    {% endfor %}
+  {% endif %}
+</section>
+
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    {% for row in billing_summary.summary %}
+      <article class="bt-insight-card">
+        <h3>{{ row.tenant_key }} / {{ row.client_key }}</h3>
+        <strong>{{ row.billable_units }} units</strong>
+        <p>Plan {{ row.billing_plan }} · {{ row.usage_pct }}% of allowance</p>
+        <p>Estimated {{ row.estimated_amount }} · Overage {{ row.overage_amount }}</p>
+        <p><a class="bt-inline-link" href="{{ row.invoice_export_csv }}">CSV</a> · <a class="bt-inline-link" href="{{ row.invoice_export_json }}">JSON</a> · <a class="bt-inline-link" href="{{ row.invoice_export_txt }}">TXT</a> · <a class="bt-inline-link" href="{{ row.invoice_export_pdf }}">PDF</a></p>
+        <p><a class="bt-inline-link" href="/contracts/billing/invoices/?tenant={{ row.tenant_key }}&client={{ row.client_key }}&window_days={{ billing_filters.window_days }}&access_token={{ billing_access.token }}">Open Invoice Center</a></p>
+        {% if row.hard_action_url %}
+          <p><a class="bt-inline-link" href="{{ row.hard_action_url }}">{{ row.hard_action_label }}</a></p>
+        {% endif %}
+      </article>
+    {% empty %}
+      <article class="bt-insight-card">
+        <h3>No billing activity</h3>
+        <p>No billing rows found for the current tenant/client filter.</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="bt-center-panel bt-q-red bt-insight-panel" style="margin-bottom:22px;">
+  <h2>Billing Notifications</h2>
+  {% for row in billing_notifications %}
+    <p class="bt-twist-row"><span>{{ row.subject|default:"Billing notification" }}</span><strong>{{ row.status|title }}</strong></p>
+    <p class="bt-note">Recipient {{ row.recipient|default:"unassigned" }} · Created {{ row.created_at }}</p>
+    <p class="bt-note">Attempts {{ row.retry_count }} · Last attempt {{ row.last_attempt_at|default:"n/a" }}</p>
+    {% if row.last_error %}
+      <p class="bt-note">Last error: {{ row.last_error }}</p>
+    {% endif %}
+  {% empty %}
+    <p class="bt-note">No billing notifications available.</p>
+  {% endfor %}
+</section>
+
+<section class="bt-center-panel bt-q-blue bt-insight-panel">
+  <h2>Billing Snapshot History</h2>
+  {% for row in billing_history %}
+    <p class="bt-twist-row"><span>{{ row.created_at }}</span><strong>{{ row.tenant_key }} / {{ row.client_key }} · {{ row.window_days }}d</strong></p>
+    <p class="bt-note">Period {{ row.period_start }} to {{ row.period_end }}</p>
+  {% empty %}
+    <p class="bt-note">No billing snapshots available yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

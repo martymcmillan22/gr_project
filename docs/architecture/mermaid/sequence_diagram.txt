@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant DjangoAPI
+    participant BusinessLogic
+    participant PostgreSQL
+
+    User->>Frontend: Triggers Feature
+    Frontend->>DjangoAPI: API Request (Auth/Data)
+    DjangoAPI->>BusinessLogic: Validate Request
+    BusinessLogic->>PostgreSQL: Query/Update Data
+    PostgreSQL-->>BusinessLogic: Return Result
+    BusinessLogic-->>DjangoAPI: Processed Response
+    DjangoAPI-->>Frontend: JSON Data
+    Frontend-->>User: Display Update
+
+----------------------------------------------------------------------
+The  Incubation Workflow
+------------------------
+sequenceDiagram
+    participant User
+    participant System as IncubationEngine
+    participant DB as PostgreSQL
+    
+    User->>System: Submit Raw Idea (Industry X)
+    System->>DB: Save Idea with Industry ID
+    System->>User: "Idea Captured"
+    
+    Note over User, System: Polishing Stage
+    User->>System: Refine Idea
+    System->>DB: Update to 'SEED' status
+    
+    Note over System, DB: Scaling Stage
+    System->>DB: Create 'BUSINESS' record from Seed
+    System-->>User: "Seed Ready for Market"
+
+---------------------End of Incubation Workflow-----------------------------

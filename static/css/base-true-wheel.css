@@ -1,0 +1,139 @@
+/* =====================================================
+   Base True Interactive Wheel
+   ===================================================== */
+
+.home-wheel-stage {
+    padding: 2rem;
+    background: #f7faf7;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.base-true-wheel {
+    position: absolute;
+    max-width: 115px;
+    width: 100%;
+    top: 0;
+    right: 0;
+}
+
+.base-true-wheel img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* =====================================================
+   Hotspots
+   ===================================================== */
+
+.hotspot {
+    position: absolute;
+    width: 6%;
+    height: 6%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* Uncomment this section while positioning hotspots */
+
+/*
+.hotspot {
+    background: rgba(255, 0, 0, .25);
+}
+*/
+
+.hotspot:hover {
+    background: rgba(255, 255, 0, .25);
+}
+
+/* =====================================================
+   Number Positions
+   ===================================================== */
+
+/* Top section */
+.n12 {
+    left: 40%;
+    top: 28%;
+}
+
+.n1 {
+    left: 60%;
+    top: 28%;
+}
+
+/* Middle section */
+.n4 {
+    left: 20%;
+    top: 45%;
+}
+
+.n8 {
+    left: 35%;
+    top: 45%;
+}
+
+.n5 {
+    left: 65%;
+    top: 45%;
+}
+
+.n9 {
+    left: 80%;
+    top: 45%;
+}
+
+/* Lower middle section */
+.n11 {
+    left: 20%;
+    top: 60%;
+}
+
+.n7 {
+    left: 35%;
+    top: 60%;
+}
+
+.n6 {
+    left: 65%;
+    top: 60%;
+}
+
+.n2 {
+    left: 80%;
+    top: 60%;
+}
+
+/* Bottom section */
+.n3 {
+    left: 35%;
+    top: 78%;
+}
+
+.n10 {
+    left: 65%;
+    top: 78%;
+}
+
+.n3 {
+    left: 42%;
+    top: 83%;
+}
+
+/* Bottom Right (Blue) */
+
+.n6 {
+    left: 60%;
+    top: 62%;
+}
+
+.n2 {
+    left: 78%;
+    top: 62%;
+}
+
+.n10 {
+    left: 58%;
+    top: 83%;
+}

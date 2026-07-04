@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Twist Idea{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Delete idea</h1>
+    <p class="subtitle">Confirm before removing this captured idea.</p>
+
+    <div class="box">
+      <p>{{ idea.content }}</p>
+      {% if idea.tags %}
+      <p class="is-size-7 has-text-info mt-2">Tags: {{ idea.tags }}</p>
+      {% endif %}
+      <p class="is-size-7 has-text-grey mt-2">{{ idea.created_at|date:"M j, Y g:i A" }}</p>
+
+      <form method="post" class="mt-5">
+        {% csrf_token %}
+        <div class="field is-grouped">
+          <div class="control">
+            <button type="submit" class="button is-danger">Delete idea</button>
+          </div>
+          <div class="control">
+            <a class="button is-light" href="{% url 'twist-entry' %}">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

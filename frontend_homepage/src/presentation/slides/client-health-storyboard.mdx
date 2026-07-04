@@ -1,0 +1,36 @@
+---
+category: customer
+labels: health, revenue
+---
+
+# Client Health Storyboard
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Health Overview" tone="success">
+    <p>Summarize account health posture and trend direction.</p>
+    <ComponentPreview component="HealthOverviewCard" status="ready" />
+  </Panel>
+  <Panel title="Signals Stream" tone="primary">
+    <p>Recent risk, deliverability, and churn-adjacent indicators.</p>
+    <ComponentPreview component="SignalsStream" status="in-progress" />
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="2" gap="12">
+  <Quadrant label="Q1: Engagement" emphasis="medium">
+    <p>Login cadence and active usage behavior.</p>
+    <ComponentPreview component="EngagementPulse" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q2: Stability" emphasis="high">
+    <p>Workflow reliability and SLA consistency.</p>
+    <ComponentPreview component="StabilityGauge" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q3: Revenue Risk" emphasis="critical">
+    <p>Billing anomalies, retry pressure, and collections drift.</p>
+    <ComponentPreview component="RevenueRiskPanel" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q4: Expansion" emphasis="low">
+    <p>Cross-sell readiness and roadmap alignment opportunities.</p>
+    <ComponentPreview component="ExpansionSignals" status="planned" />
+  </Quadrant>
+</LayoutGrid>

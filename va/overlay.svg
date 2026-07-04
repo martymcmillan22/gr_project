@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 742 742">
+<style>a ellipse{fill:transparent}a:hover ellipse{fill:rgba(255,255,0,.25);stroke:#ff0;stroke-width:2}</style>
+<image href="base-true.png" width="742" height="742"/>
+<a href="/center/grid/harvestcrops/" aria-label="Number 12"><ellipse cx="300" cy="175" rx="28" ry="28"/></a>
+<a href="/center/grid/bop/" aria-label="Number 4"><ellipse cx="130" cy="335" rx="28" ry="28"/></a>
+<a href="/center/grid/monuments/" aria-label="Number 8"><ellipse cx="335" cy="330" rx="28" ry="28"/></a>
+<a href="/center/grid/bos/" aria-label="Number 1"><ellipse cx="445" cy="175" rx="28" ry="28"/></a>
+<a href="/center/grid/library/" aria-label="Number 5"><ellipse cx="445" cy="335" rx="28" ry="28"/></a>
+<a href="/center/grid/grassroots/" aria-label="Number 9"><ellipse cx="575" cy="335" rx="28" ry="28"/></a>
+<a href="/center/grid/agendatime/" aria-label="Number 11"><ellipse cx="145" cy="460" rx="28" ry="28"/></a>
+<a href="/center/grid/nuseum/" aria-label="Number 7"><ellipse cx="315" cy="455" rx="28" ry="28"/></a>
+<a href="/center/grid/boe/" aria-label="Number 3"><ellipse cx="325" cy="625" rx="28" ry="28"/></a>
+<a href="/center/grid/duseum/" aria-label="Number 6"><ellipse cx="455" cy="445" rx="28" ry="28"/></a>
+<a href="/center/grid/pj's/" aria-label="Number 10"><ellipse cx="585" cy="445" rx="28" ry="28"/></a>
+<a href="/center/grid/bol/" aria-label="Number 2"><ellipse cx="465" cy="625" rx="28" ry="28"/></a>
+</svg>

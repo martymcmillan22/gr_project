@@ -1,0 +1,63 @@
+.homepage {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.homepage-card {
+  border: 1px solid #d9ddcf;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.homepage-dashboard-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.homepage-dashboard-card strong {
+  font-size: 1.2rem;
+}
+
+.homepage-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: #0e7a4c;
+}
+
+.homepage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.homepage-actions button {
+  border: 1px solid #d9ddcf;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.homepage-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.homepage-task-list li {
+  border-bottom: 1px dashed #d9ddcf;
+  padding-bottom: 0.55rem;
+}
+
+.homepage-task-list p {
+  margin: 0.2rem 0 0;
+}

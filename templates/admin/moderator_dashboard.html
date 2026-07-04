@@ -1,0 +1,342 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<style>
+  .bt-rail.bt-rail-collapsed {
+    display: block;
+    padding: 8px 10px;
+    margin: 0 0 14px auto;
+    width: fit-content;
+    max-height: none;
+    overflow: visible;
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+  }
+
+  .bt-rail.bt-rail-collapsed summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .bt-rail.bt-rail-collapsed summary::after {
+    content: "Open";
+    font-size: 0.72rem;
+    opacity: 0.85;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] summary::after {
+    content: "Close";
+  }
+
+  .bt-rail.bt-rail-collapsed:not([open]) a,
+  .bt-rail.bt-rail-collapsed:not([open]) button,
+  .bt-rail.bt-rail-collapsed:not([open]) .bt-rail-health {
+    display: none;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] {
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+  }
+</style>
+
+<details class="bt-rail bt-rail-collapsed" aria-label="Moderator shortcuts">
+  <summary>Moderator Shortcuts</summary>
+  <a href="#bt-mod-top">Top</a>
+  <a href="#bt-mod-kpis">KPIs</a>
+  <a href="#bt-mod-health">Health</a>
+  <a href="#bt-mod-community">Community</a>
+  <a href="#bt-mod-sentiment">Sentiment</a>
+  <a href="#bt-mod-alerts">Alerts</a>
+  <a href="{% url 'admin:basetrue-insights' %}">Insights Layer</a>
+  <a href="{% url 'admin:dashboard' %}">Platform</a>
+  <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
+  <a href="{% url 'admin:operator-dashboard' %}">Operator</a>
+  <a href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+  <button type="button" id="bt-theme-toggle">Theme</button>
+</details>
+
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="/forums/" title="Go to forums">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-mod-top">Moderator Dashboard</h1>
+    <p class="bt-brand-sub">Forums + Community Analytics</p>
+  </div>
+</div>
+<p>Community moderation center for engagement patterns, contributor balance, and recent moderation activity.</p>
+
+<h2 class="bt-section bt-q-yellow" id="bt-mod-kpis">Community KPIs</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  <section class="bt-card bt-q-yellow">
+    <h3>Total Posts</h3>
+    <p class="bt-metric">{{ forum_total }}</p>
+    <p class="bt-note">All posts across City, State, National, and Global forums.</p>
+  </section>
+  <section class="bt-card bt-q-blue">
+    <h3>Posts (7d)</h3>
+    <p class="bt-metric">{{ forum_posts_7d }}</p>
+    <p class="bt-note">Recent weekly post flow.</p>
+  </section>
+  <section class="bt-card bt-q-green">
+    <h3>Unique Authors (30d)</h3>
+    <p class="bt-metric">{{ unique_authors_30d }}</p>
+    <p class="bt-note">Distinct contributors in the last month.</p>
+  </section>
+  <section class="bt-card bt-q-red">
+    <h3>Moderation Actions (7d)</h3>
+    <p class="bt-metric">{{ moderation_actions_7d }}</p>
+    <p class="bt-note">Admin actions recorded on forums content.</p>
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-green" id="bt-mod-health">Moderator Community Health Scoring</h2>
+<section class="bt-flow-panel bt-q-green" style="margin-bottom:22px;">
+  <h3>{{ moderator_community_health.label }}</h3>
+  <p class="bt-note">{{ moderator_community_health.note }}</p>
+  <div class="bt-health-row" style="margin-top:0; margin-bottom:12px;">
+    <span class="bt-health-score-badge bt-threshold-{{ moderator_community_health.threshold_key }}">Score {{ moderator_community_health.score }}/100</span>
+    <span class="bt-health-trend-arrow bt-trend-{{ moderator_community_health.trend }}">{{ moderator_community_health.trend_symbol }} {{ moderator_community_health.delta }}</span>
+    <span class="bt-health-score-badge bt-quadrant-{{ moderator_community_health.quadrant_key }}">{{ moderator_community_health.quadrant_label }}</span>
+  </div>
+  <p class="bt-note">Delta basis: {{ moderator_community_health.delta_basis }}</p>
+  <div class="bt-ratio-wrap">
+    <p class="bt-note">Community health score</p>
+    <div class="bt-ratio-track">
+      <div class="bt-ratio-fill-task" style="width:{{ moderator_community_health.score }}%;"></div>
+    </div>
+    <div class="bt-ratio-legend">
+      <span>Score {{ moderator_community_health.score }}/100</span>
+      <span>Engagement, diversity, sentiment, governance</span>
+    </div>
+  </div>
+
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Score Components</h3>
+      {% for component in moderator_community_health.components %}
+        <p class="bt-twist-row bt-health-component-chip bt-quadrant-{{ component.quadrant_key }}"><span>{{ component.label }} · {{ component.quadrant_label }}</span><strong>{{ component.score }}/25</strong></p>
+        <p class="bt-note"><span class="bt-health-trend-arrow bt-trend-{{ component.trend }}">{{ component.trend_symbol }} {{ component.delta }}</span> · {{ component.delta_basis }}</p>
+        <p class="bt-note">{{ component.detail }}</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Health Watchlist</h3>
+      {% for item in moderator_community_health.watchlist %}
+        <p class="bt-note">{{ item }}</p>
+      {% empty %}
+        <p class="bt-note">No immediate community health watch items.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-mod-community">Community Distribution</h2>
+<div class="bt-twist-split" style="margin-bottom:22px;">
+  <section class="bt-twist-box">
+    <h3>Forum Type Mix</h3>
+    {% for row in forum_mix %}
+      <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }} ({{ row.pct }}%)</a></strong></p>
+    {% empty %}
+      <p class="bt-note">No forum type distribution available.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Top Contributors</h3>
+    {% for row in top_authors %}
+      <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+    {% empty %}
+      <p class="bt-note">No contributor activity available.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Moderator Deep Links</h3>
+    <div class="bt-analytics-links">
+      {% for link in forum_deep_links %}
+        <a class="bt-analytics-link" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
+      {% empty %}
+        <p class="bt-note">No deep links configured.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<section class="bt-twist-box" style="margin-bottom:22px;">
+  <h3>Community Timeline (14d)</h3>
+  <div class="bt-mini-timeline">
+    {% for row in community_timeline %}
+      <div class="bt-mini-col" title="{{ row.day }}: {{ row.count }}">
+        <a class="bt-mini-link" href="{{ row.url }}">
+          <div class="bt-mini-bar-wrap">
+            <div class="bt-mini-bar" style="height:{{ row.pct }}%;"></div>
+          </div>
+          <span>{{ row.day }}</span>
+        </a>
+      </div>
+    {% empty %}
+      <p class="bt-note">No timeline data available.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-mod-sentiment">Moderator Sentiment Analytics</h2>
+<section class="bt-flow-panel bt-q-green">
+  <h3>{{ moderator_sentiment.sentiment_focus.label }}</h3>
+  <p class="bt-note">{{ moderator_sentiment.sentiment_focus.summary }}</p>
+  <div class="bt-flow-grid">
+    {% for row in moderator_sentiment.sentiment_totals %}
+      <article class="bt-flow-chip">
+        <span>{{ row.label }}</span>
+        <strong>{{ row.count }}</strong>
+      </article>
+    {% endfor %}
+  </div>
+  <div class="bt-sentiment-panel">
+    <div class="bt-mini-trend-head">
+      <span>14-Day Sentiment Trend</span>
+      <strong>Net {{ moderator_sentiment.sentiment_insights.0.value }}</strong>
+    </div>
+    <div class="bt-mini-trend-chart" aria-label="Fourteen day sentiment trend">
+      {% for row in moderator_sentiment.sentiment_timeline %}
+        <div class="bt-mini-trend-bar-wrap" title="{{ row.day }}: {{ row.score }} sentiment">
+          {% if row.score > 0 %}
+            <div class="bt-sentiment-bar bt-sentiment-positive" style="height:{{ row.pct }}%;"></div>
+          {% elif row.score < 0 %}
+            <div class="bt-sentiment-bar bt-sentiment-negative" style="height:{{ row.pct }}%;"></div>
+          {% else %}
+            <div class="bt-sentiment-bar bt-sentiment-neutral" style="height:{{ row.pct }}%;"></div>
+          {% endif %}
+          <span>{{ row.day }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="bt-twist-split" style="margin-top:14px;">
+    <section class="bt-twist-box">
+      <h3>Sentiment Insights</h3>
+      {% for insight in moderator_sentiment.sentiment_insights %}
+        <p class="bt-twist-row"><span>{{ insight.label }}</span><strong>{{ insight.value }}</strong></p>
+        <p class="bt-note">{{ insight.secondary }}</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Notable Posts</h3>
+      {% for post in moderator_sentiment.sentiment_posts %}
+        <p class="bt-twist-row"><span>{{ post.title }}</span><strong>{{ post.label }} · {{ post.score }}</strong></p>
+        <p class="bt-note">{{ post.author }} · {{ post.forum_type }}</p>
+      {% empty %}
+        <p class="bt-note">No sentiment-scored posts available.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Most Polarized Posts</h3>
+      {% if moderator_sentiment.sentiment_top_positive %}
+        <p class="bt-twist-row"><span>Most positive</span><strong><a class="bt-inline-link" href="{{ moderator_sentiment.sentiment_top_positive.url }}" target="_blank" rel="noopener">{{ moderator_sentiment.sentiment_top_positive.title }}</a></strong></p>
+      {% endif %}
+      {% if moderator_sentiment.sentiment_top_negative %}
+        <p class="bt-twist-row"><span>Most negative</span><strong><a class="bt-inline-link" href="{{ moderator_sentiment.sentiment_top_negative.url }}" target="_blank" rel="noopener">{{ moderator_sentiment.sentiment_top_negative.title }}</a></strong></p>
+      {% endif %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow" id="bt-mod-escalation">Escalation Workflows</h2>
+<section class="bt-flow-panel bt-q-yellow">
+  <h3>Moderator Escalation Engine</h3>
+  <div class="bt-twist-split">
+    {% for workflow in moderator_sentiment.escalation_workflows %}
+      <section class="bt-twist-box">
+        <h3>{{ workflow.label }}</h3>
+        <p class="bt-note">Priority: {{ workflow.priority }}</p>
+        <p class="bt-twist-row"><span>Trigger</span><strong>{{ workflow.trigger }}</strong></p>
+        <p class="bt-twist-row"><span>Action</span><strong>{{ workflow.action }}</strong></p>
+      </section>
+    {% empty %}
+      <section class="bt-twist-box">
+        <h3>No escalation needed</h3>
+        <p class="bt-note">Forum sentiment and moderation load are stable.</p>
+      </section>
+    {% endfor %}
+  </div>
+  <div class="bt-twist-box" style="margin-top:12px;">
+    <h3>Escalation Queue</h3>
+    {% for item in moderator_sentiment.escalation_queue %}
+      <p class="bt-twist-row"><span>{{ item.label }}</span><strong>{{ item.priority }}</strong></p>
+      <p class="bt-note">{{ item.detail }}</p>
+    {% empty %}
+      <p class="bt-note">No escalation queue items ready.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="bt-twist-split" style="margin-bottom:22px;">
+  <section class="bt-settings-panel bt-q-yellow" id="bt-mod-alerts">
+    <h3>Moderator Attention Queue</h3>
+    {% if moderator_alerts %}
+      <ul class="bt-flag-list" style="margin-bottom:0;">
+        {% for alert in moderator_alerts %}
+          <li class="bt-flag">{{ alert }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="bt-note">No active moderator alerts.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-settings-panel bt-q-blue">
+    <h3>Recent Community Posts</h3>
+    {% for post in recent_posts %}
+      <p class="bt-twist-row">
+        <span>{{ post.get_forum_type_display }} · {{ post.author }}</span>
+        <strong><a class="bt-inline-link" href="/admin/forums/forumpost/{{ post.id }}/change/">View</a></strong>
+      </p>
+    {% empty %}
+      <p class="bt-note">No recent posts available.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-settings-panel bt-q-green">
+    <h3>Recent Moderation Activity</h3>
+    {% for entry in moderation_activity %}
+      <p class="bt-twist-row">
+        <span>{{ entry.user }} · {{ entry.get_action_flag_display }}</span>
+        <strong>{{ entry.action_time|date:"M j" }}</strong>
+      </p>
+    {% empty %}
+      <p class="bt-note">No moderation actions recorded.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<p style="margin-top:20px;">
+  Back to <a href="{% url 'admin:dashboard' %}">platform dashboard</a>.
+</p>
+
+<script src="{% static 'admin/platform_dashboard.js' %}"></script>
+{% endblock %}

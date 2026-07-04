@@ -1,0 +1,5 @@
+code,name,level,parent_code,description,source_version
+10,Energy,sector,,Top-level sector row,DEMO-GICS-UNLICENSED
+1010,Energy Equipment and Services,industry_group,10,Industry group row,DEMO-GICS-UNLICENSED
+101010,Energy Equipment & Services,industry,1010,Industry row,DEMO-GICS-UNLICENSED
+10101010,Oil & Gas Equipment & Services,sub_industry,101010,Sub-industry row,DEMO-GICS-UNLICENSED

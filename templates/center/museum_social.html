@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Museum Social{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <h1 class="title is-3">Museum Social</h1>
+    <p class="subtitle is-6">Post in WPC: coordinate social media content for museum stories and exhibits.</p>
+    <div class="buttons">
+      <a class="button is-link is-light" href="{% url 'forums:state' %}">State Forum</a>
+      <a class="button is-light" href="{% url 'povs-home' %}">Open POVs</a>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Ready to Post (from Corporation)</h2>
+    {% if ready_to_post_items %}
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Priority</th>
+            <th>Approved At</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in ready_to_post_items %}
+          <tr>
+            <td>
+              <p class="has-text-weight-semibold">{{ item.title }}</p>
+              <p class="is-size-7">{{ item.description|default:"No description." }}</p>
+            </td>
+            <td>{{ item.get_item_type_display }}</td>
+            <td>{{ item.get_priority_display }}</td>
+            <td>{{ item.approved_at|default:"-" }}</td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit" class="button is-small is-link">Mark Posted</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="is-size-7">No approved items yet. Approve items in Corporation first.</p>
+    {% endif %}
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Recently Posted</h2>
+    {% if posted_items %}
+    <ul>
+      {% for item in posted_items|slice:":8" %}
+      <li>{{ item.title }} ({{ item.get_item_type_display }})</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="is-size-7">Nothing has been posted yet.</p>
+    {% endif %}
+  </div>
+
+  <a class="button is-light ml-2" href="{% url 'center:index' %}">Back to Center</a>
+</section>
+{% endblock %}

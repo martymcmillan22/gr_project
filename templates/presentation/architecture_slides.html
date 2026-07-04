@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incubation Ecosystem Slides</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+
+  <style>
+    :root {
+      --bg-a: #fcfaf2;
+      --bg-b: #f6f2dd;
+      --ink: #1c2a2f;
+      --accent: #0c6d8c;
+      --accent-2: #b44911;
+      --warm: #f2b21f;
+      --cool: #2b8a9e;
+      --line: rgba(28, 42, 47, 0.2);
+    }
+
+    body {
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(12, 109, 140, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(180, 73, 17, 0.1), transparent 35%),
+        linear-gradient(135deg, var(--bg-a), var(--bg-b));
+    }
+
+    .reveal {
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--ink);
+    }
+
+    .reveal h1,
+    .reveal h2,
+    .reveal h3 {
+      text-transform: none;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+
+    .reveal h1 {
+      font-size: 2.2rem;
+    }
+
+    .reveal h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .reveal p,
+    .reveal li {
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .reveal code {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem;
+      background: rgba(28, 42, 47, 0.08);
+      padding: 0.15rem 0.3rem;
+      border-radius: 0.2rem;
+    }
+
+    .reveal .slides section {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.2rem 1.6rem;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(1px);
+      box-shadow: 0 8px 24px rgba(28, 42, 47, 0.08);
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+
+    .chip {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: white;
+    }
+
+    .chip.raw { border-color: #9f2d2d; color: #9f2d2d; }
+    .chip.seed { border-color: #916000; color: #916000; }
+    .chip.business { border-color: #146b2e; color: #146b2e; }
+
+    .panel {
+      border-left: 5px solid var(--accent);
+      padding: 0.5rem 0.8rem;
+      margin-top: 0.8rem;
+      background: rgba(12, 109, 140, 0.08);
+      border-radius: 8px;
+    }
+
+    .panel.warn {
+      border-left-color: var(--accent-2);
+      background: rgba(180, 73, 17, 0.09);
+    }
+
+    .lattice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.35rem;
+      margin-top: 0.8rem;
+      font-size: 0.52rem;
+    }
+
+    .lattice-cell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.25rem 0.35rem;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .hint {
+      margin-top: 0.8rem;
+      font-size: 0.6rem;
+      color: #334a52;
+    }
+
+    @media (max-width: 900px) {
+      .reveal h1 { font-size: 1.6rem; }
+      .reveal h2 { font-size: 1.3rem; }
+      .reveal p, .reveal li { font-size: 0.75rem; }
+      .reveal .slides section { padding: 1rem; }
+      .lattice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h1>Incubation Ecosystem</h1>
+        <p>Architecture-driven slides for UI and frontend planning.</p>
+        <div class="chip-row">
+          <span class="chip raw">RAW</span>
+          <span class="chip seed">SEED</span>
+          <span class="chip business">BUSINESS</span>
+        </div>
+        <div class="panel">
+          This deck is generated from the same architecture language used in backend planning, so product, design, and engineering stay aligned.
+        </div>
+      </section>
+
+      <section>
+        <h2>Lifecycle Model</h2>
+        <ul>
+          <li>Phase 1: capture ideas as <code>RAW</code> with dynamic industry mapping.</li>
+          <li>Phase 2: validate and enrich into <code>SEED</code> using JSON metadata.</li>
+          <li>Phase 3: transform into <code>BUSINESS</code> through guarded execution.</li>
+        </ul>
+        <div class="panel warn">
+          UI requirement: all screens must visually communicate status progression and readiness gates.
+        </div>
+      </section>
+
+      <section>
+        <h2>ERD - Idea to Business</h2>
+        <div class="mermaid">
+          erDiagram
+              INDUSTRY ||--o{ IDEA : contains
+              USER ||--o{ IDEA : submits
+              IDEA ||--|| SEED : matures_into
+              SEED ||--|| BUSINESS : launches_as
+
+              IDEA {
+                  int id
+                  string raw_content
+                  string status "RAW, SEED, BUSINESS"
+              }
+
+              SEED {
+                  int id
+                  jsonb polish_notes
+              }
+        </div>
+      </section>
+
+      <section>
+        <h2>Workflow - Incubation Engine</h2>
+        <div class="mermaid">
+          sequenceDiagram
+              participant User
+              participant System as IncubationEngine
+              participant DB as PostgreSQL
+
+              User->>System: Submit Raw Idea
+              System->>DB: Save RAW Idea
+              System-->>User: Idea Captured
+
+              User->>System: Refine Idea
+              System->>DB: Validate and promote to SEED
+
+              System->>DB: Transform validated SEED
+              System-->>User: BUSINESS launch ready
+        </div>
+      </section>
+
+      <section>
+        <h2>12-Compartment Lattice</h2>
+        <div class="mermaid">
+          graph LR
+              C1[1 Math 4] --> C2[2 Language 16]
+              C2 --> C3[3 Arts 64]
+              C3 --> C4[4 Science 256]
+              C4 --> C5[5 General Info 1024]
+              C5 --> C6[6 Literature 4096]
+              C6 --> C7[7 Crafts 16384]
+              C7 --> C8[8 Technology 65536]
+              C8 --> C9[9 History 262144]
+              C9 --> C10[10 Geology 1048576]
+              C10 --> C11[11 Philosophy Ethics 4194304]
+              C11 --> C12[12 Systems Synthesis 16777216]
+        </div>
+        <p class="hint">Capacity follows geometric progression: 4^n by compartment index.</p>
+      </section>
+
+      <section>
+        <h2>Lattice as UI Layout Logic</h2>
+        <p>Frontend components can align with the lattice by mapping screen zones, density, and interaction depth to compartment capacity.</p>
+        <div class="lattice-grid">
+          <div class="lattice-cell">1 Red Past Math 4</div>
+          <div class="lattice-cell">2 Blue Present/Past Language 16</div>
+          <div class="lattice-cell">3 Yellow Present/Future Arts 64</div>
+          <div class="lattice-cell">4 Green Future Science 256</div>
+          <div class="lattice-cell">5 Purple Past General Info 1024</div>
+          <div class="lattice-cell">6 Teal Present/Past Literature 4096</div>
+          <div class="lattice-cell">7 Orange Present/Future Crafts 16384</div>
+          <div class="lattice-cell">8 Lime Future Technology 65536</div>
+          <div class="lattice-cell">9 Pink Past History 262144</div>
+          <div class="lattice-cell">10 Cyan Present/Past Geology 1048576</div>
+          <div class="lattice-cell">11 Amber Present/Future Philosophy/Ethics 4194304</div>
+          <div class="lattice-cell">12 Green-Lime Future Systems/Synthesis 16777216</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Frontend Design Sprint Targets</h2>
+        <ul>
+          <li>Status-aware cards: RAW, SEED, BUSINESS visual language.</li>
+          <li>Industry filter and lattice compartment selector in capture flow.</li>
+          <li>Cross-reference explorer with score and relationship filters.</li>
+          <li>Readiness checklist panel tied to SEED metadata constraints.</li>
+        </ul>
+        <div class="panel">
+          Suggested first screen: Idea Capture + Lattice Selector + Similar Idea Candidates.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      transition: "slide",
+      center: true,
+    });
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      securityLevel: "loose",
+      themeVariables: {
+        primaryColor: "#ffffff",
+        primaryTextColor: "#1c2a2f",
+        lineColor: "#2b8a9e",
+        fontFamily: "Space Grotesk",
+      }
+    });
+  </script>
+</body>
+</html>

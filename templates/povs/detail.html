@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}POVs — {{ expo_fact.title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <a href="{% url 'povs-home' %}" class="button is-light mb-5">← Back to POVs</a>
+    {% if expo_fact.created_by == user %}
+    <a href="{% url 'povs-edit' expo_fact.pk %}" class="button is-light is-small mb-5 ml-2">Edit this POV set</a>
+    {% endif %}
+    {% if pov.updated_at and pov.first_person %}
+    <p class="is-size-7 has-text-grey mb-4">Last updated {{ pov.updated_at|date:"M j, Y g:i A" }}</p>
+    {% endif %}
+
+    <!-- RED: Expository Facts (staff-posted, read-only) -->
+    <article class="message is-danger mb-6">
+      <div class="message-header">
+        <p>Expository Facts (Red)</p>
+        <span class="is-size-7">{{ expo_fact.created_at|date:"M j, Y" }}</span>
+      </div>
+      <div class="message-body">
+        {{ expo_fact.content|linebreaksbr }}
+      </div>
+    </article>
+
+    <!-- BLUE: First Person Description — always available -->
+    <article class="message is-link mb-6">
+      <div class="message-header">
+        <p>1 — First Person Description (Blue)</p>
+        {% if pov.first_person_at %}
+        <span class="tag is-white has-text-link">Saved {{ pov.first_person_at|date:"M j, Y g:i A" }}</span>
+        {% endif %}
+      </div>
+      <div class="message-body">
+        <p class="mb-4">In your own words, describe your personal perspective on these facts.</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="stage" value="first_person">
+          <div class="field">
+            <div class="control">
+              {{ first_person_form.first_person }}
+            </div>
+            {% if first_person_form.first_person.errors %}
+            <p class="help is-danger">{{ first_person_form.first_person.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          <button type="submit" class="button is-link mt-2">
+            {% if pov.first_person %}Update{% else %}Save{% endif %} description
+          </button>
+        </form>
+      </div>
+    </article>
+
+    <!-- GREEN: Prediction — requires Blue -->
+    {% if prediction_form %}
+    <article class="message is-success mb-6">
+      <div class="message-header">
+        <p>2 — Prediction (Green) <span class="tag is-white has-text-grey ml-2">Optional</span></p>
+        {% if pov.prediction_at %}
+        <span class="tag is-white has-text-success">Saved {{ pov.prediction_at|date:"M j, Y g:i A" }}</span>
+        {% endif %}
+      </div>
+      <div class="message-body">
+        <p class="mb-4">Based on the facts and your first-person perspective, what do you predict will happen?</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="stage" value="prediction">
+          <div class="field">
+            <div class="control">
+              {{ prediction_form.prediction }}
+            </div>
+            {% if prediction_form.prediction.errors %}
+            <p class="help is-danger">{{ prediction_form.prediction.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          <button type="submit" class="button is-success mt-2">
+            {% if pov.prediction %}Update{% else %}Save{% endif %} prediction
+          </button>
+        </form>
+      </div>
+    </article>
+    {% else %}
+    <div class="notification is-success is-light mb-6">
+      <strong>Prediction (Green) — Optional</strong><br>
+      Complete your first person description above to unlock this stage.
+    </div>
+    {% endif %}
+
+    <!-- YELLOW: Play The Publicist — requires Green -->
+    {% if narrative_form %}
+    <article class="message is-warning mb-6">
+      <div class="message-header">
+        <p>3 — Play The Publicist (Yellow) <span class="tag is-white has-text-grey ml-2">Optional</span></p>
+        {% if pov.narrative_at %}
+        <span class="tag is-white has-text-warning-dark">Saved {{ pov.narrative_at|date:"M j, Y g:i A" }}</span>
+        {% endif %}
+      </div>
+      <div class="message-body">
+        <p class="mb-4"><strong>If you were their publicist, what would you advise them to do?</strong> Craft a narrative for them.</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="stage" value="narrative">
+          <div class="field">
+            <div class="control">
+              {{ narrative_form.narrative }}
+            </div>
+            {% if narrative_form.narrative.errors %}
+            <p class="help is-danger">{{ narrative_form.narrative.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          <button type="submit" class="button is-warning mt-2">
+            {% if pov.narrative %}Update{% else %}Save{% endif %} narrative
+          </button>
+        </form>
+      </div>
+    </article>
+    {% elif pov.can_predict %}
+    <div class="notification is-warning is-light mb-6">
+      <strong>Play The Publicist (Yellow) — Optional</strong><br>
+      Save your prediction above to unlock this stage.
+    </div>
+    {% endif %}
+
+    <!-- GREEN-LIME: Probable Outcome — attaches to narrative only -->
+    {% if probable_outcome_form %}
+    <article class="message is-primary mb-6">
+      <div class="message-header">
+        <p>4 — Probable Outcome (Green-Lime) <span class="tag is-white has-text-grey ml-2">Optional</span></p>
+        {% if pov.probable_outcome_at %}
+        <span class="tag is-white has-text-primary">Saved {{ pov.probable_outcome_at|date:"M j, Y g:i A" }}</span>
+        {% endif %}
+      </div>
+      <div class="message-body">
+        <p class="mb-4">Given the publicist narrative above, what is the most probable outcome?</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="stage" value="probable_outcome">
+          <div class="field">
+            <div class="control">
+              {{ probable_outcome_form.probable_outcome }}
+            </div>
+            {% if probable_outcome_form.probable_outcome.errors %}
+            <p class="help is-danger">{{ probable_outcome_form.probable_outcome.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          <button type="submit" class="button is-primary mt-2">
+            {% if pov.probable_outcome %}Update{% else %}Save{% endif %} outcome
+          </button>
+        </form>
+      </div>
+    </article>
+    {% elif pov.can_narrate %}
+    <div class="notification is-primary is-light mb-6">
+      <strong>Probable Outcome (Green-Lime) — Optional</strong><br>
+      Save your publicist narrative above to unlock this stage.
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

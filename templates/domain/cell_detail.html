@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cell.label }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cell-hero {
+    border-left: 8px solid {{ cell.color }};
+    background: linear-gradient(135deg, {{ cell.color_tint }} 0%, #ffffff 100%);
+  }
+
+  .cell-meta-chip {
+    display: inline-block;
+    margin: 0.2rem 0.35rem 0.2rem 0;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .cell-object {
+    border-left: 4px solid {{ cell.color }};
+    background: #ffffff;
+  }
+
+  .cell-accent {
+    color: {{ cell.color }};
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cell-hero {
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.93) 0%, rgba(28, 28, 28, 0.95) 100%);
+      border-left-color: {{ cell.color }};
+    }
+
+    .cell-meta-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f0f0f0;
+    }
+
+    .cell-object {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: {{ cell.color }};
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box cell-hero">
+    <p class="is-size-7 has-text-weight-semibold cell-accent mb-2">{{ profile_name }} Cell</p>
+    <h1 class="title is-3 mb-2">{{ cell.label }}</h1>
+    <p class="subtitle is-6 mb-3">{{ cell.subject }}</p>
+
+    <div>
+      <span class="cell-meta-chip">Time: {{ cell.time }}</span>
+      <span class="cell-meta-chip">SRL: {{ cell.srl }}</span>
+      <span class="cell-meta-chip">Color: {{ cell.color_name }}</span>
+    </div>
+    {% if cell.label == "Analyze" or cell.label == "Evaluate" %}
+    <p class="is-size-7 mt-3 mb-0">This compartment is locked so the analyze/evaluate boundary stays consistent for every account.</p>
+    {% endif %}
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Object Representations</h2>
+    <p class="is-size-7 mb-4">Placeholder representations are shown below and can be replaced when object definitions are finalized.</p>
+
+    <div class="columns is-multiline">
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Primary Object</p>
+          <p class="is-size-7">A core object representation for {{ cell.label }}.</p>
+        </article>
+      </div>
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Secondary Object</p>
+          <p class="is-size-7">A linked object representation related to {{ cell.subject }}.</p>
+        </article>
+      </div>
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Archive Object</p>
+          <p class="is-size-7">A record object keyed to {{ cell.time }} and SRL {{ cell.srl }}.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <a class="button is-light" href="{% url 'domain:index' %}">Back to Domain</a>
+</section>
+{% endblock %}

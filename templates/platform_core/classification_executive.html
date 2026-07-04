@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Executive Classification Console</title>
+  <style>
+    :root {
+      --ink: #1f2430;
+      --muted: #5d677a;
+      --line: #d9dee8;
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --green: #1e8e3e;
+      --yellow: #b26a00;
+      --red: #c62828;
+      --blue: #1d4ed8;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Avenir Next", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% 0, #e9f2ff 0, transparent 35%), var(--bg);
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.2rem;
+      display: grid;
+      gap: 1rem;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    h1, h2 {
+      margin: 0;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.75rem;
+    }
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.7rem;
+      background: #fdfefe;
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .kpi-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+    .kpi-hint {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+    .chip {
+      display: inline-block;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.78rem;
+      border: 1px solid var(--line);
+    }
+    .chip.ready { background: #e7f7eb; color: var(--green); }
+    .chip.progress { background: #fff4e5; color: var(--yellow); }
+    .chip.heat-green { background: #e7f7eb; color: var(--green); }
+    .chip.heat-yellow { background: #fff4e5; color: var(--yellow); }
+    .chip.heat-red { background: #fde8e8; color: var(--red); }
+    .bands {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    .band {
+      border-radius: 10px;
+      padding: 0.6rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .band.green { background: var(--green); }
+    .band.yellow { background: var(--yellow); }
+    .band.red { background: var(--red); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.6rem;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 0.45rem 0;
+      font-size: 0.92rem;
+    }
+    .emphasis { color: var(--blue); font-weight: 700; }
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.65rem;
+    }
+    .jump-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.3rem 0.7rem;
+      text-decoration: none;
+      color: var(--ink);
+      background: #f7faff;
+      font-weight: 600;
+      font-size: 0.86rem;
+    }
+    .jump-link:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #eef4ff;
+    }
+    .conflict-table td:last-child,
+    .conflict-table th:last-child {
+      text-align: right;
+    }
+    .heat-score {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0.2rem 0;
+    }
+    .mini-list {
+      margin-top: 0.6rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+    .mini-list a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dashed var(--line);
+      padding-bottom: 0.25rem;
+    }
+    .mini-list a:hover {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <h1>Executive Classification Console</h1>
+      <p class="subtitle">Governance surface for MLAS + Basetrue + Dewey/GICS/NAICS training readiness.</p>
+      <div class="kpi-grid">
+        <article class="kpi">
+          <div class="kpi-label">Term Progress</div>
+          <div class="kpi-value">{{ approved_term_count }}/{{ term_goal }}</div>
+          <div class="kpi-hint">{{ term_progress_pct }}% approved coverage</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Training Readiness</div>
+          <div class="kpi-value">
+            <span class="chip {% if training_readiness.status == 'Ready' %}ready{% else %}progress{% endif %}">{{ training_readiness.status }}</span>
+          </div>
+          <div class="kpi-hint">No red-band blockers required for ready state</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Reviewer Queue</div>
+          <div class="kpi-value">{{ reviewer_queue.candidate }}</div>
+          <div class="kpi-hint">Candidates pending review</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Draft Backlog</div>
+          <div class="kpi-value">{{ reviewer_queue.draft }}</div>
+          <div class="kpi-hint">Draft rows awaiting promotion</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Total Records</div>
+          <div class="kpi-value">{{ total_records }}</div>
+          <div class="kpi-hint">All classification rows</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Confidence Band Dashboard</h2>
+      <div class="bands">
+        <div class="band green">Green: {{ confidence_bands.green }}</div>
+        <div class="band yellow">Yellow: {{ confidence_bands.yellow }}</div>
+        <div class="band red">Red: {{ confidence_bands.red }}</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>External Alignment Report</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>System</th>
+            <th>Linked Records</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Dewey</td><td>{{ external_alignment.dewey }}</td></tr>
+          <tr><td>GICS (Sub-industry)</td><td>{{ external_alignment.gics }}</td></tr>
+          <tr><td>NAICS-6</td><td>{{ external_alignment.naics }}</td></tr>
+          <tr><td class="emphasis">Any External Link</td><td class="emphasis">{{ external_alignment.any }}</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Reference Dataset Sync</h2>
+      <p class="subtitle">Local reference copies for NAICS and licensed GICS import.</p>
+      {% if reference_sync.gics.source_status == "demo" %}
+        <p class="subtitle"><strong>Notice:</strong> GICS reference is running in demo mode (non-licensed source).</p>
+      {% elif reference_sync.gics.source_status == "missing" %}
+        <p class="subtitle"><strong>Notice:</strong> GICS reference is not loaded yet.</p>
+      {% endif %}
+      <table>
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Rows</th>
+            <th>Matched In Records</th>
+            <th>Last Sync</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NAICS</td>
+            <td>{{ reference_sync.naics.count }}</td>
+            <td>{{ reference_sync.naics.matched }}</td>
+            <td>{{ reference_sync.naics.last_updated|default:"Not synced" }}</td>
+            <td><a href="{{ admin_links.naics_reference }}">Open NAICS Reference</a></td>
+          </tr>
+          <tr>
+            <td>GICS</td>
+            <td>{{ reference_sync.gics.count }}</td>
+            <td>{{ reference_sync.gics.matched }}</td>
+            <td>{{ reference_sync.gics.last_updated|default:"Not synced" }} ({{ reference_sync.gics.source_status }})</td>
+            <td><a href="{{ admin_links.gics_reference }}">Open GICS Reference</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Bulk Action Console</h2>
+      <p class="subtitle">One-click jumps into pre-filtered admin queues for triage and correction.</p>
+      <div class="link-row">
+        <a class="jump-link" href="{{ admin_links.all }}">Open All Classification Records</a>
+        <a class="jump-link" href="{{ admin_links.red_band }}">Open Red-Band Records</a>
+        <a class="jump-link" href="{{ admin_links.candidate_queue }}">Open Candidate Queue</a>
+        <a class="jump-link" href="{{ admin_links.missing_external }}">Open Missing External Links</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Semantic Conflict Detector</h2>
+      <p class="subtitle">High-priority rule violations that can poison training quality.</p>
+      <table class="conflict-table">
+        <thead>
+          <tr>
+            <th>Conflict Rule</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="{{ admin_links.conflict_duplicate_term }}">Duplicate approved term code</a></td>
+            <td>{{ semantic_conflicts.duplicate_term }}</td>
+          </tr>
+          <tr>
+            <td><a href="{{ admin_links.conflict_duplicate_label }}">Duplicate approved Basetrue label</a></td>
+            <td>{{ semantic_conflicts.duplicate_label }}</td>
+          </tr>
+          <tr>
+            <td><a href="{{ admin_links.conflict_approved_missing_external }}">Approved missing external alignment</a></td>
+            <td>{{ semantic_conflicts.approved_missing_external }}</td>
+          </tr>
+          <tr>
+            <td><a href="{{ admin_links.conflict_term_with_meta }}">Term row has MetaTerm code</a></td>
+            <td>{{ semantic_conflicts.term_with_meta }}</td>
+          </tr>
+          <tr>
+            <td><a href="{{ admin_links.conflict_meta_missing_meta }}">Meta row missing MetaTerm code</a></td>
+            <td>{{ semantic_conflicts.meta_missing_meta }}</td>
+          </tr>
+          <tr>
+            <td class="emphasis">Total conflict hits</td>
+            <td class="emphasis">{{ semantic_conflicts.total }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Training Readiness Heat</h2>
+      <p class="subtitle">Weighted risk score with blocker-linked drill downs.</p>
+      <div class="kpi-grid">
+        <article class="kpi">
+          <div class="kpi-label">Heat Score</div>
+          <div class="heat-score">{{ training_readiness_heat.score }}</div>
+          <div class="kpi-hint">0-100 weighted readiness</div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Heat Status</div>
+          <div class="kpi-value">
+            <span class="chip heat-{{ training_readiness_heat.band }}">{{ training_readiness_heat.label }}</span>
+          </div>
+          <div class="kpi-hint">Band derived from weighted penalties</div>
+        </article>
+      </div>
+      <div class="mini-list">
+        <a href="{{ admin_links.heat_red_band }}">Red-band records: {{ training_readiness_heat.blockers.red_band_count }} (penalty {{ training_readiness_heat.penalties.red_band }})</a>
+        <a href="{{ admin_links.heat_conflicts }}">Semantic conflicts: {{ training_readiness_heat.blockers.semantic_conflict_total }} (penalty {{ training_readiness_heat.penalties.semantic_conflicts }})</a>
+        <a href="{{ admin_links.heat_candidate_backlog }}">Candidate backlog: {{ training_readiness_heat.blockers.candidate_backlog }} (penalty {{ training_readiness_heat.penalties.candidate_backlog }})</a>
+        <a href="{{ admin_links.heat_missing_external }}">Missing external links: {{ training_readiness_heat.blockers.missing_external_count }} (penalty {{ training_readiness_heat.penalties.missing_external }})</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

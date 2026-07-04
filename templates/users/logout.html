@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load bulma_tags %}
+
+{% block title %}Log out{% endblock %}
+
+{% block bodyclass %}has-background-light{% endblock %}
+
+{% block content %}
+<div class="box p-6">
+  <h1 class="title">Log out</h1>
+  <form class="login" method="POST" action="{% url 'logout' %}">
+    {% csrf_token %}
+    {{ form|bulma }}
+    <h1>Hope to see you soon</h1>
+    <div class="buttons">
+      <button class="button is-primary" type="submit">Log In</button>
+      <input type="hidden" name="next" value="{{ next }}"/>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

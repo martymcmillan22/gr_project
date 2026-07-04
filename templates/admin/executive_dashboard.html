@@ -1,0 +1,542 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<style>
+  .bt-rail.bt-rail-collapsed {
+    display: block;
+    padding: 8px 10px;
+    margin: 0 0 14px auto;
+    width: fit-content;
+    max-height: none;
+    overflow: visible;
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+  }
+
+  .bt-rail.bt-rail-collapsed summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .bt-rail.bt-rail-collapsed summary::after {
+    content: "Open";
+    font-size: 0.72rem;
+    opacity: 0.85;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] summary::after {
+    content: "Close";
+  }
+
+  .bt-rail.bt-rail-collapsed:not([open]) a,
+  .bt-rail.bt-rail-collapsed:not([open]) button,
+  .bt-rail.bt-rail-collapsed:not([open]) .bt-rail-health {
+    display: none;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] {
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+  }
+</style>
+
+<details class="bt-rail bt-rail-collapsed" aria-label="Executive shortcuts">
+  <summary>Executive Shortcuts</summary>
+  <a href="#bt-exec-top">Top</a>
+  <a href="#bt-exec-kpis">KPIs</a>
+  <a href="#bt-exec-trends">Trends</a>
+  <a href="#bt-exec-planning">Planning</a>
+  <a href="#bt-exec-quadrants">Quadrants</a>
+  <a href="#bt-exec-matrix">Risk Matrix</a>
+  <a href="#bt-exec-growth">Growth</a>
+  <a href="#bt-exec-users">Users</a>
+  <a href="#bt-exec-semantic">Semantic</a>
+  <a href="#bt-exec-risks">Risks</a>
+  <a href="{% url 'admin:basetrue-insights' %}">Insights Layer</a>
+  <a href="{% url 'admin:dashboard' %}">Platform</a>
+  <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
+  <a href="{% url 'admin:operator-dashboard' %}">Operator</a>
+  <a href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+  <button type="button" id="bt-theme-toggle">Theme</button>
+</details>
+
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="/admin/" title="Go to admin home">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-exec-top">Executive Dashboard</h1>
+    <p class="bt-brand-sub">Leadership Summary</p>
+  </div>
+</div>
+<p>High-level operating summary for leadership: system health, trend direction, risk hotspots, and priority app status.</p>
+
+<h2 class="bt-section bt-q-red" id="bt-exec-kpis">Leadership KPIs</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  <section class="bt-card bt-q-red">
+    <h3>Total Users</h3>
+    <p class="bt-metric">{{ users_total }}</p>
+    <p class="bt-note">Total registered platform users.</p>
+  </section>
+  <section class="bt-card bt-q-blue">
+    <h3>Staff Users</h3>
+    <p class="bt-metric">{{ users_staff }}</p>
+    <p class="bt-note">Users with staff-level access.</p>
+  </section>
+  <section class="bt-card bt-q-yellow">
+    <h3>Active Apps</h3>
+    <p class="bt-metric">{{ app_control_panels|length }}</p>
+    <p class="bt-note">Apps in the control center footprint.</p>
+  </section>
+  <section class="bt-card bt-q-green">
+    <h3>7d Activity</h3>
+    <p class="bt-metric">{{ activity_rows|length }}</p>
+    <p class="bt-note">Trailing weekly admin activity window.</p>
+  </section>
+</div>
+
+<div class="bt-grid" style="margin:0 0 22px;">
+  <section class="bt-card bt-q-blue">
+    <h3>Roles</h3>
+    <p class="bt-metric">{{ roles_total }}</p>
+    <p class="bt-note">Permission groups configured.</p>
+  </section>
+  <section class="bt-card bt-q-yellow">
+    <h3>Permissions</h3>
+    <p class="bt-metric">{{ permissions_total }}</p>
+    <p class="bt-note">Permission rows in auth.</p>
+  </section>
+  <section class="bt-card bt-q-red">
+    <h3>Pipeline Conversion</h3>
+    <p class="bt-metric">{{ trend_summary.pipeline.overall_conversion_rate }}%</p>
+    <p class="bt-note">Twist → Seeds → Flow → Taskboard → Career.</p>
+  </section>
+  <section class="bt-card bt-q-green">
+    <h3>Health Flags</h3>
+    <p class="bt-metric">{{ health_legend.flags }}</p>
+    <p class="bt-note">Open attention items across the portfolio.</p>
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-blue" id="bt-exec-trends">Trend Summary</h2>
+<section class="bt-flow-panel bt-q-blue">
+  <h3>Portfolio Trend Snapshot</h3>
+  <div class="bt-flow-grid">
+    <article class="bt-flow-chip">
+      <span>Green / Yellow / Red</span>
+      <strong>{{ trend_summary.health_legend.green }} / {{ trend_summary.health_legend.yellow }} / {{ trend_summary.health_legend.red }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Up / Flat / Down</span>
+      <strong>{{ trend_summary.health_legend.up }} / {{ trend_summary.health_legend.flat }} / {{ trend_summary.health_legend.down }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Pipeline Bottleneck</span>
+      <strong>{{ trend_summary.pipeline.bottleneck.label }}</strong>
+    </article>
+  </div>
+  <div class="bt-mini-trend-panel">
+    <div class="bt-mini-trend-head">
+      <span>7-Day Activity Trend</span>
+      <strong>{{ trend_peak.day }} · {{ trend_peak.count }} actions</strong>
+    </div>
+    <div class="bt-mini-trend-chart" aria-label="Seven day activity trend" data-mini-trend-chart>
+      {% for point in executive_trend_chart %}
+        <div
+          class="bt-mini-trend-bar-wrap"
+          title="{{ point.day }}: {{ point.count }} actions"
+          role="button"
+          tabindex="0"
+          aria-pressed="false"
+          data-trend-day="{{ point.day }}"
+          data-trend-count="{{ point.count }}"
+          data-trend-pct="{{ point.pct }}"
+        >
+          <div class="bt-mini-trend-bar" style="height:{{ point.height_pct }}%;"></div>
+          <span>{{ point.day }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="bt-mini-trend-summary" data-mini-trend-summary>
+      <div>
+        <span>Selected Day</span>
+        <strong data-mini-trend-day>{{ trend_peak.day }}</strong>
+      </div>
+      <div>
+        <span>Actions</span>
+        <strong data-mini-trend-count>{{ trend_peak.count }}</strong>
+      </div>
+      <div>
+        <span>Share of Peak</span>
+        <strong data-mini-trend-pct>{{ trend_peak.pct }}%</strong>
+      </div>
+    </div>
+  </div>
+  <div class="bt-ratio-wrap">
+    <p class="bt-note">Executive view of operational momentum</p>
+    <div class="bt-ratio-track">
+      {% widthratio trend_summary.pipeline.overall_conversion_rate 100 100 as exec_trend_pct %}
+      <div class="bt-ratio-fill-flow" style="width:{{ exec_trend_pct }}%;"></div>
+    </div>
+    <div class="bt-ratio-legend">
+      <span>Conversion {{ trend_summary.pipeline.overall_conversion_rate }}%</span>
+      <span>Drop-off {{ trend_summary.pipeline.bottleneck.dropoff_pct }}%</span>
+    </div>
+  </div>
+  <div class="bt-flow-links">
+    <a class="bt-flow-link" href="{% url 'admin:operator-dashboard' %}">Operator Dashboard</a>
+    <a class="bt-flow-link" href="{% url 'admin:moderator-dashboard' %}">Moderator Dashboard</a>
+    <a class="bt-flow-link" href="{% url 'admin:dashboard' %}">Platform Dashboard</a>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green">Portfolio Forecast</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  <section class="bt-card bt-q-green">
+    <h3>Outlook</h3>
+    <p class="bt-metric">{{ executive_forecast.label }}</p>
+    <p class="bt-note">{{ executive_forecast.direction }}</p>
+  </section>
+  <section class="bt-card bt-q-blue">
+    <h3>Pressure Index</h3>
+    <p class="bt-metric">{{ executive_forecast.pressure_index }}</p>
+    <p class="bt-note">Higher means more portfolio strain.</p>
+  </section>
+  <section class="bt-card bt-q-yellow">
+    <h3>Primary Focus</h3>
+    <p class="bt-metric">{{ executive_forecast.top_app }}</p>
+    <p class="bt-note">Top app in the current risk queue.</p>
+  </section>
+  <section class="bt-card bt-q-red">
+    <h3>Bottleneck Focus</h3>
+    <p class="bt-metric">{{ executive_forecast.focus }}</p>
+    <p class="bt-note">Current pipeline stage requiring attention.</p>
+  </section>
+</div>
+
+<section class="bt-flow-panel bt-q-green">
+  <h3>Leadership Signal</h3>
+  <div class="bt-flow-grid">
+    <article class="bt-flow-chip">
+      <span>Average Health</span>
+      <strong>{{ executive_forecast.average_health_score }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Risk Flags</span>
+      <strong>{{ executive_forecast.risk_flag_count }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Pipeline Drop-off</span>
+      <strong>{{ executive_forecast.bottleneck_dropoff }}%</strong>
+    </article>
+  </div>
+  <div class="bt-ratio-wrap">
+    <p class="bt-note">Portfolio pressure as a leadership signal</p>
+    <div class="bt-ratio-track">
+      <div class="bt-ratio-fill-flow" style="width:{{ executive_forecast.pressure_index }}%;"></div>
+    </div>
+    <div class="bt-ratio-legend">
+      <span>Pressure {{ executive_forecast.pressure_index }}</span>
+      <span>Flagged app {{ executive_forecast.top_app }}</span>
+    </div>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-red">Executive Risk Forecasting</h2>
+<section class="bt-flow-panel bt-q-red">
+  <h3>{{ risk_forecast.label }}</h3>
+  <p class="bt-note">{{ risk_forecast.summary }}</p>
+  <div class="bt-health-row" style="margin-top:0; margin-bottom:12px;">
+    <span class="bt-health-score-badge bt-threshold-{{ risk_forecast.threshold_key }}">Pressure {{ risk_forecast.pressure_index }}</span>
+    <span class="bt-health-trend-arrow bt-trend-{{ risk_forecast.trend }}">{{ risk_forecast.trend_symbol }} {{ risk_forecast.delta }}</span>
+    <span class="bt-health-score-badge bt-quadrant-{{ risk_forecast.quadrant_key }}">{{ risk_forecast.quadrant_label }}</span>
+  </div>
+  <p class="bt-note">Delta basis: {{ risk_forecast.delta_basis }}</p>
+  <div class="bt-flow-grid">
+    {% for horizon in risk_forecast.horizons %}
+      <article class="bt-flow-chip">
+        <span>{{ horizon.label }}</span>
+        <strong>{{ horizon.value }}</strong>
+        <p class="bt-note">{{ horizon.note }}</p>
+      </article>
+    {% endfor %}
+  </div>
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Watch Item</h3>
+      <p class="bt-twist-row"><span>Top app</span><strong>{{ risk_forecast.watch_item }}</strong></p>
+      <p class="bt-twist-row"><span>Trigger</span><strong>{{ risk_forecast.trigger }}</strong></p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Forecast Confidence</h3>
+      <p class="bt-twist-row"><span>Pressure index</span><strong>{{ risk_forecast.pressure_index }}</strong></p>
+      <p class="bt-twist-row"><span>Confidence</span><strong>{{ risk_forecast.confidence }}%</strong></p>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-exec-planning">Executive Strategic Planning Tools</h2>
+<section class="bt-flow-panel bt-q-blue">
+  <h3>Scenario Board</h3>
+  <div class="bt-flow-grid">
+    {% for scenario in executive_strategic_plan.scenarios %}
+      <article class="bt-flow-chip">
+        <span>{{ scenario.label }}</span>
+        <strong>Pressure {{ scenario.pressure }}</strong>
+        <p class="bt-note">{{ scenario.actions }} actions · {{ scenario.users }} users</p>
+        <p class="bt-note">{{ scenario.note }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Strategic Pillars</h3>
+      {% for pillar in executive_strategic_plan.pillars %}
+        <p class="bt-twist-row"><span>{{ pillar.label }}</span><strong>{{ pillar.status }} · {{ pillar.value }}</strong></p>
+        <p class="bt-note">{{ pillar.detail }}</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>90-Day Planning Cycle</h3>
+      {% for row in executive_strategic_plan.cycle %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong>Target {{ row.target }}</strong></p>
+        <p class="bt-note">{{ row.objective }}</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Initiative Queue</h3>
+      {% for item in executive_strategic_plan.initiatives %}
+        <p class="bt-twist-row"><span>{{ item.app }}</span><strong>{{ item.priority }} · {{ item.owner }}</strong></p>
+        <p class="bt-note">{{ item.objective }}</p>
+      {% empty %}
+        <p class="bt-note">No active strategic initiatives.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow" id="bt-exec-quadrants">Executive Quadrant Summaries</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  {% for quadrant in executive_quadrants %}
+    <section class="bt-card bt-q-{{ quadrant.key }}">
+      <h3>{{ quadrant.label }} Quadrant</h3>
+      <p class="bt-metric">{{ quadrant.count }}</p>
+      <p class="bt-note">Avg score {{ quadrant.avg_score }} · Top app {{ quadrant.top_app }}</p>
+    </section>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-red" id="bt-exec-matrix">Executive Risk Matrix</h2>
+<section class="bt-risk-matrix-panel bt-q-red">
+  <p class="bt-note">High-health and rising apps are easiest to scale; low-health or cooling apps need intervention.</p>
+  <div class="bt-risk-matrix">
+    {% for cell in risk_matrix %}
+      <article class="bt-risk-cell {% if cell.health_bucket == 'strong' %}bt-risk-strong{% else %}bt-risk-attention{% endif %} {% if cell.momentum_bucket == 'rising' %}bt-risk-rising{% else %}bt-risk-cooling{% endif %}">
+        <span>{{ cell.label }}</span>
+        <strong>{{ cell.count }} apps</strong>
+        <p>Avg score {{ cell.avg_score }}</p>
+        <p>Top app: {{ cell.top_app }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-exec-growth">Executive Growth Projections</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  <section class="bt-card bt-q-blue">
+    <h3>Growth Label</h3>
+    <p class="bt-metric">{{ growth_projection.label }}</p>
+    <p class="bt-note">Activity {{ growth_projection.activity_growth_rate }}% vs last week.</p>
+  </section>
+  <section class="bt-card bt-q-green">
+    <h3>Projected Actions</h3>
+    <p class="bt-metric">{{ growth_projection.projected_monthly_actions }}</p>
+    <p class="bt-note">Estimated 30-day admin actions.</p>
+  </section>
+  <section class="bt-card bt-q-yellow">
+    <h3>Projected Users</h3>
+    <p class="bt-metric">{{ growth_projection.projected_monthly_users }}</p>
+    <p class="bt-note">Estimated 30-day new users.</p>
+  </section>
+  <section class="bt-card bt-q-red">
+    <h3>User Growth</h3>
+    <p class="bt-metric">{{ growth_projection.user_growth_rate }}%</p>
+    <p class="bt-note">Joined users vs prior week.</p>
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-green" id="bt-exec-users">Executive User Growth Analytics</h2>
+<section class="bt-flow-panel bt-q-green">
+  <h3>New User Trend</h3>
+  <div class="bt-mini-trend-panel">
+    <div class="bt-mini-trend-head">
+      <span>14-Day Sign-Up Trend</span>
+      <strong>{{ growth_projection.user_last_7 }} last 7d</strong>
+    </div>
+    <div class="bt-mini-trend-chart" aria-label="Fourteen day user growth trend">
+      {% for point in user_growth_chart %}
+        <div class="bt-mini-trend-bar-wrap" title="{{ point.day }}: {{ point.count }} users">
+          <div class="bt-mini-trend-bar" style="height:{{ point.height_pct }}%;"></div>
+          <span>{{ point.day }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="bt-flow-grid">
+    <article class="bt-flow-chip">
+      <span>Last 7 Days</span>
+      <strong>{{ growth_projection.user_last_7 }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Prev 7 Days</span>
+      <strong>{{ growth_projection.user_prev_7 }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Growth Rate</span>
+      <strong>{{ growth_projection.user_growth_rate }}%</strong>
+    </article>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-exec-semantic">Executive Semantic Insights</h2>
+<div class="bt-twist-split">
+  <section class="bt-twist-box">
+    <h3>Stage Overview</h3>
+    {% for stage in semantic_stage_rows %}
+      <p class="bt-twist-row"><span>{{ stage.label }}</span><strong>{{ stage.count }} total · {{ stage.conversion_pct }}% to next</strong></p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Insight Queue</h3>
+    {% for insight in semantic_insight_rows %}
+      <p class="bt-twist-row"><span>{{ insight.label }}</span><strong>{{ insight.value }}</strong></p>
+      <p class="bt-note">{{ insight.secondary }}</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Semantic Alerts</h3>
+    {% if trend_summary.pipeline.alerts %}
+      <ul class="bt-flag-list" style="margin-bottom:0;">
+        {% for alert in trend_summary.pipeline.alerts %}
+          <li class="bt-flag">{{ alert }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="bt-note">No semantic alerts detected.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-red">Executive App Summaries</h2>
+<div class="bt-analytics-grid">
+  {% for app in executive_apps %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as exec_quad silent %}
+    <section class="bt-analytics-card {{ exec_quad }}">
+      <div class="bt-analytics-head">
+        <h3>{{ app.title }}</h3>
+        <span class="bt-health bt-health-{{ app.health.level }}">{{ app.health.label }}</span>
+      </div>
+      <div class="bt-health-row" style="margin-top:0;margin-bottom:8px;">
+        <span class="bt-health-trend">Trend {{ app.health.trend_symbol }} {{ app.health.trend_label }}</span>
+        <span class="bt-health-score">Score {{ app.health.score }}</span>
+      </div>
+      <div class="bt-analytics-kpis">
+        <div class="bt-analytics-kpi">
+          <span>Rows</span>
+          <strong>{{ app.row_count }}</strong>
+        </div>
+        <div class="bt-analytics-kpi">
+          <span>7d Activity</span>
+          <strong>{{ app.current_7d }}</strong>
+        </div>
+        <div class="bt-analytics-kpi">
+          <span>Models</span>
+          <strong>{{ app.model_count }}</strong>
+        </div>
+      </div>
+      {% if app.health.attention_flags %}
+        <p class="bt-flag">{{ app.health.attention_flags.0 }}</p>
+      {% endif %}
+      <div class="bt-analytics-links">
+        <a class="bt-analytics-link" href="{{ app.route }}" target="_blank" rel="noopener">Open App</a>
+      </div>
+    </section>
+  {% empty %}
+    <p>No executive app summaries available.</p>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-yellow" id="bt-exec-risks">Risk Highlights</h2>
+<div class="bt-twist-split">
+  <section class="bt-twist-box">
+    <h3>Risk Queue</h3>
+    {% for app in executive_risks %}
+      <p class="bt-twist-row"><span>{{ app.title }}</span><strong>{{ app.health.label }} · {{ app.health.score }}</strong></p>
+      {% if app.health.attention_flags %}
+        <p class="bt-flag">{{ app.health.attention_flags.0 }}</p>
+      {% endif %}
+    {% empty %}
+      <p class="bt-note">No current executive risks detected.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Attention Flags</h3>
+    {% if executive_risks %}
+      <ul class="bt-flag-list" style="margin-bottom:0;">
+        {% for app in executive_risks %}
+          {% for flag in app.health.attention_flags %}
+            <li class="bt-flag"><strong style="margin-right:6px;">{{ app.title }}:</strong> {{ flag }}</li>
+          {% empty %}
+            <li class="bt-note">{{ app.title }} has no specific flags.</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="bt-note">No flags to surface.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Leadership Shortcuts</h3>
+    <div class="bt-analytics-links">
+      <a class="bt-analytics-link" href="{% url 'admin:dashboard' %}">Platform</a>
+      <a class="bt-analytics-link" href="{% url 'admin:operator-dashboard' %}">Operator</a>
+      <a class="bt-analytics-link" href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+      <a class="bt-analytics-link" href="/admin/homepage_backend/homepagetask/">Taskboard</a>
+      <a class="bt-analytics-link" href="/admin/homepage_backend/homepageflow/">Flow</a>
+    </div>
+  </section>
+</div>
+
+<p style="margin-top:20px;">
+  Back to <a href="{% url 'admin:dashboard' %}">platform dashboard</a>.
+</p>
+
+<script src="{% static 'admin/platform_dashboard.js' %}"></script>
+{% endblock %}

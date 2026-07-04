@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}BaseTrue Monthly Newsletter{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/base_true_news.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="news-wrap">
+    {% if current_issue %}
+    <header class="masthead">
+        <div class="nameplate">
+            <div>
+                <span class="logo-mark">Official Monthly Publication</span>
+                <h1>{{ current_issue.publication_name }}</h1>
+                <p><strong>{{ current_issue.masthead_title }}</strong>{% if current_issue.tagline %} | {{ current_issue.tagline }}{% endif %}</p>
+            </div>
+            <div class="edition-meta">
+                <div>{{ current_issue.month_name }} {{ current_issue.year }} Edition</div>
+                <div><a href="{% url 'baseTrue_news:issue_detail' year=current_issue.year month=current_issue.month %}">Open full issue</a></div>
+            </div>
+        </div>
+
+        {% if lead_story %}
+        <div class="banner-headline">
+            <h2>{{ lead_story.headline }}</h2>
+            <p class="byline">By {{ lead_story.byline }}</p>
+            {% if lead_story.dek %}
+            <p>{{ lead_story.dek }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </header>
+
+    <section class="topic-grid">
+        <article class="topic-panel">
+            <h3>Feature 1: Perpetual Infrastructure Program (PIP)</h3>
+            {% for story in pip_stories %}
+            <div class="story-card">
+                <h4>{{ story.headline }}</h4>
+                <div class="byline">By {{ story.byline }}</div>
+                {% if story.dek %}<p>{{ story.dek }}</p>{% endif %}
+                <p>{{ story.body|truncatewords:40 }}</p>
+            </div>
+            {% empty %}
+            <p>No published PIP stories for this issue yet.</p>
+            {% endfor %}
+        </article>
+
+        <hr class="category-divider" aria-hidden="true">
+
+        <article class="topic-panel">
+            <h3>Feature 2: Base True Information Format</h3>
+            {% for story in base_true_stories %}
+            <div class="story-card">
+                <h4>{{ story.headline }}</h4>
+                <div class="byline">By {{ story.byline }}</div>
+                {% if story.dek %}<p>{{ story.dek }}</p>{% endif %}
+                <p>{{ story.body|truncatewords:40 }}</p>
+            </div>
+            {% empty %}
+            <p>No published Base True stories for this issue yet.</p>
+            {% endfor %}
+        </article>
+    </section>
+
+    <section class="issue-links">
+        <h3>Recent Monthly Issues</h3>
+        {% if recent_issues %}
+        <ul>
+            {% for issue in recent_issues %}
+            <li><a href="{% url 'baseTrue_news:issue_detail' year=issue.year month=issue.month %}">{{ issue.month_name }} {{ issue.year }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <p><a href="{% url 'baseTrue_news:archive' %}">View archive</a></p>
+    </section>
+
+    <section class="issue-links">
+        <h3>Sign Up For Email Delivery</h3>
+        <form action="{% url 'baseTrue_news:subscribe' %}" method="post" class="signup-form">
+            {% csrf_token %}
+            {{ signup_form.email }}
+            <button type="submit" class="button is-dark">Subscribe</button>
+        </form>
+    </section>
+    {% else %}
+    <div class="empty-state">
+        <h2>BaseTrue Monthly Newsletter</h2>
+        <p>No published issues are available yet. Add an issue and stories in the admin to start the monthly publication cycle.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

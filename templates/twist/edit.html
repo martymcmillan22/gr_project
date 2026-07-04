@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Twist Idea{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Edit idea</h1>
+    <p class="subtitle">Refine the idea while it is still fresh.</p>
+
+    <div class="box">
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label class="label" for="id_content">{{ form.content.label }}</label>
+          <div class="control">
+            {{ form.content }}
+          </div>
+          {% if form.content.errors %}
+          <p class="help is-danger">{{ form.content.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="label" for="id_tags">{{ form.tags.label }}</label>
+          <div class="control">
+            {{ form.tags }}
+          </div>
+          {% if form.tags.help_text %}
+          <p class="help">{{ form.tags.help_text }}</p>
+          {% endif %}
+          {% if form.tags.errors %}
+          <p class="help is-danger">{{ form.tags.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="label" for="id_status">{{ form.status.label }}</label>
+          <div class="control">
+            <div class="select">
+              {{ form.status }}
+            </div>
+          </div>
+          {% if form.status.errors %}
+          <p class="help is-danger">{{ form.status.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+        <div class="field is-grouped mt-4">
+          <div class="control">
+            <button type="submit" class="button is-primary">Update idea</button>
+          </div>
+          <div class="control">
+            <a class="button is-light" href="{% url 'twist-entry' %}">Back to Twist</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

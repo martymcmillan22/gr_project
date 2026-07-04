@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static archive_tags %}
+
+{% block title %}Year Archive Detail for {{ year }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/archive.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="archive-wrap">
+<h1 id="top">Year Archive Detail: {{ year }}</h1>
+
+<p>
+    <a href="{% url 'polls:archive_year' year=year|date:'Y' %}">Back to year archive list</a>
+</p>
+
+{% regroup object_list by pub_date|date:"F" as month_groups %}
+
+{% if month_groups %}
+<p><strong>Jump to month:</strong></p>
+<ul class="month-jump-list">
+    {% for month in month_groups %}
+        <li><a href="#month-{{ month.grouper|slugify }}">{{ month.grouper }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% for month in month_groups %}
+    <h2 id="month-{{ month.grouper|slugify }}">{{ month.grouper }}</h2>
+    <ul class="month-articles">
+        {% for article in month.list %}
+            {% url 'polls:article_detail' article.id as article_detail_url %}
+            {% archive_article_card article headline_level="h3" headline_url=article_detail_url content_mode="full" %}
+        {% endfor %}
+    </ul>
+    <p class="month-back"><a href="#top">Back to top</a></p>
+{% empty %}
+    <p>No articles found for this year.</p>
+{% endfor %}
+</section>
+{% endblock %}

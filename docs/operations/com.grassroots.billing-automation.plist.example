@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.grassroots.billing-automation</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/martymcmillan/Desktop/GrassRoots/a_gr_venv/bin/python</string>
+    <string>/Users/martymcmillan/Desktop/GrassRoots/manage.py</string>
+    <string>run_billing_automation</string>
+    <string>--tenant=default</string>
+    <string>--client=all</string>
+    <string>--limit=50</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/martymcmillan/Desktop/GrassRoots</string>
+
+  <key>StartInterval</key>
+  <integer>3600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/grassroots-billing-automation.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/grassroots-billing-automation.err.log</string>
+</dict>
+</plist>

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cell.label }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cell-hero {
+    border-left: 8px solid {{ cell.color }};
+    background: linear-gradient(135deg, {{ cell.color_tint }} 0%, #ffffff 100%);
+  }
+
+  .cell-meta-chip {
+    display: inline-block;
+    margin: 0.2rem 0.35rem 0.2rem 0;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .cell-object {
+    border-left: 4px solid {{ cell.color }};
+    background: #ffffff;
+  }
+
+  .cell-accent {
+    color: {{ cell.color }};
+  }
+
+  body.center-index-dark-mode {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(41, 68, 106, 0.35), transparent 34%),
+      radial-gradient(circle at 92% 88%, rgba(73, 48, 24, 0.32), transparent 30%),
+      #0a0d12;
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .section,
+  body.center-index-dark-mode main,
+  body.center-index-dark-mode .container {
+    background: transparent;
+  }
+
+  body.center-index-dark-mode .box {
+    background: linear-gradient(180deg, #141a23 0%, #10161f 100%);
+    border: 1px solid #2f3c52;
+    color: #f3f6fb;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+
+  body.center-index-dark-mode .cell-hero {
+    background: linear-gradient(135deg, rgba(18, 18, 18, 0.93) 0%, rgba(28, 28, 28, 0.95) 100%);
+    border-left-color: {{ cell.color }};
+  }
+
+  body.center-index-dark-mode .cell-hero .title,
+  body.center-index-dark-mode .cell-hero .subtitle {
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .cell-meta-chip {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #f0f0f0;
+  }
+
+  body.center-index-dark-mode .cell-object {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: {{ cell.color }};
+  }
+
+  body.center-index-dark-mode .cell-object .title,
+  body.center-index-dark-mode .cell-object .is-size-7,
+  body.center-index-dark-mode .box .title,
+  body.center-index-dark-mode .box .is-size-7,
+  body.center-index-dark-mode .box p,
+  body.center-index-dark-mode .box a {
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .button.is-light {
+    background: #1e2534;
+    border-color: #2f3c52;
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .button.is-light:hover,
+  body.center-index-dark-mode .button.is-light:focus {
+    background: #2d3a4f;
+    border-color: #4a5d7a;
+  }
+
+  body.center-index-dark-mode .navbar.is-dark,
+  body.center-index-dark-mode .navbar-menu {
+    background: #0f141b;
+    border-bottom: 1px solid #2f3c52;
+  }
+
+  body.center-index-dark-mode .navbar-item,
+  body.center-index-dark-mode .navbar-link,
+  body.center-index-dark-mode .navbar-burger,
+  body.center-index-dark-mode .navbar-burger span {
+    color: #dce8fb;
+  }
+
+  body.center-index-dark-mode .navbar-item:hover,
+  body.center-index-dark-mode .navbar-link:hover,
+  body.center-index-dark-mode .navbar-item:focus,
+  body.center-index-dark-mode .navbar-link:focus {
+    background: #1a2433;
+    color: #ffffff;
+  }
+
+  body.center-index-dark-mode .footer {
+    background: #0f141b;
+    border-top: 1px solid #2f3c52;
+  }
+
+  body.center-index-dark-mode .footer,
+  body.center-index-dark-mode .footer p,
+  body.center-index-dark-mode .footer strong,
+  body.center-index-dark-mode .footer a {
+    color: #dce8fb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cell-hero {
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.93) 0%, rgba(28, 28, 28, 0.95) 100%);
+      border-left-color: {{ cell.color }};
+    }
+
+    .cell-meta-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f0f0f0;
+    }
+
+    .cell-object {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: {{ cell.color }};
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box cell-hero">
+    <p class="is-size-7 has-text-weight-semibold cell-accent mb-2">Center Grid Cell</p>
+    <h1 class="title is-3 mb-2">{{ cell.label }}</h1>
+    <p class="subtitle is-6 mb-3">{{ cell.subject }}</p>
+
+    <div>
+      <span class="cell-meta-chip">Time: {{ cell.time }}</span>
+      <span class="cell-meta-chip">SRL: {{ cell.srl }}</span>
+      <span class="cell-meta-chip">Color: {{ cell.color_name }}</span>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Object Representations</h2>
+    <p class="is-size-7 mb-4">Placeholder representations are shown below and can be replaced when object definitions are finalized.</p>
+
+    <div class="columns is-multiline">
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Primary Object</p>
+          <p class="is-size-7">A core object representation for {{ cell.label }}.</p>
+        </article>
+      </div>
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Secondary Object</p>
+          <p class="is-size-7">A linked object representation related to {{ cell.subject }}.</p>
+        </article>
+      </div>
+      <div class="column is-4">
+        <article class="notification cell-object">
+          <p class="title is-6">Archive Object</p>
+          <p class="is-size-7">A record object keyed to {{ cell.time }} and SRL {{ cell.srl }}.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <a class="button is-light" href="{% url 'center:index' %}">Back to Center</a>
+</section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function() {
+    var enabled = localStorage.getItem('centerDarkModeEnabled') === 'true';
+    document.body.classList.toggle('center-index-dark-mode', enabled);
+  })();
+</script>
+{% endblock %}

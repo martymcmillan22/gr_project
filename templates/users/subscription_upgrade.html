@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Upgrade{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 760px;">
+    <div class="box">
+      <h1 class="title is-4">Subscription Upgrade</h1>
+      <p class="is-size-6 mb-4">Choose your storage plan. Premium plans continue to secure checkout before activation.</p>
+
+      <div class="content mb-4">
+        <p><strong>Current tier:</strong> {{ current_tier }}</p>
+        <ul>
+          <li>Free: 10 GB</li>
+          <li>Premium Starter: 50 GB</li>
+          <li>Premium Pro: 200 GB</li>
+          <li>Premium Enterprise: 1 TB</li>
+        </ul>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label class="label">Subscription Tier</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select name="subscription_tier" required>
+                {% for value, label in subscription_choices %}
+                <option value="{{ value }}" {% if current_tier == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="button is-dark" type="submit">Update Subscription</button>
+        <a class="button is-light ml-2" href="/admin/task-manager/">Back to Task Manager</a>
+      </form>
+
+      <hr>
+
+      <h2 class="title is-5">Billing Timeline</h2>
+      {% if billing_health_indicator %}
+      <div class="notification is-light is-size-7 mb-3">
+        <div class="is-flex is-justify-content-space-between is-align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+          <div class="is-flex is-align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+            <strong>Billing health</strong>
+            <span class="tag {{ billing_health_indicator.health_class }}">{{ billing_health_indicator.health_label }}</span>
+          </div>
+          <div class="is-flex" style="gap: 0.35rem; flex-wrap: wrap;">
+            {% if billing_event_export_payload %}
+            <button
+              class="button is-small is-light"
+              type="button"
+              data-billing-export="{{ billing_event_export_payload }}"
+              onclick="copyBillingEventExport(this)"
+            >
+              Export billing events
+            </button>
+            {% endif %}
+            <a class="button is-small is-light" href="#billing-timeline-list">View details</a>
+          </div>
+        </div>
+        <div class="has-text-grey-dark">
+          Last {{ billing_health_indicator.window }} events |
+          Successes: {{ billing_health_indicator.success_count }} |
+          Failures: {{ billing_health_indicator.failure_count }} |
+          Retries: {{ billing_health_indicator.retry_attempt_count }}
+        </div>
+        <div class="has-text-grey-dark">
+          Webhook misses: {{ billing_health_indicator.webhook_miss_count }} |
+          Diff aligned: {{ billing_health_indicator.aligned_diff_count }} |
+          Diff mismatched: {{ billing_health_indicator.mismatched_diff_count }}
+        </div>
+        <div class="has-text-grey-dark">
+          Webhook reliability: {{ billing_health_indicator.webhook_reliability }}% |
+          Checkout reliability: {{ billing_health_indicator.checkout_reliability }}%
+        </div>
+        {% if billing_webhook_sparkline %}
+        <div class="has-text-grey-dark is-flex is-align-items-center" style="gap: 0.4rem; flex-wrap: wrap;">
+          <span>Webhook trend ({{ billing_webhook_sparkline.window }}):</span>
+          <span class="is-flex is-align-items-center" style="gap: 0.25rem;">
+            {% for point in billing_webhook_sparkline.points %}
+            <span
+              class="{{ point.text_class }}"
+              data-webhook-sparkline-point="{{ point.state }}"
+              data-webhook-sparkline-id="{{ point.event_id }}"
+              title="{{ point.state }} · {{ point.event_id }} · {{ point.timestamp }}"
+              style="font-size: 0.95rem; line-height: 1;"
+            >●</span>
+            {% endfor %}
+          </span>
+          <span class="is-size-7">S: {{ billing_webhook_sparkline.success_count }} | F: {{ billing_webhook_sparkline.failure_count }}</span>
+        </div>
+        {% endif %}
+        {% if billing_health_indicator.safe_recent_failure_reason %}
+        <div class="has-text-danger">
+          Recent failure: {{ billing_health_indicator.safe_recent_failure_reason }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% if support_context_summary %}
+      <div class="notification is-light is-size-7 mb-3">
+        <div class="is-flex is-justify-content-space-between is-align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+          <strong>Support context summary</strong>
+          <button
+            class="button is-small is-light"
+            type="button"
+            data-support-summary="{{ support_context_summary.copy_payload }}"
+            onclick="copyBillingSupportSummary(this)"
+          >
+            Copy summary
+          </button>
+        </div>
+        <div class="has-text-grey-dark">
+          Last event ID: {{ support_context_summary.event_id }} |
+          Last idempotency key: {{ support_context_summary.idempotency_key }} |
+          Last session ID: {{ support_context_summary.provider_session_id }}
+        </div>
+        <div class="has-text-grey-dark">
+          Last tier: {{ support_context_summary.tier }} |
+          Last timestamp: {{ support_context_summary.timestamp|date:"Y-m-d H:i" }}
+        </div>
+        {% if support_context_summary.safe_error_text %}
+        <div class="has-text-danger">Last failure: {{ support_context_summary.safe_error_text }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% if support_context_diff %}
+      <div class="notification is-light is-size-7 mb-3">
+        <div class="is-flex is-justify-content-space-between is-align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+          <strong>Support context diff</strong>
+          <button
+            class="button is-small is-light"
+            type="button"
+            data-support-diff="{{ support_context_diff.copy_payload }}"
+            onclick="copyBillingSupportDiff(this)"
+          >
+            Copy diff
+          </button>
+        </div>
+        <ul class="mt-2" style="margin-left: 1rem;">
+          {% for entry in support_context_diff.mismatches %}
+          <li>
+            <span class="tag is-danger is-light">Mismatch</span>
+            <strong>{{ entry.label }}</strong>:
+            intent=<span class="has-text-grey-dark">{{ entry.intent }}</span> |
+            webhook=<span class="has-text-grey-dark">{{ entry.webhook }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="has-text-grey-dark">
+          Intent timestamp: {{ support_context_diff.intent_timestamp }} |
+          Webhook timestamp: {{ support_context_diff.webhook_timestamp }}
+        </div>
+      </div>
+      {% endif %}
+      <div class="buttons are-small mb-3">
+        <a class="button {% if billing_status_filter == 'all' %}is-link{% else %}is-light{% endif %}" href="{% url 'users:subscription-upgrade' %}">All</a>
+        <a class="button {% if billing_status_filter == 'pending' %}is-warning{% else %}is-light{% endif %}" href="{% url 'users:subscription-upgrade' %}?billing_status=pending">Pending</a>
+        <a class="button {% if billing_status_filter == 'completed' %}is-success{% else %}is-light{% endif %}" href="{% url 'users:subscription-upgrade' %}?billing_status=completed">Completed</a>
+        <a class="button {% if billing_status_filter == 'failed' %}is-danger{% else %}is-light{% endif %}" href="{% url 'users:subscription-upgrade' %}?billing_status=failed">Failed</a>
+      </div>
+      {% if billing_timeline %}
+      <div class="content" id="billing-timeline-list">
+        <ul>
+          {% for row in billing_timeline %}
+          <li class="mb-3">
+            <div class="is-flex is-align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+              <strong>{{ row.title }}</strong>
+              {% if row.provider_label %}
+              <span class="tag {{ row.provider_badge_class }} is-light">{{ row.provider_label }}</span>
+              {% endif %}
+              <span class="tag {{ row.status_class }}">{{ row.status_label }}</span>
+              <span class="is-size-7 has-text-grey">{{ row.timestamp|date:"Y-m-d H:i" }}</span>
+              <button
+                class="button is-small is-light"
+                type="button"
+                data-inspect-title="{{ row.title|escape }}"
+                data-inspect-status="{{ row.status_label|escape }}"
+                data-inspect-provider="{{ row.provider_label|default:'unknown'|escape }}"
+                data-inspect-timestamp="{{ row.timestamp|date:'Y-m-d H:i'|escape }}"
+                data-inspect-details="{{ row.details|default:'-'|escape }}"
+                data-inspect-error="{{ row.error_text|default:'none'|escape }}"
+                data-inspect-retry="{% if row.retry_available and row.retry_tier %}available ({{ row.retry_tier }}){% elif row.status == 'failed' %}unavailable{% else %}not-applicable{% endif %}"
+                data-inspect-support="{{ row.support_context|default:'none'|escape }}"
+                onclick="openBillingEventInspector(this)"
+              >
+                Inspect event
+              </button>
+            </div>
+            {% if row.details %}
+            <div class="is-size-7">{{ row.details }}</div>
+            {% endif %}
+            {% if row.error_text %}
+            <div class="is-size-7 has-text-danger">{{ row.error_text }}</div>
+            {% endif %}
+            {% if row.support_context %}
+            <div class="mt-2">
+              <div class="is-size-7 has-text-grey mb-1">
+                Support context: <span class="has-text-grey-dark">{{ row.support_context|truncatechars:96 }}</span>
+              </div>
+              {% if row.status == 'failed' %}
+              <details class="is-size-7 has-text-grey mb-1">
+                <summary style="cursor: pointer;">Show full context</summary>
+                <div class="has-text-grey-dark" style="word-break: break-all;">{{ row.support_context }}</div>
+                <button
+                  class="button is-small is-light mt-2"
+                  type="button"
+                  data-full-context="{{ row.support_context }}"
+                  onclick="copyBillingFullContext(this)"
+                >
+                  Copy full context
+                </button>
+              </details>
+              {% endif %}
+              <button
+                class="button is-small is-light"
+                type="button"
+                data-support-context="{{ row.support_context }}"
+                onclick="copyBillingSupportContext(this)"
+              >
+                Copy support context
+              </button>
+            </div>
+            {% endif %}
+            {% if row.retry_available and row.retry_tier %}
+            <form method="post" class="mt-2">
+              {% csrf_token %}
+              <input type="hidden" name="subscription_tier" value="{{ row.retry_tier }}">
+              <button class="button is-small is-warning" type="submit">Retry Checkout</button>
+            </form>
+            {% elif row.status == 'failed' %}
+            <div class="mt-2" title="{{ row.retry_unavailable_reason|default:'Retry unavailable for this failure.' }}">
+              <button class="button is-small is-light" type="button" disabled>Retry unavailable</button>
+              {% if row.retry_unavailable_reason %}
+              <div class="is-size-7 has-text-grey">{{ row.retry_unavailable_reason }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="modal" id="billing-event-inspector-modal" aria-hidden="true">
+        <div class="modal-background" onclick="closeBillingEventInspector()"></div>
+        <div class="modal-card" style="max-width: 720px; width: calc(100% - 2rem);">
+          <header class="modal-card-head">
+            <p class="modal-card-title is-size-6">Billing event inspector</p>
+            <button class="delete" aria-label="close" type="button" onclick="closeBillingEventInspector()"></button>
+          </header>
+          <section class="modal-card-body is-size-7">
+            <p><strong>Title:</strong> <span id="billing-inspector-title">-</span></p>
+            <p><strong>Status:</strong> <span id="billing-inspector-status">-</span></p>
+            <p><strong>Provider:</strong> <span id="billing-inspector-provider">-</span></p>
+            <p><strong>Timestamp:</strong> <span id="billing-inspector-timestamp">-</span></p>
+            <p><strong>Details:</strong> <span id="billing-inspector-details">-</span></p>
+            <p><strong>Error:</strong> <span id="billing-inspector-error">-</span></p>
+            <p><strong>Retry:</strong> <span id="billing-inspector-retry">-</span></p>
+            <hr>
+            <p><strong>Support context:</strong></p>
+            <pre id="billing-inspector-support" style="white-space: pre-wrap; word-break: break-all;">-</pre>
+          </section>
+          <footer class="modal-card-foot">
+            <button class="button is-small is-light" type="button" onclick="closeBillingEventInspector()">Close</button>
+          </footer>
+        </div>
+      </div>
+      {% else %}
+      <p class="is-size-7">No billing events yet. Timeline appears after checkout/session or webhook activity.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+<script>
+function copyBillingClipboardPayload(button, payload, defaultLabel, copiedLabel, failedLabel) {
+  if (!payload) {
+    return;
+  }
+  navigator.clipboard.writeText(payload).then(function () {
+    button.textContent = copiedLabel;
+    setTimeout(function () {
+      button.textContent = defaultLabel;
+    }, 1200);
+  }).catch(function () {
+    button.textContent = failedLabel;
+    setTimeout(function () {
+      button.textContent = defaultLabel;
+    }, 1200);
+  });
+}
+
+function copyBillingSupportContext(button) {
+  var payload = button.getAttribute("data-support-context") || "";
+  copyBillingClipboardPayload(button, payload, "Copy support context", "Copied", "Copy failed");
+}
+
+function copyBillingFullContext(button) {
+  var payload = button.getAttribute("data-full-context") || "";
+  copyBillingClipboardPayload(button, payload, "Copy full context", "Copied full context", "Copy full failed");
+}
+
+function copyBillingSupportSummary(button) {
+  var payload = button.getAttribute("data-support-summary") || "";
+  copyBillingClipboardPayload(button, payload, "Copy summary", "Copied summary", "Copy summary failed");
+}
+
+function copyBillingSupportDiff(button) {
+  var payload = button.getAttribute("data-support-diff") || "";
+  copyBillingClipboardPayload(button, payload, "Copy diff", "Copied diff", "Copy diff failed");
+}
+
+function copyBillingEventExport(button) {
+  var payload = button.getAttribute("data-billing-export") || "";
+  copyBillingClipboardPayload(button, payload, "Export billing events", "Copied export", "Copy export failed");
+}
+
+function openBillingEventInspector(button) {
+  var modal = document.getElementById("billing-event-inspector-modal");
+  if (!modal) {
+    return;
+  }
+  var title = button.getAttribute("data-inspect-title") || "-";
+  var status = button.getAttribute("data-inspect-status") || "-";
+  var provider = button.getAttribute("data-inspect-provider") || "-";
+  var timestamp = button.getAttribute("data-inspect-timestamp") || "-";
+  var details = button.getAttribute("data-inspect-details") || "-";
+  var errorText = button.getAttribute("data-inspect-error") || "none";
+  var retry = button.getAttribute("data-inspect-retry") || "-";
+  var support = button.getAttribute("data-inspect-support") || "none";
+
+  document.getElementById("billing-inspector-title").textContent = title;
+  document.getElementById("billing-inspector-status").textContent = status;
+  document.getElementById("billing-inspector-provider").textContent = provider;
+  document.getElementById("billing-inspector-timestamp").textContent = timestamp;
+  document.getElementById("billing-inspector-details").textContent = details;
+  document.getElementById("billing-inspector-error").textContent = errorText;
+  document.getElementById("billing-inspector-retry").textContent = retry;
+  document.getElementById("billing-inspector-support").textContent = support;
+  modal.classList.add("is-active");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeBillingEventInspector() {
+  var modal = document.getElementById("billing-event-inspector-modal");
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove("is-active");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key !== "Escape") {
+    return;
+  }
+  var modal = document.getElementById("billing-event-inspector-modal");
+  if (!modal || !modal.classList.contains("is-active")) {
+    return;
+  }
+  closeBillingEventInspector();
+});
+</script>
+{% endblock %}

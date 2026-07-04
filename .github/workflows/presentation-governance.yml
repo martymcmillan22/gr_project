@@ -1,0 +1,110 @@
+name: Presentation Governance
+
+on:
+  push:
+    paths:
+      - "platform_core/presentation_mdx.py"
+      - "platform_core/management/commands/sync_presentation_ui.py"
+      - "platform_core/tests_presentation_governance.py"
+      - "docs/architecture/presentation/**"
+      - ".github/workflows/presentation-governance.yml"
+  pull_request:
+    paths:
+      - "platform_core/presentation_mdx.py"
+      - "platform_core/management/commands/sync_presentation_ui.py"
+      - "platform_core/tests_presentation_governance.py"
+      - "docs/architecture/presentation/**"
+      - ".github/workflows/presentation-governance.yml"
+
+jobs:
+  governance-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run presentation governance tests
+        run: |
+          python manage.py test platform_core.tests_presentation_governance -v 2
+
+  sync-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run sync_presentation_ui full contract validation
+        run: |
+          python manage.py sync_presentation_ui
+
+      - name: Verify generated artifacts exist
+        run: |
+          test -f docs/architecture/presentation/ui/generated/manifest.json || (echo "ERROR: manifest.json not generated" && exit 1)
+          test -f frontend_homepage/src/ui/generated/index.js || (echo "ERROR: index.js not generated" && exit 1)
+          test -f frontend_homepage/src/ui/generated/registry.json || (echo "ERROR: registry.json not generated" && exit 1)
+          echo "✓ All generated artifacts verified"
+
+      - name: Verify contract enforcement ran
+        run: |
+          echo "Checking that metadata, generation rules, preset, and documentation contracts were enforced..."
+          # The sync command exits with non-zero if any contract validation fails
+          # If we get here, all contracts passed
+          echo "✓ Presentation governance contracts validated and enforced"
+
+  reference-promotion-gate:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - governance-tests
+      - sync-smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Apply migrations
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Optionally import licensed GICS dataset
+        run: |
+          if [ -n "${GICS_CSV_PATH:-}" ]; then
+            echo "Licensed GICS path provided; validating and importing before promotion gate"
+            python manage.py validate_gics_reference --file "$GICS_CSV_PATH"
+            python manage.py import_gics_reference --file "$GICS_CSV_PATH"
+          else
+            echo "No GICS_CSV_PATH provided; running promotion gate against current database state"
+          fi
+
+      - name: Enforce production promotion gate
+        run: |
+          python manage.py check_reference_promotion_gate --enforce-production

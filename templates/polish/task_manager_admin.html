@@ -1,0 +1,686 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/task_manager.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .bt-rail.bt-rail-collapsed.tm-rail {
+        display: block;
+        padding: 8px 10px;
+        margin: 0 0 14px auto;
+        width: fit-content;
+        max-height: none;
+        overflow: visible;
+        position: static;
+        top: auto;
+        right: auto;
+        transform: none;
+    }
+
+    .bt-rail.bt-rail-collapsed.tm-rail summary {
+        list-style: none;
+        cursor: pointer;
+        border: 1px solid #bfd0e6;
+        background: #edf4fd;
+        color: #23466b;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 8px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .bt-rail.bt-rail-collapsed.tm-rail summary::after {
+        content: "Open";
+        font-size: 0.72rem;
+        opacity: 0.85;
+    }
+
+    .bt-rail.bt-rail-collapsed.tm-rail[open] summary::after {
+        content: "Close";
+    }
+
+    .bt-rail.bt-rail-collapsed.tm-rail:not([open]) a,
+    .bt-rail.bt-rail-collapsed.tm-rail:not([open]) button {
+        display: none;
+    }
+
+    .bt-rail.bt-rail-collapsed.tm-rail[open] {
+        max-height: min(62vh, 620px);
+        overflow-y: auto;
+    }
+</style>
+
+<details class="bt-rail bt-rail-collapsed tm-rail" aria-label="Task Manager shortcuts">
+        <summary>Task Manager Shortcuts</summary>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=create">Create</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=attach">Attach</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=assignment">Assignment</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=item">Item</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=metrics">Metrics</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=ops-metrics">Ops</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=quarantine">Quarantine</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=activity">Activity</a>
+        <a href="{% url 'admin:basetrue-insights' %}">Insights</a>
+        <a href="{% url 'admin:dashboard' %}">Platform</a>
+        <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
+        <a href="{% url 'admin:operator-dashboard' %}">Operator</a>
+        <a href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+        <button type="button" id="bt-theme-toggle" aria-pressed="false">Dark</button>
+</details>
+
+<div
+    class="task-manager-admin"
+    data-active-tab="{{ active_tab|default:'create'|escape }}"
+    data-metrics-url="{% url 'task-manager-metrics-api' %}"
+    data-activity-url="{% url 'task-manager-activity-api' %}"
+>
+
+<div class="tm-sidebar">
+    <button class="tm-sidebar-toggle" type="button" aria-expanded="false">Modules</button>
+    <div class="tm-sidebar-content" id="tm-sidebar-content">
+        <a data-tab="create">Create Assignment</a>
+        <a data-tab="attach">Attach Objectives</a>
+        <a data-tab="assignment">Assignment Actions</a>
+        <a data-tab="item">Item Actions</a>
+        <a data-tab="metrics">Metrics</a>
+        <a data-tab="ops-metrics">Operational Analytics</a>
+        <a data-tab="quarantine">Quarantine</a>
+        <a data-tab="activity">Recent Activity</a>
+    </div>
+</div>
+
+<div class="bt-brand-header tm-brand-header">
+    <a class="bt-wheel-link" href="/admin/" title="Open BaseTrue Admin">
+        <span class="bt-wheel" aria-hidden="true">
+            <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+            <span class="bt-wheel-q bt-wheel-q-blue"></span>
+            <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+            <span class="bt-wheel-q bt-wheel-q-green"></span>
+        </span>
+    </a>
+    <div class="bt-brand-text">
+        <h1 id="bt-top" class="title is-3 tm-title">Task Manager Admin</h1>
+        <p class="bt-brand-sub">BaseTrue Control Surface</p>
+    </div>
+</div>
+
+<div class="mb-4 tm-nav">
+    <a href="{% url 'polish:dashboard' %}" class="button is-light tm-back">Back to Dashboard</a>
+</div>
+
+<h2 class="bt-section bt-q-red" id="tm-quick-actions">Quick Actions</h2>
+<div class="bt-actions tm-quick-actions" aria-label="Task Manager quick actions">
+    <button class="bt-action bt-q-red tm-quick-action" type="button" data-tab="create">Create Assignment</button>
+    <button class="bt-action bt-q-blue tm-quick-action" type="button" data-tab="attach">Attach Objectives</button>
+    <button class="bt-action bt-q-yellow tm-quick-action" type="button" data-tab="assignment">Assignment Actions</button>
+    <button class="bt-action bt-q-green tm-quick-action" type="button" data-tab="item">Item Actions</button>
+    <button class="bt-action bt-q-red tm-quick-action" type="button" data-tab="ops-metrics">Operational Analytics</button>
+    <button class="bt-action bt-q-yellow tm-quick-action" type="button" data-tab="quarantine">Quarantine</button>
+    <button class="bt-action bt-q-green tm-quick-action" type="button" data-tab="activity">Recent Activity</button>
+</div>
+
+<div class="tm-section-anchors" aria-label="Task Manager section anchors">
+    <a class="tm-section-anchor" href="#create" data-tab="create">#Create</a>
+    <a class="tm-section-anchor" href="#attach" data-tab="attach">#Attach</a>
+    <a class="tm-section-anchor" href="#assignment" data-tab="assignment">#Assignment</a>
+    <a class="tm-section-anchor" href="#item" data-tab="item">#Item</a>
+    <a class="tm-section-anchor" href="#ops-metrics" data-tab="ops-metrics">#Ops</a>
+    <a class="tm-section-anchor" href="#quarantine" data-tab="quarantine">#Quarantine</a>
+    <a class="tm-section-anchor" href="#activity" data-tab="activity">#Activity</a>
+    <a class="tm-section-anchor" href="#metrics" data-tab="metrics">#Metrics</a>
+</div>
+
+<hr>
+
+<div id="create" class="tm-tab-content">
+    <h2 class="title is-5">Create Assignment</h2>
+    <form method="post" action="{% url 'polish:task-manager:create-assignment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="active_tab" value="create">
+        <div class="field">
+            <label class="label">Assignment Type</label>
+            <div class="control">
+                <div class="select is-fullwidth">
+                    <select name="assignment_type" required>
+                        {% for assignment_type, assignment_label in assignment_type_options %}
+                        <option value="{{ assignment_type }}">{{ assignment_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Title</label>
+            <div class="control">
+                <input class="input" type="text" name="title" required>
+            </div>
+        </div>
+
+        <button class="button is-dark" type="submit">Create Assignment</button>
+    </form>
+</div>
+
+<div id="attach" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Attach Objectives to Assignment</h2>
+    <div class="notification is-light mb-3">
+        <p class="is-size-7">
+            Storage used: {{ storage_used_label }} / {{ storage_quota_label }} (remaining {{ storage_remaining_label }}).
+            {% if not is_premium_subscriber %}
+            Free plan includes 10 GB. <a href="{% url 'users:subscription-upgrade' %}">Upgrade to Premium</a> for higher storage tiers.
+            {% endif %}
+        </p>
+        {% if rejected_attachment_count %}
+        <p class="is-size-7 has-text-danger mt-2">
+            {{ rejected_attachment_count }} attachment(s) were rejected by security policy and moved to quarantine for admin review.
+        </p>
+        {% endif %}
+    </div>
+    {% if assignment_cards %}
+    {% for card in assignment_cards %}
+    {% with assignment=card.assignment %}
+    <div class="box mb-3">
+        <p class="has-text-weight-semibold">Assignment #{{ assignment.id }} - {{ assignment.title }}</p>
+
+        <form method="post" action="{% url 'polish:task-manager:attach-item' assignment.id %}" enctype="multipart/form-data" class="mb-4">
+            {% csrf_token %}
+            <input type="hidden" name="active_tab" value="attach">
+            <div class="field mt-2">
+                <label class="label">Attachment Label (optional)</label>
+                <div class="control">
+                    <input class="input" type="text" name="attachment_label" placeholder="Roadmap PDF, Brief, Spec...">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Attach File</label>
+                <div class="control">
+                    <input class="input" type="file" name="attachment_file" required>
+                </div>
+                <p class="is-size-7 mt-1">Allowed: PDF, DOC, DOCX, TXT, MD, XLSX, CSV, PNG, JPG, JPEG. Tier cap: {{ tier_upload_cap_label }}.</p>
+                <p class="is-size-7 mt-1">Security policy: file uploads require server-side ClamAV scan.</p>
+                {% if clamscan_available %}
+                <p class="is-size-7 has-text-success">Scanner status: clamscan detected.</p>
+                {% else %}
+                <p class="is-size-7 has-text-danger">Scanner status: clamscan not installed. Uploads will be blocked until it is available.</p>
+                {% endif %}
+                {% if is_staff_user %}
+                <label class="checkbox is-size-7 mt-2">
+                    <input type="checkbox" name="admin_override" value="1">
+                    Admin override: bypass tier cap and storage quota checks for this upload.
+                </label>
+                {% endif %}
+            </div>
+            <button class="button is-light" type="submit">Upload Attachment</button>
+        </form>
+
+        <h3 class="title is-6">Attachments</h3>
+        {% if card.attachments %}
+        <ul>
+            {% for attachment in card.attachments %}
+            <li class="mb-1">
+                <a href="{% url 'polish:task-manager:download-attachment' attachment.id %}" target="_blank" rel="noopener">
+                    {{ attachment.label|default:attachment.file.name }}
+                </a>
+                <span class="is-size-7">
+                    (uploaded {{ attachment.created_at|date:"Y-m-d H:i" }} by {{ attachment.uploaded_by.username|default:attachment.uploaded_by.email }}, downloads: {{ attachment.download_count }}, scan: {{ attachment.scan_status }})
+                </span>
+                <form method="post" action="{% url 'polish:task-manager:attach-item' assignment.id %}" class="is-inline-block ml-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="active_tab" value="attach">
+                    <input type="hidden" name="action" value="remove_attachment">
+                    <input type="hidden" name="attachment_id" value="{{ attachment.id }}">
+                    <button class="button is-small is-danger is-light" type="submit">Remove</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No attachments yet.</p>
+        {% endif %}
+
+        <h3 class="title is-6 mt-4">Rejected Attachments (Quarantine)</h3>
+        {% if card.quarantine_items %}
+        <ul>
+            {% for quarantined in card.quarantine_items %}
+            <li class="mb-1">
+                {{ quarantined.original_filename }}
+                <span class="is-size-7">(status: {{ quarantined.scan_status|default:"n/a" }}, review: {{ quarantined.review_status }}, reason: {{ quarantined.reason }})</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No quarantined attachments for this assignment.</p>
+        {% endif %}
+
+        <hr>
+
+        <form method="post" action="{% url 'polish:task-manager:attach-item' assignment.id %}" class="mb-4">
+            {% csrf_token %}
+            <input type="hidden" name="active_tab" value="attach">
+            <div class="field mt-2">
+                <label class="label">New Objective</label>
+                <div class="control">
+                    <textarea class="textarea" name="objective_text" rows="2" placeholder="Enter objective as a bullet-style sentence" required></textarea>
+                </div>
+            </div>
+
+            <button class="button is-light" type="submit">Add Objective + Attach</button>
+        </form>
+
+        <h3 class="title is-6">Objectives</h3>
+        {% if card.objectives %}
+        <ul>
+            {% for objective in card.objectives %}
+            <li class="mb-2">
+                <span>{{ objective.objective_text }}</span>
+                {% if objective.is_attached_for_assignment %}
+                <span class="tag is-success is-light ml-2">Attached</span>
+                {% else %}
+                <form method="post" action="{% url 'polish:task-manager:attach-item' assignment.id %}" class="is-inline-block ml-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="active_tab" value="attach">
+                    <input type="hidden" name="objective_id" value="{{ objective.id }}">
+                    <button class="button is-small is-link is-light" type="submit">Attach Existing</button>
+                </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No objectives added yet.</p>
+        {% endif %}
+    </div>
+    {% endwith %}
+    {% endfor %}
+    {% else %}
+    <p class="is-size-7">No assignments available.</p>
+    {% endif %}
+</div>
+
+<div id="ops-metrics" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Operational Analytics</h2>
+    {% if is_staff_user %}
+    <div class="buttons mb-3">
+        <a class="button is-link is-light" href="{% url 'polish:task-manager:export-analytics-csv' %}">Download Analytics CSV</a>
+        <a class="button is-info is-light" href="{% url 'polish:task-manager:export-analytics-pdf' %}">Download Analytics Report (PDF)</a>
+    </div>
+    {% endif %}
+    <div class="tm-metrics-grid">
+        <div class="tm-metric-card">
+            <h3>Assignment Throughput (7d)</h3>
+            <p id="tm-throughput-7d">{{ metrics.operational_metrics.assignment_throughput_7d }}</p>
+        </div>
+        <div class="tm-metric-card">
+            <h3>Item Velocity (steps/day)</h3>
+            <p id="tm-item-velocity">{{ metrics.operational_metrics.item_velocity_steps_per_day }}</p>
+        </div>
+        <div class="tm-metric-card">
+            <h3>Create to Start (hours)</h3>
+            <p id="tm-create-start-latency">{{ metrics.operational_metrics.phase_transition_latency_hours.create_to_start_hours }}</p>
+        </div>
+        <div class="tm-metric-card">
+            <h3>Start to Complete (hours)</h3>
+            <p id="tm-start-complete-latency">{{ metrics.operational_metrics.phase_transition_latency_hours.start_to_complete_hours }}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h3 class="title is-6">Compartment Dwell Time (Hours)</h3>
+    <ul id="tm-compartment-dwell-list">
+        {% for code, hours in metrics.operational_metrics.compartment_dwell_time_hours.items %}
+        <li>{{ code }}: {{ hours }}</li>
+        {% empty %}
+        <li>No dwell data available.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3 class="title is-6">Per-User Productivity</h3>
+    <ul id="tm-productivity-list">
+        {% for row in metrics.operational_metrics.per_user_productivity %}
+        <li>{{ row.user }}: {{ row.completed }}/{{ row.total }} completed ({{ row.completion_rate }}%)</li>
+        {% empty %}
+        <li>No productivity data available.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3 class="title is-6">Export History</h3>
+    <div class="buttons are-small mb-2">
+        <a
+            class="button {% if export_status_filter != 'failed' %}is-link{% else %}is-light{% endif %}"
+            href="{% url 'task-manager-admin:index' %}?active_tab=ops-metrics"
+        >
+            All Runs
+        </a>
+        <a
+            class="button {% if export_status_filter == 'failed' %}is-danger{% else %}is-light{% endif %}"
+            href="{% url 'task-manager-admin:index' %}?active_tab=ops-metrics&export_status=failed"
+        >
+            Failed Only
+        </a>
+    </div>
+    {% if export_history_runs %}
+    <div class="table-container">
+        <table class="table is-fullwidth is-striped is-size-7">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Source</th>
+                    <th>Format</th>
+                    <th>Status</th>
+                    <th>Requested By</th>
+                    <th>Target</th>
+                    <th>Artifacts</th>
+                    <th>Notes / Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in export_history_runs %}
+                <tr>
+                    <td>{{ run.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ run.trigger_source }}</td>
+                    <td>{{ run.export_format }}</td>
+                    <td>{{ run.status }}</td>
+                    <td>{{ run.requested_by.username|default:run.requested_by.email|default:"system" }}</td>
+                    <td>{{ run.target_user.username|default:run.target_user.email|default:"-" }}</td>
+                    <td>{{ run.artifact_paths|default:"-" }}</td>
+                    <td>
+                        {% if run.status == "failed" and run.error_message %}
+                        {{ run.error_message }}
+                        {% else %}
+                        {{ run.notes|default:"-" }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="is-size-7">No analytics exports recorded yet.</p>
+    {% endif %}
+</div>
+
+<div id="assignment" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Assignment Actions</h2>
+    {% if assignment_cards %}
+    {% for card in assignment_cards %}
+    {% with assignment=card.assignment %}
+    <div class="box mb-3">
+        <p class="has-text-weight-semibold">Assignment #{{ assignment.id }} - {{ assignment.title }}</p>
+        <p class="is-size-7 mb-3">Phase {{ assignment.current_phase|upper }} | Compartment {{ assignment.current_compartment }} | Step {{ assignment.current_step_index }}/{{ card.step_total }} | Status {{ assignment.is_closed|yesno:'completed,active' }}</p>
+
+        <div class="buttons are-small">
+            <form method="post" action="{% url 'polish:task-manager:assignment-actions' assignment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="assignment">
+                <input type="hidden" name="action" value="advance">
+                <button class="button is-link is-light" type="submit">Advance</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:assignment-actions' assignment.id %}" class="is-flex">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="assignment">
+                <input type="hidden" name="action" value="skip">
+                <input class="input is-small" type="number" name="step_index" min="0" placeholder="step" style="width: 100px;">
+                <button class="button is-light ml-2" type="submit">Skip</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:assignment-actions' assignment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="assignment">
+                <input type="hidden" name="action" value="complete">
+                <input class="input is-small mb-2" type="text" name="completion_notes" placeholder="Completion notes (optional)">
+                <button class="button is-success is-light" type="submit">Complete</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:assignment-actions' assignment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="assignment">
+                <input type="hidden" name="action" value="resume">
+                <button class="button is-warning is-light" type="submit">Resume</button>
+            </form>
+
+            <a class="button is-info is-light" href="{% url 'polish:task-manager:assignment-report' assignment.id %}" target="_blank" rel="noopener">
+                Download Report PDF
+            </a>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    {% else %}
+    <p class="is-size-7">No assignments available.</p>
+    {% endif %}
+</div>
+
+<div id="item" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Item Actions</h2>
+    {% if assignment_cards %}
+    {% for card in assignment_cards %}
+    {% for item in card.items %}
+    <div class="box mb-3">
+        <p class="has-text-weight-semibold">Item #{{ item.id }}</p>
+        {% if item.workflow_object %}
+        <p class="is-size-7 mb-2">Objective: {{ item.workflow_object.objective_text|default:"Linked workflow object" }}</p>
+        {% endif %}
+        <p class="is-size-7 mb-3">Status {{ item.status }} | {{ item.current_phase|upper }}:{{ item.current_compartment }} | Step {{ item.current_step_index }}</p>
+        <div class="buttons are-small">
+            <form method="post" action="{% url 'polish:task-manager:item-actions' item.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="item">
+                <input type="hidden" name="action" value="advance">
+                <button class="button is-link is-light" type="submit">Advance</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:item-actions' item.id %}" class="is-flex">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="item">
+                <input type="hidden" name="action" value="skip">
+                <input class="input is-small" type="number" name="step_index" min="0" placeholder="step" style="width: 100px;">
+                <button class="button is-light ml-2" type="submit">Skip</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:item-actions' item.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="item">
+                <input type="hidden" name="action" value="complete">
+                <button class="button is-success is-light" type="submit">Complete</button>
+            </form>
+
+            <form method="post" action="{% url 'polish:task-manager:item-actions' item.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="item">
+                <input type="hidden" name="action" value="resume">
+                <button class="button is-warning is-light" type="submit">Resume</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <p class="is-size-7">No attached items found.</p>
+    {% endfor %}
+    {% endfor %}
+    {% else %}
+    <p class="is-size-7">No items available.</p>
+    {% endif %}
+</div>
+
+<div id="metrics" class="tm-tab-content">
+    <h2 class="title is-5">Task Manager Metrics</h2>
+    <p class="tm-metrics-refresh" id="tm-metrics-refresh">Last refreshed: --</p>
+
+    <div class="tm-metrics-grid">
+        <div class="tm-metric-card">
+            <h3>Total Assignments</h3>
+            <p id="tm-total-assignments">{{ metrics.total_assignments }}</p>
+        </div>
+
+        <div class="tm-metric-card">
+            <h3>Active Assignments</h3>
+            <p id="tm-active-assignments">{{ metrics.active_assignments }}</p>
+        </div>
+
+        <div class="tm-metric-card">
+            <h3>Completed Assignments</h3>
+            <p id="tm-completed-assignments">{{ metrics.completed_assignments }}</p>
+        </div>
+
+        <div class="tm-metric-card">
+            <h3>Total Items</h3>
+            <p id="tm-total-items">{{ metrics.total_items }}</p>
+        </div>
+
+        <div class="tm-metric-card">
+            <h3>Items In Progress</h3>
+            <p id="tm-items-progress">{{ metrics.items_in_progress }}</p>
+        </div>
+
+        <div class="tm-metric-card">
+            <h3>Items Completed</h3>
+            <p id="tm-items-completed">{{ metrics.items_completed }}</p>
+        </div>
+    </div>
+
+    <div class="tm-chart-bar">
+        <div class="tm-bar" id="bar-assignments"></div>
+        <div class="tm-bar" id="bar-items"></div>
+    </div>
+
+    <div class="tm-donut" id="tm-donut" aria-label="Phase distribution donut"></div>
+
+    <div class="tm-phase-flow">
+        <div class="tm-phase-node" id="flow-create">Create</div>
+        <div class="tm-phase-arrow">-></div>
+        <div class="tm-phase-node" id="flow-post">Post</div>
+        <div class="tm-phase-arrow">-></div>
+        <div class="tm-phase-node" id="flow-work">Work</div>
+    </div>
+
+    <hr>
+
+    <h3 class="title is-6">Animated Compartment Flow</h3>
+    <div class="tm-compartment-flow" id="tm-compartment-flow"></div>
+
+    <hr>
+
+    <h3 class="title is-6">Assignment Timeline (Last 7 Days)</h3>
+    <div class="tm-timeline-chart" id="tm-assignment-timeline"></div>
+
+    <hr>
+
+    <h3 class="title is-6">Item Lifecycle Heatmap</h3>
+    <div class="tm-heatmap" id="tm-item-lifecycle-heatmap"></div>
+
+    <hr>
+
+    <h3 class="title is-6">Phase Distribution</h3>
+    <ul class="tm-phase-list">
+        <li>Create Phase: <span id="tm-phase-create">{{ metrics.phase_counts.create }}</span></li>
+        <li>Post Phase: <span id="tm-phase-post">{{ metrics.phase_counts.post }}</span></li>
+        <li>Work Phase: <span id="tm-phase-work">{{ metrics.phase_counts.work }}</span></li>
+    </ul>
+
+    <hr>
+
+    <h3 class="title is-6">Compartment Distribution</h3>
+    <ul class="tm-compartment-list">
+        {% for slot in metrics.compartment_slots %}
+            <li>{{ slot.code }}: <span id="tm-compartment-{{ slot.slot_key }}">{{ slot.count }}</span></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div id="quarantine" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Quarantine Review</h2>
+    <div class="mb-3">
+        <a class="button is-link is-light" href="{% url 'polish:task-manager:quarantine-list' %}">Open Full Quarantine Workflow</a>
+    </div>
+    {% if quarantine_items %}
+    <div class="box mb-3">
+        <h3 class="title is-6">Quarantine Queue</h3>
+        <ul>
+            {% for quarantined in quarantine_items %}
+            <li class="mb-2">
+                <a href="{% url 'task-manager-admin:index' %}?active_tab=quarantine&quarantine_id={{ quarantined.id }}">
+                    #{{ quarantined.id }} {{ quarantined.original_filename }}
+                </a>
+                <span class="is-size-7">
+                    (assignment #{{ quarantined.assignment_id }}, uploader {{ quarantined.uploaded_by.username|default:quarantined.uploaded_by.email }}, scan {{ quarantined.scan_status|default:"n/a" }}, review {{ quarantined.review_status }})
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if selected_quarantine_item %}
+    <div class="box mb-3">
+        <h3 class="title is-6">Quarantine Detail #{{ selected_quarantine_item.id }}</h3>
+        <p class="is-size-7">File: {{ selected_quarantine_item.original_filename }}</p>
+        <p class="is-size-7">Reason: {{ selected_quarantine_item.reason }}</p>
+        <p class="is-size-7">Scan status: {{ selected_quarantine_item.scan_status|default:"n/a" }}</p>
+        <p class="is-size-7">Review status: {{ selected_quarantine_item.review_status }}</p>
+        <p class="is-size-7">Reviewer notes: {{ selected_quarantine_item.review_notes|default:"-" }}</p>
+
+        {% if is_staff_user %}
+        <form method="post" action="{% url 'polish:task-manager:quarantine-actions' selected_quarantine_item.id %}" class="mb-2">
+            {% csrf_token %}
+            <input type="hidden" name="active_tab" value="quarantine">
+            <input class="input is-small mb-2" type="text" name="review_notes" placeholder="Review notes (optional)">
+            <div class="buttons are-small">
+                <button class="button is-success is-light" type="submit" name="action" value="approve">Approve</button>
+                <button class="button is-warning is-light" type="submit" name="action" value="rescan">Re-scan</button>
+                <button class="button is-danger is-light" type="submit" name="action" value="delete">Delete</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="is-size-7 has-text-warning">Staff review is required for approve/re-scan/delete actions.</p>
+        {% endif %}
+    </div>
+
+    <div class="box">
+        <h3 class="title is-6">Review History</h3>
+        {% if quarantine_history %}
+        <ul>
+            {% for log in quarantine_history %}
+            <li class="mb-1 is-size-7">
+                {{ log.created_at|date:"Y-m-d H:i" }} - {{ log.event_type }} by {{ log.actor.username|default:log.actor.email }}
+                {% if log.reason %}- {{ log.reason }}{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No review history yet for this item.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="is-size-7">No quarantined attachments available.</p>
+    {% endif %}
+</div>
+
+<div id="activity" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Recent Activity</h2>
+    <ul id="tm-activity-feed" class="tm-activity-list"></ul>
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'js/task_manager.js' %}"></script>
+{% endblock %}

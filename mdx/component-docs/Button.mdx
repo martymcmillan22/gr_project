@@ -1,0 +1,75 @@
+---
+title: Button Component
+description: A foundational button component with multiple variants and sizes
+category: UI
+status: active
+---
+
+# Button
+
+The Button component is a foundational interactive element that uses design tokens for consistent styling across the platform.
+
+## Usage
+
+```jsx
+import { Button } from '@/components/ui';
+
+export function Example() {
+  return (
+    <Button variant="primary" size="md" onClick={() => console.log('clicked')}>
+      Click me
+    </Button>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'primary' \| 'secondary' \| 'ghost'` | `'primary'` | Visual style variant |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Button size |
+| `children` | `React.ReactNode` | - | Button label or content |
+| `onClick` | `() => void` | - | Click handler |
+| `disabled` | `boolean` | `false` | Disable state |
+| `className` | `string` | - | Additional CSS classes |
+
+## Variants
+
+### Primary
+Used for main actions or calls-to-action.
+
+```jsx
+<Button variant="primary">Primary Action</Button>
+```
+
+### Secondary
+Used for alternative or less prominent actions.
+
+```jsx
+<Button variant="secondary">Secondary Action</Button>
+```
+
+### Ghost
+Used for tertiary or minimal-emphasis actions.
+
+```jsx
+<Button variant="ghost">Ghost Action</Button>
+```
+
+## Sizes
+
+Available sizes: `sm`, `md`, `lg`
+
+```jsx
+<Button size="sm">Small</Button>
+<Button size="md">Medium</Button>
+<Button size="lg">Large</Button>
+```
+
+## Token References
+
+- **Colors**: Primary palette from `tokens.colors.primary`
+- **Spacing**: Padding from `tokens.spacing`
+- **Typography**: Font size from `tokens.typography.body`
+- **Border Radius**: `tokens.borderRadius.md`

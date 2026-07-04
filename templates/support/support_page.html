@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Support{% endblock %}
+
+{% block content %}
+<div class="columns is-centered">
+  <div class="column is-10-tablet is-8-desktop">
+
+    <!-- Page heading -->
+    <h1 class="title is-2 mb-2">Support &amp; Feedback</h1>
+    <p></p>
+    <p class="subtitle is-6 mb-5">Have a question? Check the FAQ below. Want to share feedback? We'd love to hear from you.</p>
+
+    <!-- ── FAQ SECTION ─────────────────────────────────────────────── -->
+    <section id="faq" class="mb-6">
+      <h2 class="title is-4 mb-3">Frequently Asked Questions</h2>
+
+      {% if faqs %}
+        {% for faq in faqs %}
+        <div class="card mb-3">
+          <header class="card-header faq-header" style="cursor:pointer;" data-target="faq-body-{{ faq.pk }}">
+            <p class="card-header-title">{{ faq.question }}</p>
+            <button class="card-header-icon" aria-label="Toggle answer">
+              <span class="icon">
+                <i class="fas fa-angle-down faq-icon"></i>
+              </span>
+            </button>
+          </header>
+          <div class="card-content is-hidden" id="faq-body-{{ faq.pk }}">
+            <div class="content">{{ faq.answer }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="has-text-grey">No FAQ entries yet. Check back soon.</p>
+      {% endif %}
+    </section>
+
+    <!-- ── CONFUSION AREAS (staff only) ─────────────────────────── -->
+    {% if confusion_areas %}
+    <section id="confusion-areas" class="mb-6">
+      <h2 class="title is-4 mb-1">
+        <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i></span>
+        Top Confusion Areas
+        <span class="tag is-light is-small ml-2">Staff view</span>
+      </h2>
+      <p class="mb-3 has-text-grey-dark is-size-7">Ranked by negative feedback volume. High-importance = 3+ reports.</p>
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+          <thead>
+            <tr>
+              <th>Pattern</th>
+              <th class="has-text-centered">Reports</th>
+              <th class="has-text-centered">Priority</th>
+              <th>Linked FAQs</th>
+              <th class="has-text-centered">Effectiveness</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for area in confusion_areas %}
+            <tr>
+              <td>{{ area.label }}</td>
+              <td class="has-text-centered">{{ area.count }}</td>
+              <td class="has-text-centered">
+                {% if area.is_high_importance %}
+                  <span class="tag is-danger">High</span>
+                {% else %}
+                  <span class="tag is-light">Normal</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if area.suggested_faqs %}
+                  <ul class="m-0" style="list-style:none;padding:0;">
+                    {% for faq in area.suggested_faqs %}
+                    <li class="mb-1">
+                      <a href="#faq-body-{{ faq.pk }}" class="has-text-link is-size-7">{{ faq.question }}</a>
+                      {% if forloop.first %}
+                        <span class="tag is-info is-light ml-1" style="font-size:0.65rem;vertical-align:middle;">Most relevant</span>
+                      {% endif %}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <span class="has-text-grey is-size-7">No linked FAQ yet</span>
+                {% endif %}
+              </td>
+              <td class="has-text-centered is-size-7">
+                {% if area.suggested_faqs %}
+                  {% for faq in area.suggested_faqs %}
+                    {% if forloop.first %}
+                      {% if faq.positive_hits == 0 and faq.negative_hits == 0 %}
+                        <span class="has-text-grey">—</span>
+                      {% else %}
+                        {% with total=faq.positive_hits|add:faq.negative_hits %}
+                        {% with ratio=faq.positive_hits|add:0 %}
+                          {% if ratio >= 0.8 %}
+                            <span class="tag is-success is-light">✓ Good</span>
+                          {% elif ratio >= 0.5 %}
+                            <span class="tag is-info is-light">→ Fair</span>
+                          {% else %}
+                            <span class="tag is-warning is-light">⚠ Needs</span>
+                          {% endif %}
+                        {% endwith %}
+                        {% endwith %}
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ── FEEDBACK WIDGET ────────────────────────────────────────── -->
+    <section id="feedback" class="box">
+      <h2 class="title is-4 mb-1">Was this page helpful?</h2>
+      <p class="mb-4 has-text-grey-dark">Your feedback helps us improve.</p>
+
+      <!-- Step 1: Binary choice -->
+      <div id="feedback-step-1">
+        <div class="buttons">
+          <button id="btn-thumbs-up" class="button is-success is-medium" data-sentiment="positive">
+            <span class="icon"><i class="fas fa-thumbs-up"></i></span>
+            <span>Yes, helpful</span>
+          </button>
+          <button id="btn-thumbs-down" class="button is-danger is-light is-medium" data-sentiment="negative">
+            <span class="icon"><i class="fas fa-thumbs-down"></i></span>
+            <span>No, needs work</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Negative follow-up (hidden until 👎 clicked) -->
+      <div id="feedback-step-2" class="is-hidden mt-4">
+        <div class="field">
+          <label class="label" for="feedback-text">What went wrong? <span class="has-text-grey has-text-weight-normal">(optional)</span></label>
+          <div class="control">
+            <textarea id="feedback-text" class="textarea" rows="3" maxlength="2000"
+              placeholder="Describe the issue, what you expected, or what confused you…"></textarea>
+          </div>
+          <p class="help has-text-grey">Max 2000 characters. Do not include personal or sensitive information.</p>
+        </div>
+        <div class="field">
+          <div class="control">
+            <button id="btn-submit-negative" class="button is-danger">
+              <span class="icon"><i class="fas fa-paper-plane"></i></span>
+              <span>Submit feedback</span>
+            </button>
+            <button id="btn-skip-negative" class="button is-light ml-2">Skip</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Thank-you message (hidden until submitted) -->
+      <div id="feedback-thankyou" class="is-hidden mt-4">
+        <div class="notification is-success is-light">
+          <strong>Thank you!</strong> Your feedback was recorded and will help us prioritize improvements.
+        </div>
+        <!-- Step 3b: FAQ suggestion after negative (shown by JS only) -->
+        <div id="feedback-faq-suggest" class="is-hidden mt-3">
+          <p class="has-text-weight-semibold mb-2">
+            <span class="icon has-text-info"><i class="fas fa-lightbulb"></i></span>
+            You might also find these FAQs helpful:
+          </p>
+          <ul id="feedback-faq-suggest-list"></ul>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+{{ faq_by_pattern|json_script:"faq-by-pattern-data" }}
+<script>
+const FAQ_BY_PATTERN = JSON.parse(document.getElementById("faq-by-pattern-data").textContent);
+const VIEWED_FAQ_IDS_KEY = "support_page_viewed_faq_ids";
+</script>
+<script>
+(function () {
+  "use strict";
+
+  const SUBMIT_URL = "{% url 'support:submit_feedback' %}";
+  const CSRF_TOKEN = "{{ csrf_token }}";
+  const PAGE_URL   = window.location.pathname;
+
+  // Track viewed FAQ IDs in sessionStorage
+  function addViewedFaqId(faqId) {
+    let ids = JSON.parse(sessionStorage.getItem(VIEWED_FAQ_IDS_KEY) || "[]");
+    if (!ids.includes(faqId)) {
+      ids.push(faqId);
+      sessionStorage.setItem(VIEWED_FAQ_IDS_KEY, JSON.stringify(ids));
+    }
+  }
+
+  function getViewedFaqIds() {
+    return JSON.parse(sessionStorage.getItem(VIEWED_FAQ_IDS_KEY) || "[]");
+  }
+
+  function clearViewedFaqIds() {
+    sessionStorage.removeItem(VIEWED_FAQ_IDS_KEY);
+  }
+
+  // ── FAQ accordion ──────────────────────────────────────────────
+  document.querySelectorAll(".faq-header").forEach(function (header) {
+    header.addEventListener("click", function () {
+      const targetId = header.getAttribute("data-target");
+      const body     = document.getElementById(targetId);
+      const icon     = header.querySelector(".faq-icon");
+      // Extract FAQ ID from targetId (format: "faq-body-{id}")
+      const faqId = targetId.replace("faq-body-", "");
+      if (faqId && !isNaN(faqId)) {
+        addViewedFaqId(parseInt(faqId));
+      }
+      if (body) {
+        body.classList.toggle("is-hidden");
+        if (icon) icon.classList.toggle("fa-angle-down");
+        if (icon) icon.classList.toggle("fa-angle-up");
+      }
+    });
+  });
+
+  // ── Feedback widget ────────────────────────────────────────────
+  const step1    = document.getElementById("feedback-step-1");
+  const step2    = document.getElementById("feedback-step-2");
+  const thankyou = document.getElementById("feedback-thankyou");
+  const faqSuggest     = document.getElementById("feedback-faq-suggest");
+  const faqSuggestList = document.getElementById("feedback-faq-suggest-list");
+
+  function hideFeedbackWidget() {
+    step1.classList.add("is-hidden");
+    step2.classList.add("is-hidden");
+  }
+
+  function showFaqSuggestions() {
+    // Collect all FAQ entries across all patterns and deduplicate by pk.
+    const seen = new Set();
+    const items = [];
+    Object.values(FAQ_BY_PATTERN).forEach(function (faqs) {
+      faqs.forEach(function (faq) {
+        if (!seen.has(faq.pk)) {
+          seen.add(faq.pk);
+          items.push(faq);
+        }
+      });
+    });
+    if (!items.length) return;
+    items.forEach(function (faq) {
+      const li = document.createElement("li");
+      li.className = "mb-1";
+      const a = document.createElement("a");
+      a.href = "#faq-body-" + faq.pk;
+      a.className = "has-text-link";
+      a.textContent = faq.question;
+      // Track clicks on suggestion links
+      a.addEventListener("click", function () {
+        addViewedFaqId(faq.pk);
+      });
+      li.appendChild(a);
+      faqSuggestList.appendChild(li);
+    });
+    faqSuggest.classList.remove("is-hidden");
+  }
+
+  function showThankyou(isNegative) {
+    hideFeedbackWidget();
+    thankyou.classList.remove("is-hidden");
+    if (isNegative) showFaqSuggestions();
+    clearViewedFaqIds();  // Reset for next feedback cycle
+  }
+
+  function sendFeedback(sentiment, text) {
+    const payload = {
+      sentiment: sentiment,
+      text: text,
+      page_url: PAGE_URL,
+      viewed_faq_ids: getViewedFaqIds(),
+    };
+    return fetch(SUBMIT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": CSRF_TOKEN,
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // 👍 — record positive immediately, skip text step
+  document.getElementById("btn-thumbs-up").addEventListener("click", function () {
+    sendFeedback("positive", "").then(function () { showThankyou(false); });
+  });
+
+  // 👎 — reveal the text step
+  document.getElementById("btn-thumbs-down").addEventListener("click", function () {
+    step2.classList.remove("is-hidden");
+    document.getElementById("btn-thumbs-up").setAttribute("disabled", true);
+    document.getElementById("btn-thumbs-down").setAttribute("disabled", true);
+  });
+
+  // Submit negative with text
+  document.getElementById("btn-submit-negative").addEventListener("click", function () {
+    const text = document.getElementById("feedback-text").value.trim();
+    sendFeedback("negative", text).then(function () { showThankyou(true); });
+  });
+
+  // Skip negative text — still record the negative sentiment
+  document.getElementById("btn-skip-negative").addEventListener("click", function () {
+    sendFeedback("negative", "").then(function () { showThankyou(true); });
+  });
+
+})();
+</script>
+{% endblock %}

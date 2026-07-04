@@ -1,0 +1,513 @@
+/* Task Manager visual alignment with BaseTrue Admin Dashboard */
+
+.task-manager-admin {
+    max-width: 1200px;
+}
+
+.tm-brand-header {
+    margin-bottom: 8px;
+}
+
+.tm-title {
+    margin: 0;
+}
+
+.tm-nav {
+    margin: 10px 0 16px;
+}
+
+.tm-quick-actions {
+    margin: 10px 0 16px;
+}
+
+.tm-section-anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+
+.tm-section-anchor {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #c7d5e8;
+    background: #f3f8ff;
+    color: #2f4f74;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 5px 9px;
+    text-decoration: none;
+}
+
+.tm-section-anchor:hover {
+    background: #e6f0fc;
+    text-decoration: none;
+}
+
+.tm-quick-action {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.tm-quick-action:focus-visible {
+    outline: 2px solid #2e6fd8;
+    outline-offset: 2px;
+}
+
+.tm-back {
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    padding: 9px 12px;
+    text-decoration: none;
+}
+
+.tm-back:hover {
+    text-decoration: none;
+    background: #e2eefc;
+}
+
+.tm-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tm-tab {
+    border: 1px solid #bfc9d6;
+    background: linear-gradient(180deg, #ffffff, #edf3fb);
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 9px 12px;
+}
+
+.tm-tab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(35, 70, 107, 0.16);
+    border-color: #bfc9d6;
+    background: linear-gradient(180deg, #ffffff, #edf3fb);
+    color: #23466b;
+}
+
+.tm-tabs .tm-tab.button:hover,
+.tm-tabs .tm-tab.button:focus,
+.tm-tabs .tm-tab.button:active {
+    border-color: #bfc9d6;
+    background: linear-gradient(180deg, #ffffff, #edf3fb);
+    color: #23466b;
+}
+
+.tm-tab-active {
+    border-color: #2e6fd8;
+    background: color-mix(in srgb, #2e6fd8 14%, #ffffff);
+    color: #1f2530;
+}
+
+.tm-tabs .tm-tab.tm-tab-active:hover,
+.tm-tabs .tm-tab.tm-tab-active:focus,
+.tm-tabs .tm-tab.tm-tab-active:active {
+    border-color: #2e6fd8;
+    background: color-mix(in srgb, #2e6fd8 14%, #ffffff);
+    color: #1f2530;
+}
+
+.tm-tab-content {
+    border: 1px solid #d7dee8;
+    border-top: 4px solid #2e6fd8;
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px;
+    margin: 10px 0 22px;
+    box-shadow: 0 10px 24px rgba(20, 40, 80, 0.08);
+}
+
+.tm-panel-fade {
+    animation: tmFade 220ms ease;
+}
+
+@keyframes tmFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tm-tab-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 460px;
+}
+
+.tm-tab-content button,
+.tm-sidebar-toggle {
+    border: 1px solid #bfc9d6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.81rem;
+    font-weight: 700;
+    padding: 8px 11px;
+}
+
+.tm-tab-content button:hover,
+.tm-sidebar-toggle:hover {
+    background: #e2eefc;
+}
+
+.tm-sidebar {
+    position: fixed;
+    left: 12px;
+    top: 84px;
+    width: 200px;
+    z-index: 20;
+}
+
+.tm-sidebar-content {
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #d7dee8;
+    border-radius: 10px;
+    margin-top: 8px;
+    box-shadow: 0 8px 20px rgba(20, 40, 80, 0.08);
+}
+
+.tm-sidebar-content a {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ecf0f6;
+}
+
+.tm-sidebar-content a:hover {
+    background: #f4f8fd;
+}
+
+.tm-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.tm-metric-card {
+    border: 1px solid #d7dee8;
+    border-top: 4px solid #2e6fd8;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px;
+}
+
+.tm-metric-card h3 {
+    margin: 0 0 6px;
+    color: #27476c;
+    font-size: 0.95rem;
+}
+
+.tm-metric-card p {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2530;
+}
+
+.tm-metrics-refresh {
+    margin: 0 0 10px;
+    color: #5c708b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.tm-chart-bar {
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.tm-bar {
+    width: 40%;
+    height: 14px;
+    background: #2e6fd8;
+    border-radius: 999px;
+}
+
+#bar-items {
+    background: #2f9b62;
+}
+
+.tm-donut {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(
+        #2e6fd8 var(--create),
+        #d4a226 var(--post),
+        #2f9b62 var(--work)
+    );
+    margin: 18px auto;
+}
+
+.tm-phase-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.tm-phase-node {
+    padding: 8px 14px;
+    border: 1px solid #d7dee8;
+    border-radius: 999px;
+    background: #fff;
+    font-weight: 700;
+}
+
+.tm-compartment-flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tm-compartment-node {
+    position: relative;
+    border: 1px solid #d7dee8;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    background: #fff;
+    overflow: hidden;
+}
+
+.tm-compartment-node strong {
+    display: block;
+}
+
+.tm-compartment-node span {
+    font-size: 0.8rem;
+    color: #5a6a80;
+}
+
+.tm-compartment-intensity {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    width: var(--intensity, 0%);
+    background: var(--intensity-color, #2e6fd8);
+}
+
+.tm-timeline-chart {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(40px, 1fr));
+    gap: 10px;
+    align-items: end;
+    min-height: 180px;
+    margin-top: 8px;
+}
+
+.tm-timeline-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.tm-timeline-bars {
+    display: flex;
+    align-items: end;
+    gap: 4px;
+    height: 130px;
+}
+
+.tm-timeline-bar {
+    width: 10px;
+    border-radius: 4px 4px 0 0;
+}
+
+.tm-timeline-bar-created {
+    background: #2e6fd8;
+}
+
+.tm-timeline-bar-completed {
+    background: #2f9b62;
+}
+
+.tm-heatmap {
+    display: grid;
+    grid-template-columns: 90px repeat(3, minmax(58px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.tm-heatmap-cell,
+.tm-heatmap-header,
+.tm-heatmap-row-label {
+    border: 1px solid #d7dee8;
+    border-radius: 6px;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 0.8rem;
+    background: #fff;
+}
+
+.tm-heatmap-cell[data-intensity="0"] {
+    background: #f7f9fc;
+}
+
+.tm-phase-list,
+.tm-compartment-list,
+.tm-activity-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.tm-activity-list li {
+    border-bottom: 1px solid #ecf0f6;
+    padding: 7px 0;
+    color: #44566f;
+}
+
+.bt-theme-dark .task-manager-admin,
+.bt-theme-dark .task-manager-admin p,
+.bt-theme-dark .task-manager-admin span,
+.bt-theme-dark .task-manager-admin li,
+.bt-theme-dark .task-manager-admin label {
+    color: #d7dfeb;
+}
+
+.bt-theme-dark .task-manager-admin .tm-tab-content,
+.bt-theme-dark .task-manager-admin .tm-metric-card,
+.bt-theme-dark .task-manager-admin .tm-sidebar-content,
+.bt-theme-dark .task-manager-admin .tm-compartment-node,
+.bt-theme-dark .task-manager-admin .tm-phase-node,
+.bt-theme-dark .task-manager-admin .tm-heatmap-cell,
+.bt-theme-dark .task-manager-admin .tm-heatmap-header,
+.bt-theme-dark .task-manager-admin .tm-heatmap-row-label {
+    background: linear-gradient(165deg, #182231, #121b28);
+    border-color: #304159;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+.bt-theme-dark .task-manager-admin .tm-tab-content {
+    border-top-color: #3b6ea6;
+}
+
+.bt-theme-dark .task-manager-admin .tm-metric-card h3,
+.bt-theme-dark .task-manager-admin .tm-metric-card p,
+.bt-theme-dark .task-manager-admin h2,
+.bt-theme-dark .task-manager-admin h3,
+.bt-theme-dark .task-manager-admin strong {
+    color: #e7edf7;
+}
+
+.bt-theme-dark .task-manager-admin .tm-tab,
+.bt-theme-dark .task-manager-admin .tm-tab-content button,
+.bt-theme-dark .task-manager-admin .tm-sidebar-toggle,
+.bt-theme-dark .task-manager-admin .tm-back {
+    background: #223852;
+    border-color: #3a5475;
+    color: #dbe8f9;
+}
+
+.bt-theme-dark .task-manager-admin .tm-tab:hover,
+.bt-theme-dark .task-manager-admin .tm-tab-content button:hover,
+.bt-theme-dark .task-manager-admin .tm-sidebar-toggle:hover,
+.bt-theme-dark .task-manager-admin .tm-back:hover {
+    background: #2b4868;
+    border-color: #496892;
+    color: #e8f1ff;
+}
+
+.bt-theme-dark .task-manager-admin .tm-tab.tm-tab-active,
+.bt-theme-dark .task-manager-admin .tm-tab.tm-tab-active:hover {
+    background: #29486c;
+    border-color: #4c73a1;
+    color: #f2f7ff;
+}
+
+.bt-theme-dark .task-manager-admin .tm-sidebar-content a {
+    border-bottom-color: #304159;
+    color: #d7dfeb;
+}
+
+.bt-theme-dark .task-manager-admin .tm-sidebar-content a:hover {
+    background: #223852;
+}
+
+.bt-theme-dark .task-manager-admin .tm-activity-list li {
+    border-bottom-color: #304159;
+    color: #c6d3e6;
+}
+
+.bt-theme-dark .task-manager-admin .tm-compartment-node span {
+    color: #a9b8cd;
+}
+
+.bt-theme-dark .task-manager-admin .tm-section-anchor {
+    background: #223852;
+    border-color: #3a5475;
+    color: #dbe8f9;
+}
+
+.bt-theme-dark .task-manager-admin .tm-section-anchor:hover {
+    background: #2b4868;
+}
+
+.bt-theme-dark .task-manager-admin .tm-metrics-refresh {
+    color: #9fb0c8;
+}
+
+.bt-theme-dark .task-manager-admin .tm-heatmap-cell[data-intensity="0"] {
+    background: #1b2a3d;
+}
+
+@media (max-width: 900px) {
+    .tm-sidebar {
+        position: static;
+        width: auto;
+        margin-bottom: 12px;
+    }
+}
+
+@media (max-width: 700px) {
+    .tm-quick-actions {
+        gap: 6px;
+        margin: 8px 0 10px;
+    }
+
+    .tm-quick-action {
+        padding: 8px 10px;
+        font-size: 0.76rem;
+    }
+
+    .tm-tab-content {
+        padding: 12px;
+    }
+
+    .tm-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .tm-section-anchors {
+        gap: 6px;
+        margin: 0 0 10px;
+    }
+}
+
+@media (max-width: 520px) {
+    .tm-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}

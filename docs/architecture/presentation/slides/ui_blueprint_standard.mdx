@@ -1,0 +1,48 @@
+---
+category: blueprint
+labels: baseline, reference
+---
+
+# UI Blueprint Standard
+
+This slide defines the standard MDX UI-blueprint grammar for scaffold generation.
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Primary Control Surface" tone="primary">
+    <p>Primary UX controls and contextual status live in this panel.</p>
+    <ComponentPreview component="DashboardCard" status="ready" />
+  </Panel>
+  <Panel title="Operational Workspace" tone="success">
+    <p>Secondary operations and workflow instrumentation.</p>
+    <ComponentPreview component="Taskboard" status="in-progress" />
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="2" gap="12">
+  <Quadrant label="Q1: Discover" emphasis="medium">
+    <p>Exploration states, incoming data, and user goals.</p>
+    <ComponentPreview component="DiscoveryPanel" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q2: Decide" emphasis="high">
+    <p>Decision metrics and recommended actions.</p>
+    <ComponentPreview component="DecisionPanel" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q3: Execute" emphasis="critical">
+    <p>Execution queues and quick remediation controls.</p>
+    <ComponentPreview component="ExecutionBoard" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q4: Reflect" emphasis="low">
+    <p>Insights, retrospectives, and follow-up loops.</p>
+    <ComponentPreview component="RetrospectivePanel" status="planned" />
+  </Quadrant>
+</LayoutGrid>
+
+<Panel title="Assembly Notes" tone="warning">
+  <p>Use this MDX structure when designing new screens:</p>
+  <ul>
+    <li><code>LayoutGrid</code> for layout constraints</li>
+    <li><code>Panel</code> for modular areas</li>
+    <li><code>Quadrant</code> for four-axis design mapping</li>
+    <li><code>ComponentPreview</code> to list intended implementation targets</li>
+  </ul>
+</Panel>

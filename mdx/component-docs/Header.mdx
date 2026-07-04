@@ -1,0 +1,58 @@
+---
+title: Header Component
+description: A top-level navigation and branding component
+category: UI
+status: active
+---
+
+# Header
+
+The Header component is a prominent top-level container for navigation, branding, and page-level titles.
+
+## Usage
+
+```jsx
+import { Header } from '@/components/ui';
+
+export function Example() {
+  return (
+    <Header 
+      title="Welcome" 
+      subtitle="This is a page subtitle"
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | - | Main header text (required) |
+| `subtitle` | `string` | - | Optional subtitle text |
+| `className` | `string` | - | Additional CSS classes |
+
+## Examples
+
+### With Title Only
+
+```jsx
+<Header title="My Page" />
+```
+
+### With Subtitle
+
+```jsx
+<Header 
+  title="Dashboard" 
+  subtitle="Welcome back to your dashboard"
+/>
+```
+
+## Token References
+
+- **Background**: `tokens.colors.primary['600']`
+- **Text Color**: `#ffffff` (semantic white)
+- **Border**: `tokens.colors.primary['700']`
+- **Padding**: Uses `tokens.spacing.lg` and `tokens.spacing.xl`
+- **Typography**: `tokens.typography.heading.h2`

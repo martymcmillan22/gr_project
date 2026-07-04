@@ -1,0 +1,721 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Story - {{ story.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'storytelling_dashboard:dashboard' %}" class="btn btn-outline-secondary mb-2">← Back to Dashboard</a>
+            <h1>✏️ Edit Story #{{ story.entry_id }}: {{ story.title }}</h1>
+            <p class="text-muted">Fill in the sections below. Progress: <strong id="progressText">{{ progress }}%</strong></p>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar" id="progressBar" role="progressbar" 
+                     style="width: {{ progress }}%"
+                     aria-valuenow="{{ progress }}" 
+                     aria-valuemin="0" aria-valuemax="100">
+                    {{ progress }}% Complete
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form id="storyForm">
+        {% csrf_token %}
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="title" class="form-label"><strong>📌 Title (Section 2)</strong></label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           value="{{ story.title }}" placeholder="Enter story title"
+                           onchange="updateProgress()">
+                    <small class="form-text text-muted">Final, locked title for the story</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="format" class="form-label"><strong>📊 Format (PART 6)</strong></label>
+                    <select class="form-control" id="format" name="format" onchange="updateProgress()">
+                        <option value="short_series" {% if story.format == 'short_series' %}selected{% endif %}>Short Series (12–24 chapters)</option>
+                        <option value="one_hour_series" {% if story.format == 'one_hour_series' %}selected{% endif %}>1-Hour Series (24–36 chapters)</option>
+                        <option value="movie" {% if story.format == 'movie' %}selected{% endif %}>Movie (36–60 chapters)</option>
+                        <option value="epic_movie" {% if story.format == 'epic_movie' %}selected{% endif %}>Epic Movie (60–72+ chapters)</option>
+                    </select>
+                    <small class="form-text text-muted">Choose format to guide chapter count and complexity</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Talking Points -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>💡 Section 1: Talking Points (3–5 hooks)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">High-level hooks designed to pitch the story in 30–60 seconds.</p>
+                <div id="talkingPointsList">
+                    <!-- JS will populate this -->
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addTalkingPoint">+ Add Talking Point</button>
+                <small class="form-text text-muted d-block mt-2">Max 5 points, 15 words each</small>
+            </div>
+        </div>
+
+        <!-- Core Concept -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>🎯 Section 3: Core Concept</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Single sentence + 2–3 themes. Max 50 words total.</p>
+                <textarea class="form-control" id="coreConcept" name="core_concept" 
+                          rows="4" placeholder="Enter core concept..." 
+                          onchange="updateProgress()">{{ story.core_concept }}</textarea>
+            </div>
+        </div>
+
+        <!-- Synopsis -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📖 Section 4: Synopsis</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">200–300 words. Beginning → Middle → End (no major spoilers).</p>
+                <textarea class="form-control" id="synopsis" name="synopsis" 
+                          rows="8" placeholder="Enter synopsis..." 
+                          onchange="updateProgress()">{{ story.synopsis }}</textarea>
+                <small class="form-text text-muted d-block mt-2" id="wordCount">Word count: 0</small>
+            </div>
+        </div>
+
+        <!-- Chapters Builder -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📚 Section 5: Chapter Structure ({{ story.format|title }})</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <span id="chapterRangeHint">36–60 chapters expected for Movie format</span>
+                </p>
+                <div id="chaptersList" class="mb-3">
+                    <!-- JS will populate this -->
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addChapter">+ Add Chapter</button>
+                <small class="form-text text-muted d-block mt-2">Current count: <strong id="chapterCount">0</strong></small>
+            </div>
+        </div>
+
+        <!-- Soundtrack Timeline Builder -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>🎵 Section 7: Soundtrack Timeline</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Key musical moments mapped to chapters and scenes. 5–15 entries typical.</p>
+                <div id="soundtrackList" class="mb-3">
+                    <!-- JS will populate this -->
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addSoundtrack">+ Add Soundtrack Entry</button>
+                <small class="form-text text-muted d-block mt-2">Current count: <strong id="soundtrackCount">0</strong></small>
+            </div>
+        </div>
+
+        <!-- Dynamic Navigation -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>🧭 Section 6: Dynamic Navigation</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Branching paths, key decision points, and narrative flow logic for interactive adaptation.</p>
+                <textarea class="form-control" id="dynamicNavigation" name="dynamic_navigation" 
+                          rows="6" placeholder="Describe branching paths, decision points, or non-linear narrative structures..."
+                          onchange="updateProgress()">{{ story.dynamic_navigation }}</textarea>
+            </div>
+        </div>
+
+        <!-- Character Profiles Builder -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>👥 Section 8: Character Profiles</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Main (5–10) and Secondary (10–15) characters with full profiles.</p>
+                
+                <div class="mb-4">
+                    <h6 class="text-secondary">🟡 Main Characters</h6>
+                    <div id="mainCharactersList">
+                        <!-- JS will populate this -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addMainCharacter">+ Add Main Character</button>
+                </div>
+
+                <hr>
+
+                <div>
+                    <h6 class="text-secondary">🟢 Secondary Characters</h6>
+                    <div id="secondaryCharactersList">
+                        <!-- JS will populate this -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addSecondaryCharacter">+ Add Secondary Character</button>
+                </div>
+                <small class="form-text text-muted d-block mt-3">Total: <strong id="characterCount">0</strong> characters</small>
+            </div>
+        </div>
+
+        <!-- Research File -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📑 Section 9: Research File</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Primary research sources, methodology, and key references used in story development.</p>
+                <textarea class="form-control" id="researchFile" name="research_file" 
+                          rows="6" placeholder="Document your research sources and methodology..."
+                          onchange="updateProgress()">{{ story.research_file }}</textarea>
+            </div>
+        </div>
+
+        <!-- Future Timeline -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>⏰ Section 10: Future Timeline</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Sequel possibilities, extended universe plans, or future character arcs beyond the current narrative.</p>
+                <textarea class="form-control" id="futureTimeline" name="future_timeline" 
+                          rows="6" placeholder="Describe potential sequels, spin-offs, or expanded universe plans..."
+                          onchange="updateProgress()">{{ story.future_timeline }}</textarea>
+            </div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📋 Section 11: Table of Contents</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Chapter-by-chapter breakdown or major narrative sections (auto-generated from Chapters if blank).</p>
+                <textarea class="form-control" id="tableOfContents" name="table_of_contents" 
+                          rows="6" placeholder="List chapters, acts, or major narrative sections..."
+                          onchange="updateProgress()">{{ story.table_of_contents }}</textarea>
+            </div>
+        </div>
+
+        <!-- Bibliography -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📚 Section 12: Bibliography</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Citations, references, and inspirational works that informed the story's themes and world-building.</p>
+                <textarea class="form-control" id="bibliography" name="bibliography" 
+                          rows="6" placeholder="List books, films, articles, and other sources that inspired or informed the story..."
+                          onchange="updateProgress()">{{ story.bibliography }}</textarea>
+            </div>
+        </div>
+
+        <!-- Anti-Plagiarism Statement -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>✅ Section 13: Anti‑Plagiarism Statement</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Declaration of originality and confirmation that the work is the author's original creation.</p>
+                <textarea class="form-control" id="antiPlagiarism" name="anti_plagiarism" 
+                          rows="4" placeholder="Declare originality and state that this is your original work..."
+                          onchange="updateProgress()">{{ story.anti_plagiarism }}</textarea>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <button type="button" class="btn btn-primary btn-lg" id="saveBtn" onclick="saveStory()">💾 Save Story</button>
+                <button type="button" class="btn btn-outline-secondary btn-lg ms-2" id="validateBtn" onclick="validateStory()">✓ Validate Against Schema</button>
+                <a href="{% url 'storytelling_dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg ms-2">Cancel</a>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="alert alert-info d-none mt-3" role="alert">
+            <!-- JS will populate this -->
+        </div>
+
+    </form>
+</div>
+
+<style>
+    h1 { color: #2c3e50; font-weight: 600; }
+    .card { border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card-header { background-color: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+    .form-control, .form-select { border: 1px solid #ced4da; }
+    .form-control:focus { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+    textarea { font-family: 'Courier New', monospace; }
+    
+    .chapter-item {
+        background-color: #f9f9f9;
+        border-left: 4px solid #007bff;
+    }
+    
+    .chapter-item .card-body {
+        padding: 1rem;
+    }
+    
+    .character-item {
+        background-color: #fafafa;
+        border-left: 4px solid #28a745;
+    }
+    
+    .character-item .card-body {
+        padding: 1rem;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+    
+    .form-control-sm {
+        font-size: 0.875rem;
+        height: calc(1.5em + 0.5rem + 2px);
+    }
+</style>
+</style>
+
+<script>
+const entryId = {{ story.entry_id }};
+const form = document.getElementById('storyForm');
+const statusMessage = document.getElementById('statusMessage');
+
+// Format-to-chapter-range mapping (PART 6 of ENGINE_SCHEMA)
+const formatRanges = {
+    'short_series': { min: 12, max: 24, label: '12–24 chapters' },
+    'one_hour_series': { min: 24, max: 36, label: '24–36 chapters' },
+    'movie': { min: 36, max: 60, label: '36–60 chapters' },
+    'epic_movie': { min: 60, max: 72, label: '60–72+ chapters' }
+};
+
+// Load talking points
+function loadTalkingPoints() {
+    const list = document.getElementById('talkingPointsList');
+    list.innerHTML = '';
+    const points = {{ story.talking_points|safe }} || [];
+    
+    points.forEach((point, index) => {
+        addTalkingPointElement(point, index);
+    });
+}
+
+function addTalkingPointElement(text = '', index = null) {
+    const list = document.getElementById('talkingPointsList');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <input type="text" class="form-control" placeholder="Talking point (max 15 words)" 
+               value="${text}" maxlength="75" onchange="updateProgress()">
+        <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove(); updateProgress()">Remove</button>
+    `;
+    list.appendChild(div);
+}
+
+// Load chapters
+function loadChapters() {
+    const list = document.getElementById('chaptersList');
+    list.innerHTML = '';
+    const chapters = {{ story.chapters|safe }} || [];
+    
+    chapters.forEach((chapter, index) => {
+        addChapterElement(chapter, index);
+    });
+    updateChapterCount();
+}
+
+function addChapterElement(chapter = {}, index = null) {
+    const list = document.getElementById('chaptersList');
+    const div = document.createElement('div');
+    div.className = 'card mb-3 chapter-item';
+    div.innerHTML = `
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <label class="form-label small">Number</label>
+                    <input type="number" class="form-control form-control-sm" placeholder="1" 
+                           value="${chapter.number || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small">Title</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Chapter title" 
+                           value="${chapter.title || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small">Description</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Brief summary" 
+                           value="${chapter.description || ''}" onchange="updateProgress()">
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger mt-2" type="button" 
+                    onclick="this.closest('.chapter-item').remove(); updateChapterCount(); updateProgress()">
+                Remove Chapter
+            </button>
+        </div>
+    `;
+    list.appendChild(div);
+}
+
+function updateChapterCount() {
+    const count = document.querySelectorAll('.chapter-item').length;
+    document.getElementById('chapterCount').textContent = count;
+}
+
+// Load character profiles
+function loadCharacters() {
+    const mainList = document.getElementById('mainCharactersList');
+    const secondaryList = document.getElementById('secondaryCharactersList');
+    mainList.innerHTML = '';
+    secondaryList.innerHTML = '';
+    
+    const characters = {{ story.character_profiles|safe }} || [];
+    
+    characters.forEach((character, index) => {
+        if (character.type === 'main' || character.type === undefined) {
+            addCharacterElement(character, index, 'main', mainList);
+        } else {
+            addCharacterElement(character, index, 'secondary', secondaryList);
+        }
+    });
+    updateCharacterCount();
+}
+
+function addCharacterElement(character = {}, index = null, type = 'main', targetList = null) {
+    if (!targetList) {
+        targetList = type === 'main' 
+            ? document.getElementById('mainCharactersList')
+            : document.getElementById('secondaryCharactersList');
+    }
+    
+    const div = document.createElement('div');
+    div.className = 'card mb-3 character-item';
+    div.dataset.type = type;
+    div.innerHTML = `
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label small"><strong>Name</strong></label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Character name" 
+                           value="${character.name || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small"><strong>Role</strong></label>
+                    <input type="text" class="form-control form-control-sm" placeholder="e.g. Protagonist, Mentor" 
+                           value="${character.role || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small"><strong>Appearance</strong></label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Brief description" 
+                           value="${character.appearance || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small"><strong>Personality</strong></label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Key traits" 
+                           value="${character.personality || ''}" onchange="updateProgress()">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <label class="form-label small"><strong>Motivation</strong></label>
+                    <textarea class="form-control form-control-sm" placeholder="Why they act" 
+                              rows="2" onchange="updateProgress()">${character.motivation || ''}</textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small"><strong>Arc</strong></label>
+                    <textarea class="form-control form-control-sm" placeholder="Character transformation" 
+                              rows="2" onchange="updateProgress()">${character.arc || ''}</textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small"><strong>Relationships</strong></label>
+                    <textarea class="form-control form-control-sm" placeholder="Key connections" 
+                              rows="2" onchange="updateProgress()">${character.relationships || ''}</textarea>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger mt-2" type="button" 
+                    onclick="this.closest('.character-item').remove(); updateCharacterCount(); updateProgress()">
+                Remove Character
+            </button>
+        </div>
+    `;
+    targetList.appendChild(div);
+}
+
+function updateCharacterCount() {
+    const count = document.querySelectorAll('.character-item').length;
+    document.getElementById('characterCount').textContent = count;
+}
+
+function updateFormatHint() {
+    const format = document.getElementById('format').value;
+    const range = formatRanges[format];
+    if (range) {
+        document.getElementById('chapterRangeHint').textContent = 
+            `${range.label} expected for ${format.replace(/_/g, ' ').toUpperCase()} format`;
+    }
+}
+
+function updateProgress() {
+    // Calculate completion percentage based on filled fields
+    let filled = 0;
+    const total = 5; // title, format, talking_points, core_concept, synopsis (core sections)
+    
+    if (document.getElementById('title').value.trim()) filled++;
+    if (document.getElementById('format').value) filled++;
+    if (document.getElementById('talkingPointsList').children.length > 0) filled++;
+    if (document.getElementById('coreConcept').value.trim()) filled++;
+    if (document.getElementById('synopsis').value.trim()) filled++;
+    
+    // Bonus points for chapters and characters (increases % but not required for base progress)
+    const hasChapters = document.querySelectorAll('.chapter-item').length > 0;
+    const hasCharacters = document.querySelectorAll('.character-item').length > 0;
+    
+    let progress = Math.round((filled / total) * 100);
+    if (hasChapters) progress = Math.min(100, progress + 15);
+    if (hasCharacters) progress = Math.min(100, progress + 15);
+    
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('progressBar').setAttribute('aria-valuenow', progress);
+    document.getElementById('progressText').textContent = progress + '%';
+    
+    // Update word count
+    const synopsis = document.getElementById('synopsis').value;
+    const wordCount = synopsis.trim().split(/\s+/).length;
+    document.getElementById('wordCount').textContent = `Word count: ${wordCount}`;
+}
+
+function getTalkingPoints() {
+    const inputs = document.querySelectorAll('#talkingPointsList input');
+    return Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+}
+
+function getChapters() {
+    const items = document.querySelectorAll('.chapter-item');
+    return Array.from(items).map(item => {
+        const inputs = item.querySelectorAll('input');
+        return {
+            number: parseInt(inputs[0].value) || 0,
+            title: inputs[1].value.trim(),
+            description: inputs[2].value.trim()
+        };
+    });
+}
+
+function getCharacters() {
+    const items = document.querySelectorAll('.character-item');
+    return Array.from(items).map(item => {
+        const inputs = item.querySelectorAll('input');
+        const textareas = item.querySelectorAll('textarea');
+        return {
+            type: item.dataset.type,
+            name: inputs[0].value.trim(),
+            role: inputs[1].value.trim(),
+            appearance: inputs[2].value.trim(),
+            personality: inputs[3].value.trim(),
+            motivation: textareas[0].value.trim(),
+            arc: textareas[1].value.trim(),
+            relationships: textareas[2].value.trim()
+        };
+    });
+}
+
+// Load soundtracks
+function loadSoundtracks() {
+    const list = document.getElementById('soundtrackList');
+    list.innerHTML = '';
+    const soundtracks = {{ story.soundtrack_timeline|safe }} || [];
+    
+    soundtracks.forEach((soundtrack, index) => {
+        addSoundtrackElement(soundtrack, index);
+    });
+    updateSoundtrackCount();
+}
+
+function addSoundtrackElement(soundtrack = {}, index = null) {
+    const list = document.getElementById('soundtrackList');
+    const div = document.createElement('div');
+    div.className = 'card mb-3';
+    div.style.borderLeft = '4px solid #ff6b6b';
+    div.innerHTML = `
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <label class="form-label small">Chapter</label>
+                    <input type="number" class="form-control form-control-sm" placeholder="1" 
+                           value="${soundtrack.chapter || ''}" min="1" onchange="updateProgress()">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Timestamp</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="HH:MM" 
+                           value="${soundtrack.timestamp || ''}" pattern="\\d{1,2}:\\d{2}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Song Name</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Song title" 
+                           value="${soundtrack.song || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Artist</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Artist/Composer" 
+                           value="${soundtrack.artist || ''}" onchange="updateProgress()">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Mood</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="Mood/Tone" 
+                           value="${soundtrack.mood || ''}" onchange="updateProgress()">
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger mt-2" type="button" 
+                    onclick="this.closest('.card').remove(); updateSoundtrackCount(); updateProgress()">
+                Remove Entry
+            </button>
+        </div>
+    `;
+    list.appendChild(div);
+}
+
+function getSoundtracks() {
+    const items = document.querySelectorAll('#soundtrackList .card');
+    const soundtracks = [];
+    
+    items.forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        soundtracks.push({
+            chapter: parseInt(inputs[0].value) || 0,
+            timestamp: inputs[1].value.trim(),
+            song: inputs[2].value.trim(),
+            artist: inputs[3].value.trim(),
+            mood: inputs[4].value.trim()
+        });
+    });
+    
+    return soundtracks.filter(s => s.song || s.timestamp); // Filter out empty entries
+}
+
+function updateSoundtrackCount() {
+    const count = document.querySelectorAll('#soundtrackList .card').length;
+    document.getElementById('soundtrackCount').textContent = count;
+}
+
+function saveStory() {
+    const data = {
+        title: document.getElementById('title').value,
+        format: document.getElementById('format').value,
+        talking_points: getTalkingPoints(),
+        core_concept: document.getElementById('coreConcept').value,
+        synopsis: document.getElementById('synopsis').value,
+        chapters: getChapters(),
+        soundtrack_timeline: getSoundtracks(),
+        dynamic_navigation: document.getElementById('dynamicNavigation').value,
+        character_profiles: getCharacters(),
+        research_file: document.getElementById('researchFile').value,
+        future_timeline: document.getElementById('futureTimeline').value,
+        table_of_contents: document.getElementById('tableOfContents').value,
+        bibliography: document.getElementById('bibliography').value,
+        anti_plagiarism: document.getElementById('antiPlagiarism').value,
+    };
+    
+    fetch(`/storytelling-dashboard/api/story/${entryId}/save/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        showStatus(result.success, result.message || result.error);
+        if (result.success) {
+            document.getElementById('progressBar').style.width = result.progress + '%';
+        }
+    })
+    .catch(error => showStatus(false, `Error: ${error.message}`));
+}
+
+function validateStory() {
+    fetch(`/storytelling-dashboard/api/story/${entryId}/validate/`)
+        .then(response => response.json())
+        .then(data => {
+            let message = '';
+            if (data.valid) {
+                message = '✅ <strong>Valid!</strong> Story passes all schema checks.';
+                showStatus(true, message);
+            } else {
+                message = '❌ <strong>Issues found:</strong><br>';
+                data.issues.forEach(issue => {
+                    message += `• ${issue}<br>`;
+                });
+                if (data.warnings.length > 0) {
+                    message += '<br>⚠️ <strong>Warnings:</strong><br>';
+                    data.warnings.forEach(warning => {
+                        message += `• ${warning}<br>`;
+                    });
+                }
+                showStatus(false, message);
+            }
+        })
+        .catch(error => showStatus(false, `Error: ${error.message}`));
+}
+
+function showStatus(success, message) {
+    statusMessage.className = success ? 'alert alert-success' : 'alert alert-warning';
+    statusMessage.innerHTML = message;
+    statusMessage.classList.remove('d-none');
+    setTimeout(() => statusMessage.classList.add('d-none'), 6000);
+}
+
+document.getElementById('addTalkingPoint').addEventListener('click', () => {
+    addTalkingPointElement();
+});
+
+document.getElementById('addChapter').addEventListener('click', () => {
+    addChapterElement();
+    updateChapterCount();
+});
+
+document.getElementById('addSoundtrack').addEventListener('click', () => {
+    addSoundtrackElement();
+    updateSoundtrackCount();
+});
+
+document.getElementById('addMainCharacter').addEventListener('click', () => {
+    const mainList = document.getElementById('mainCharactersList');
+    addCharacterElement({}, null, 'main', mainList);
+    updateCharacterCount();
+});
+
+document.getElementById('addSecondaryCharacter').addEventListener('click', () => {
+    const secondaryList = document.getElementById('secondaryCharactersList');
+    addCharacterElement({}, null, 'secondary', secondaryList);
+    updateCharacterCount();
+});
+
+document.getElementById('format').addEventListener('change', () => {
+    updateFormatHint();
+    updateProgress();
+});
+
+// Initialize
+loadTalkingPoints();
+loadChapters();
+loadSoundtracks();
+loadCharacters();
+updateFormatHint();
+updateProgress();
+</script>
+{% endblock %}

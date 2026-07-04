@@ -1,0 +1,12 @@
+{
+  "name": "@grassroots/onepager-ui-templates",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reusable React component templates for one-pager apps",
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
+}

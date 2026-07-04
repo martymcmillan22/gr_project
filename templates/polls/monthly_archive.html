@@ -1,0 +1,7 @@
+<ul>
+    {% for article in object_list %}
+        <li>{{ article.headline }} (Published: {{ article.pub_date }})</li>
+    {% empty %}
+        <li>No articles found for this month.</li>
+    {% endfor %}
+</ul>

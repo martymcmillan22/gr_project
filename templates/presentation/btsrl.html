@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BaseTrue Square Root Lattice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #16212a;
+      --muted: #52626f;
+      --paper: #f6f9f4;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --line: rgba(57, 80, 63, 0.14);
+      --line-strong: rgba(57, 80, 63, 0.22);
+      --shadow: 0 16px 34px rgba(35, 51, 39, 0.1);
+      --teal: #2f7d46;
+      --gold: #b87a10;
+      --green: #4f8f5c;
+      --violet: #5a5db7;
+      --coral: #bd5a3d;
+    }
+
+    body.btsrl-dark-mode {
+      --ink: #eef4fb;
+      --muted: #b4c1d1;
+      --paper: #0a0d12;
+      --panel: #10161f;
+      --panel-strong: #141a23;
+      --line: #2f3c52;
+      --line-strong: #4a5d7a;
+      --shadow: 0 20px 42px rgba(0, 0, 0, 0.36);
+      --teal: #84d39f;
+      --gold: #f0bc63;
+      --green: #8ecf9d;
+      --violet: #a6a9ff;
+      --coral: #ff9a7e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 12%, rgba(47, 125, 70, 0.16), transparent 30%),
+        radial-gradient(circle at 88% 84%, rgba(184, 122, 16, 0.14), transparent 28%),
+        radial-gradient(circle at 50% 50%, rgba(90, 93, 183, 0.06), transparent 42%),
+        var(--paper);
+      transition: background 220ms ease, color 220ms ease;
+    }
+
+    .shell {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+      position: relative;
+    }
+
+    .hero {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(120deg, rgba(239, 246, 238, 0.9), rgba(246, 242, 233, 0.94));
+      box-shadow: var(--shadow);
+      padding: 26px;
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(47, 125, 70, 0.12), transparent 28%),
+        radial-gradient(circle at 88% 14%, rgba(180, 118, 18, 0.12), transparent 25%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.2rem, 4vw, 3.45rem);
+      letter-spacing: -0.02em;
+      line-height: 0.98;
+    }
+
+    p.lead {
+      margin: 0;
+      max-width: 70ch;
+      font-size: 1.02rem;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+
+    .tagrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, currentColor 50%, transparent);
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.66);
+    }
+
+    .tag.simple { color: var(--green); }
+    .tag.advanced { color: var(--teal); }
+    .tag.structure { color: var(--gold); }
+
+    .hero-card {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      position: relative;
+    }
+
+    .theme-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .theme-copy {
+      min-width: 0;
+    }
+
+    .theme-kicker {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .theme-title {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .theme-toggle {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(22, 33, 42, 0.06);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover,
+    .theme-toggle:focus {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: var(--line);
+    }
+
+    .theme-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid var(--line);
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.95rem;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .buttonlink {
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font-weight: 700;
+      box-shadow: 0 8px 16px rgba(22, 33, 42, 0.05);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .buttonlink:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(22, 33, 42, 0.12);
+    }
+
+    .buttonlink.primary {
+      background: linear-gradient(135deg, #2f7d46, #58a36c);
+      color: white;
+      border-color: transparent;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 247, 0.92));
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      min-height: 100%;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+      letter-spacing: -0.01em;
+    }
+
+    .step-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .step-list li {
+      border-left: 4px solid var(--line);
+      padding: 2px 0 2px 12px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .simple .step-list li { border-left-color: var(--green); }
+    .advanced .step-list li { border-left-color: var(--teal); }
+    .structure .step-list li { border-left-color: var(--gold); }
+
+    .step-number {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .timeline-card {
+      margin-top: 18px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 247, 0.92));
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(127, 146, 167, 0.14);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(15, 108, 132, 0.1);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .footer-note strong {
+      color: var(--ink);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body.btsrl-dark-mode .tag,
+    body.btsrl-dark-mode .hero-card,
+    body.btsrl-dark-mode .metric,
+    body.btsrl-dark-mode .buttonlink,
+    body.btsrl-dark-mode .theme-toggle {
+      background: rgba(18, 27, 40, 0.72);
+    }
+
+    body.btsrl-dark-mode .eyebrow {
+      background: rgba(18, 27, 40, 0.72);
+    }
+
+    body.btsrl-dark-mode .buttonlink.primary {
+      background: linear-gradient(135deg, #2c6f87, #68a2af);
+    }
+
+    body.btsrl-dark-mode .table-wrap,
+    body.btsrl-dark-mode .card,
+    body.btsrl-dark-mode .hero {
+      border-color: rgba(163, 183, 214, 0.2);
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .section-grid { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .hero { padding: 20px; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100%, calc(100% - 20px)); }
+      .hero { border-radius: 20px; }
+      .theme-row { align-items: flex-start; flex-direction: column; }
+      .theme-toggle { width: 100%; justify-content: center; }
+      .actions { flex-direction: column; }
+      .buttonlink { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">Public workflow alias</span>
+          <h1>BaseTrue Square Root Lattice</h1>
+          <p class="lead">
+            BTSRL is the simple alias layer for external businesses and industries. It keeps the public workflow approachable with 4, 8, or 12 steps, while preserving the advanced 4 to 16,777,216 filing structure for deeper organizational and AI-driven use.
+            In this model, 4 is a linear phase, 8 is two linked phases, and 12 is the perpetual 24-hour workflow cycle.
+          </p>
+          <div class="tagrow">
+            <span class="tag simple">Simple workflow</span>
+            <span class="tag advanced">Advanced dropdown</span>
+            <span class="tag structure">4^n filing structure</span>
+          </div>
+          <div class="actions">
+            <a class="buttonlink primary" href="/slides/architecture/">Open technical deck</a>
+            <a class="buttonlink" href="/slides/executive/">Open executive deck</a>
+            <a class="buttonlink" href="/slides/">Open slides hub</a>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <div class="theme-row">
+            <div class="theme-copy">
+              <span class="theme-kicker">Display mode</span>
+              <p class="theme-title">Switch between bright review and deep focus.</p>
+            </div>
+            {% include "partials/theme_toggle.html" with toggle_id="btsrl-theme-toggle" button_class="theme-toggle" storage_key="btsrlDarkModeEnabled" body_class="btsrl-dark-mode" enable_label="Enable dark mode" disable_label="Disable dark mode" %}
+          </div>
+
+          <p class="theme-meta">
+            The dark theme is tuned for presentation work, lattice review, and transaction tracing without changing the underlying workflow semantics.
+          </p>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <strong>4</strong>
+              <span>linear phase for direct capture and launch</span>
+            </div>
+            <div class="metric">
+              <strong>8</strong>
+              <span>two linked phases for deeper routing</span>
+            </div>
+            <div class="metric">
+              <strong>12</strong>
+              <span>perpetual 24-hour workflow cycle</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <article class="card simple">
+        <h2>4-Step Linear Phase</h2>
+        <ol class="step-list">
+          <li><span class="step-number">01</span>Capture</li>
+          <li><span class="step-number">02</span>Classify</li>
+          <li><span class="step-number">03</span>Validate</li>
+          <li><span class="step-number">04</span>Launch</li>
+        </ol>
+      </article>
+
+      <article class="card simple">
+        <h2>8-Step Two-Phase Workflow</h2>
+        <ol class="step-list">
+          <li><span class="step-number">Phase 1</span>Capture, classify, map to lattice, validate constraints</li>
+          <li><span class="step-number">Phase 2</span>Polish, cross-reference, prepare launch, execute</li>
+        </ol>
+      </article>
+
+      <article class="card simple">
+        <h2>12-Step Perpetual 24-Hour Workflow</h2>
+        <ol class="step-list">
+          <li><span class="step-number">01-12</span>Run the complete lattice-aware lifecycle across capture, validation, polish, readiness, launch, and cross-reference</li>
+          <li><span class="step-number">24h</span>Mirror the 12 compartments into a full day cycle so users can review transaction status at any time</li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="card advanced" style="margin-top: 18px;">
+      <h2>Advanced Dropdown Paths</h2>
+      <ul class="step-list">
+        <li><span class="step-number">A</span>Industry taxonomy registry</li>
+        <li><span class="step-number">B</span>Read-only cross-reference explorer</li>
+        <li><span class="step-number">C</span>Benchmark and EXPLAIN tools</li>
+        <li><span class="step-number">D</span>Presentation decks and Mermaid planning pages</li>
+      </ul>
+    </section>
+
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Color</th>
+            <th>Time Frame</th>
+            <th>Capacity</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Red</td><td>Past</td><td>4</td><td>Math</td></tr>
+          <tr><td>2</td><td>Blue</td><td>Present/Past</td><td>16</td><td>Language</td></tr>
+          <tr><td>3</td><td>Yellow</td><td>Present/Future</td><td>64</td><td>Arts</td></tr>
+          <tr><td>4</td><td>Green</td><td>Future</td><td>256</td><td>Science</td></tr>
+          <tr><td>5</td><td>Purple</td><td>Past</td><td>1,024</td><td>General Information</td></tr>
+          <tr><td>6</td><td>Teal</td><td>Present/Past</td><td>4,096</td><td>Literature</td></tr>
+          <tr><td>7</td><td>Orange</td><td>Present/Future</td><td>16,384</td><td>Crafts</td></tr>
+          <tr><td>8</td><td>Lime</td><td>Future</td><td>65,536</td><td>Technology</td></tr>
+          <tr><td>9</td><td>Pink</td><td>Past</td><td>262,144</td><td>History</td></tr>
+          <tr><td>10</td><td>Cyan</td><td>Present/Past</td><td>1,048,576</td><td>Geology</td></tr>
+          <tr><td>11</td><td>Amber</td><td>Present/Future</td><td>4,194,304</td><td>Philosophy/Ethics</td></tr>
+          <tr><td>12</td><td>Green-Lime</td><td>Future</td><td>16,777,216</td><td>Systems/Synthesis</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card timeline-card">
+      <h2>Transaction Time Representation</h2>
+      <p class="lead" style="font-size: 0.92rem; margin-top: 8px;">
+        Transactions can be viewed as a 24-hour cycle where compartments 1-12 represent the first pass and 12-24 represent the mirrored review and reporting pass.
+      </p>
+      <div class="table-wrap" style="margin-top: 14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Hour</th>
+              <th>Compartment</th>
+              <th>Mode</th>
+              <th>Transaction View</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>00:00-01:59</td><td>1</td><td>Capture</td><td>New entries begin</td></tr>
+            <tr><td>02:00-03:59</td><td>2</td><td>Classify</td><td>Industry routing</td></tr>
+            <tr><td>04:00-05:59</td><td>3</td><td>Validate</td><td>Constraint checks</td></tr>
+            <tr><td>06:00-07:59</td><td>4</td><td>Launch</td><td>Execution-ready items</td></tr>
+            <tr><td>08:00-11:59</td><td>5-6</td><td>Polish / Review</td><td>Metadata enrichment</td></tr>
+            <tr><td>12:00-15:59</td><td>7-8</td><td>Cross-reference</td><td>Related transaction discovery</td></tr>
+            <tr><td>16:00-19:59</td><td>9-10</td><td>Readiness / Approve</td><td>Launch gating</td></tr>
+            <tr><td>20:00-23:59</td><td>11-12</td><td>Archive / Synthesis</td><td>Perpetual cycle handoff</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Use BTSRL when you want a simplified entry point for other businesses or industries, but keep the lattice dropdown available for advanced navigation, filing, and AI-assisted workflow generation.
+    </p>
+  </main>
+</body>
+</html>

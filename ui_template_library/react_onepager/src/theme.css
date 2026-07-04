@@ -1,0 +1,173 @@
+:root {
+  --gr-bg-0: #f4f1e8;
+  --gr-bg-1: #fdfbf5;
+  --gr-ink: #1f2421;
+  --gr-muted: #5c665f;
+  --gr-accent: #0e7a4c;
+  --gr-accent-strong: #095c38;
+  --gr-card: #ffffff;
+  --gr-border: #d9ddcf;
+}
+
+.gr-shell-bg {
+  min-height: 100vh;
+  color: var(--gr-ink);
+  background:
+    radial-gradient(circle at 10% 10%, #e7f3d3 0%, transparent 38%),
+    radial-gradient(circle at 90% 20%, #f6d6be 0%, transparent 40%),
+    linear-gradient(180deg, var(--gr-bg-0), var(--gr-bg-1));
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.gr-shell-header {
+  padding: 3rem 1.25rem 1.5rem;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.gr-shell-header h1 {
+  margin: 0;
+  line-height: 1.1;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.gr-shell-content {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.gr-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gr-accent-strong);
+  font-size: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.gr-subtitle {
+  color: var(--gr-muted);
+  max-width: 54ch;
+}
+
+.gr-metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+
+.gr-metric-card {
+  background: var(--gr-card);
+  border: 1px solid var(--gr-border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.gr-metric-card p {
+  margin: 0;
+  color: var(--gr-muted);
+}
+
+.gr-metric-card h3 {
+  margin: 0.4rem 0 0;
+}
+
+.gr-story-section,
+.gr-cta-footer {
+  background: var(--gr-card);
+  border: 1px solid var(--gr-border);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.gr-cta-footer button {
+  margin-top: 0.85rem;
+  border: 0;
+  color: #fff;
+  background: var(--gr-accent);
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.gr-cta-footer button:hover {
+  background: var(--gr-accent-strong);
+}
+
+.gr-dashboard-card,
+.gr-taskboard,
+.gr-flow-panel,
+.gr-quick-actions,
+.gr-settings-panel {
+  background: var(--gr-card);
+  border: 1px solid var(--gr-border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.gr-dashboard-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.gr-dashboard-card strong {
+  font-size: 1.9rem;
+  color: var(--gr-accent-strong);
+}
+
+.gr-taskboard ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.gr-taskboard li {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--gr-border);
+  padding-bottom: 0.35rem;
+}
+
+.gr-taskboard em {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--gr-muted);
+}
+
+.gr-flow-panel div {
+  color: var(--gr-muted);
+  font-weight: 600;
+}
+
+.gr-quick-actions div {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.gr-quick-actions button {
+  border: 1px solid var(--gr-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.gr-settings-panel dl {
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.gr-settings-panel dl div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--gr-border);
+  padding-bottom: 0.35rem;
+}

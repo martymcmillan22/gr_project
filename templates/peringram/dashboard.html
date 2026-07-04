@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Peringram (PIP){% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Peringram: Perpetual Infrastructure Program</h1>
+    <p class="subtitle">Four linked subjects for infrastructure planning and execution.</p>
+
+    <div class="columns is-multiline">
+      <div class="column is-6">
+        <div class="box">
+          <h2 class="title is-4">Subject 1: Recycle3</h2>
+          <p class="mb-3">Balanced ownership model across three participants.</p>
+          <ul>
+            <li><strong>Corporation (Research and Development):</strong> {{ recycle.corporation_rd }}%</li>
+            <li><strong>People and Small Businesses (QC/QA):</strong> {{ recycle.people_small_business_qcqa }}%</li>
+            <li><strong>Government (Infrastructure and Protection):</strong> {{ recycle.government_infrastructure_protection }}%</li>
+            <li><strong>ISEA GDP Optimization:</strong> {{ recycle.isea_gdp_optimization }}%</li>
+            <li><strong>Recycle3 Core Total:</strong> {{ recycle.recycle_total }}%</li>
+            <li><strong>Total with ISEA:</strong> {{ recycle.total_with_isea }}%</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="column is-6">
+        <div class="box">
+          <h2 class="title is-4">Subject 2: Maps</h2>
+          <p class="mb-2"><strong>Territory:</strong> {{ user_map.territory_name }}</p>
+          <p><strong>Lattice:</strong> Base True Square Root Lattice</p>
+          {% if user_map.lattice_notes %}
+          <p class="mt-2">{{ user_map.lattice_notes }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="column is-12">
+        <div class="box">
+          <h2 class="title is-4">Subject 3: Sectors</h2>
+          <p class="mb-3">
+            Structured by 4 sectors (A-D), 16 industry groups, 4 industries per group, and 4 sub-industries per industry.
+            Groups 1-4 are Primary, 5-8 Secondary, 9-12 Tertiary, and 13-16 Quaternary.
+          </p>
+          <div class="columns">
+            <div class="column">
+              <p><strong>Groups:</strong> {{ groups_count }}</p>
+            </div>
+            <div class="column">
+              <p><strong>Industries:</strong> {{ industries_count }}</p>
+            </div>
+            <div class="column">
+              <p><strong>Sub-Industries:</strong> {{ sub_industries_count }}</p>
+            </div>
+          </div>
+          <div class="content mt-3">
+            <ul>
+              {% for group in sector_groups %}
+              <li>Group {{ group.code }}: {{ group.name }} ({{ group.get_sector_display }} sector)</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-12">
+        <div class="box">
+          <h2 class="title is-4">Subject 4: Convection Cycle</h2>
+          <p>
+            24 compartments aligned to the world clock and plotted along the square root lattice.
+            <strong>Total compartments:</strong> {{ convection_count }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

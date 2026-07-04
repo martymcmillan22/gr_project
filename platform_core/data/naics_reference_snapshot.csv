@@ -1,0 +1,21 @@
+code,title,sector_code,description,source_version
+111110,Soybean Farming,11,Soybean farming operations,NAICS-2022
+111120,Oilseed Farming,11,Oilseed farming operations,NAICS-2022
+111130,Dry Pea and Bean Farming,11,Dry pea and bean farming operations,NAICS-2022
+111140,Wheat Farming,11,Wheat farming operations,NAICS-2022
+111150,Corn Farming,11,Corn farming operations,NAICS-2022
+111160,Rice Farming,11,Rice farming operations,NAICS-2022
+111191,Oilseed and Grain Combination Farming,11,Combination grain and oilseed operations,NAICS-2022
+111199,All Other Grain Farming,11,Other grain farming operations,NAICS-2022
+111211,Potato Farming,11,Potato farming operations,NAICS-2022
+111219,Other Vegetable and Melon Farming,11,Vegetable and melon production,NAICS-2022
+111310,Orange Groves,11,Orange grove farming,NAICS-2022
+111320,Citrus (except Orange) Groves,11,Citrus grove farming excluding oranges,NAICS-2022
+111331,Apple Orchards,11,Apple orchard production,NAICS-2022
+111332,Grape Vineyards,11,Grape vineyard operations,NAICS-2022
+111333,Strawberry Farming,11,Strawberry production,NAICS-2022
+111334,Berry (except Strawberry) Farming,11,Other berry crop farming,NAICS-2022
+111335,Tree Nut Farming,11,Tree nut orchard operations,NAICS-2022
+111336,Fruit and Tree Nut Combination Farming,11,Combined fruit and nut operations,NAICS-2022
+111339,Other Noncitrus Fruit Farming,11,Other noncitrus fruit operations,NAICS-2022
+111411,Mushroom Production,11,Mushroom production and substrate operations,NAICS-2022

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Newsletter Unsubscribe{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/base_true_news.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="news-wrap">
+    <div class="empty-state">
+        <h2>Email Preferences Updated</h2>
+        <p>{{ status_message }}</p>
+        <p><strong>{{ email }}</strong></p>
+        <p><a href="{% url 'baseTrue_news:index' %}">Return to BaseTrue Monthly</a></p>
+    </div>
+</section>
+{% endblock %}

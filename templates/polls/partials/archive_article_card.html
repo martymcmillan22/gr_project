@@ -1,0 +1,27 @@
+<li id="article-{{ article.id }}" class="article-card">
+    {% if headline_level == "h2" %}
+        <h2 class="article-headline">
+    {% else %}
+        <h3 class="article-headline">
+    {% endif %}
+    {% if headline_url %}
+        <a href="{{ headline_url }}{% if link_to_article_anchor %}#article-{{ article.id }}{% endif %}">{{ article.headline }}</a>
+    {% else %}
+        {{ article.headline }}
+    {% endif %}
+    {% if headline_level == "h2" %}
+        </h2>
+    {% else %}
+        </h3>
+    {% endif %}
+
+    <div class="article-meta">
+        {% if show_author %}By {{ article.reporter.full_name }} | {% endif %}Published {{ article.pub_date|date:"F j, Y" }}
+    </div>
+
+    {% if content_mode == "summary" %}
+        <div class="article-content">{{ article.content|truncatewords:45 }}</div>
+    {% elif content_mode == "full" %}
+        <div class="article-content">{{ article.content|linebreaks }}</div>
+    {% endif %}
+</li>

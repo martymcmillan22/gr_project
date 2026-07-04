@@ -1,0 +1,53 @@
+---
+title: Card Component
+description: A container component for grouping and presenting related content
+category: UI
+status: active
+---
+
+# Card
+
+The Card component is a flexible container that groups related content with consistent spacing and visual treatment.
+
+## Usage
+
+```jsx
+import { Card } from '@/components/ui';
+
+export function Example() {
+  return (
+    <Card padding="lg" shadow="md">
+      <h2>Card Title</h2>
+      <p>Card content goes here</p>
+    </Card>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `React.ReactNode` | - | Card content |
+| `padding` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'lg'` | Internal spacing |
+| `shadow` | `'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Shadow depth |
+| `className` | `string` | - | Additional CSS classes |
+
+## Shadow Levels
+
+Cards support multiple shadow depths for visual hierarchy.
+
+```jsx
+<Card shadow="sm">Light shadow</Card>
+<Card shadow="md">Medium shadow</Card>
+<Card shadow="lg">Large shadow</Card>
+<Card shadow="xl">Extra large shadow</Card>
+```
+
+## Token References
+
+- **Background**: `tokens.colors.neutral['50']`
+- **Border**: `tokens.colors.neutral['200']`
+- **Border Radius**: `tokens.borderRadius.lg`
+- **Shadows**: `tokens.shadows[variant]`
+- **Padding**: `tokens.spacing[variant]`

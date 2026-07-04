@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Story-Telling Engine Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>📘 Story-Telling Engine Dashboard</h1>
+            <p class="text-muted">Manage all 17 story entries from your master document</p>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.total }}</h3>
+                    <p class="card-text">Total Stories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.completed }}</h3>
+                    <p class="card-text">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.in_progress }}</h3>
+                    <p class="card-text">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.pending }}</h3>
+                    <p class="card-text">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Average Progress</p>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ stats.avg_progress }}%"
+                             aria-valuenow="{{ stats.avg_progress }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ stats.avg_progress }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>All Stories</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%">#</th>
+                                <th style="width: 30%">Title</th>
+                                <th style="width: 12%">Status</th>
+                                <th style="width: 15%">Format</th>
+                                <th style="width: 20%">Progress</th>
+                                <th style="width: 18%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for story in stories %}
+                            <tr>
+                                <td><strong>{{ story.entry_id }}</strong></td>
+                                <td>{{ story.title }}</td>
+                                <td>
+                                    {% if story.status == 'complete' %}
+                                        <span class="badge bg-success">✅ Complete</span>
+                                    {% elif story.status == 'in_progress' %}
+                                        <span class="badge bg-warning">🔄 In Progress</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">⏳ Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if story.format == 'short_series' %}
+                                        Short Series
+                                    {% elif story.format == 'one_hour_series' %}
+                                        1-Hour Series
+                                    {% elif story.format == 'epic_movie' %}
+                                        Epic Movie
+                                    {% else %}
+                                        Movie
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ story.calculate_progress }}%"
+                                             aria-valuenow="{{ story.calculate_progress }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            {{ story.calculate_progress }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'storytelling_dashboard:story_detail' story.entry_id %}" 
+                                       class="btn btn-sm btn-primary">Edit</a>
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            onclick="validateStory({{ story.entry_id }})">Check</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .progress {
+        background-color: #f0f0f0;
+    }
+    
+    h1 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+function validateStory(entryId) {
+    fetch(`/storytelling-dashboard/api/story/${entryId}/validate/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                alert(`✅ Story ${entryId} passes validation!`);
+            } else {
+                let message = `❌ Story ${entryId} has issues:\n\n`;
+                data.issues.forEach(issue => {
+                    message += `• ${issue}\n`;
+                });
+                if (data.warnings.length > 0) {
+                    message += `\n⚠️ Warnings:\n`;
+                    data.warnings.forEach(warning => {
+                        message += `• ${warning}\n`;
+                    });
+                }
+                alert(message);
+            }
+        })
+        .catch(error => alert(`Error: ${error.message}`));
+}
+</script>
+{% endblock %}

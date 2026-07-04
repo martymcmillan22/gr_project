@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Twist{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    {% if show_polish_reminder_popup %}
+    <div class="modal is-active" id="polish-reminder-modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Polish Reminder</p>
+          <button class="delete" type="button" aria-label="close" id="close-polish-reminder-top"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>{{ polish_reminder_message }}</p>
+        </section>
+        <footer class="modal-card-foot">
+          <a href="{% url 'polish:dashboard' %}" class="button is-link">Open Polish</a>
+          <button type="button" class="button" id="close-polish-reminder-bottom">Dismiss</button>
+        </footer>
+      </div>
+    </div>
+    {% endif %}
+
+    <h1 class="title">Twist</h1>
+    <p class="subtitle">Capture your idea before you forget it.</p>
+
+    {% if user.is_authenticated %}
+    <div class="columns is-variable is-6">
+      <div class="column is-6">
+        <div class="box">
+          <h2 class="title is-4">Capture an idea</h2>
+          <form method="post">
+            {% csrf_token %}
+            <div class="field">
+              <label class="label" for="id_content">{{ form.content.label }}</label>
+              <div class="control">
+                {{ form.content }}
+              </div>
+              {% if form.content.errors %}
+              <p class="help is-danger">{{ form.content.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+            <div class="field">
+              <label class="label" for="id_tags">{{ form.tags.label }}</label>
+              <div class="control">
+                {{ form.tags }}
+              </div>
+              {% if form.tags.help_text %}
+              <p class="help">{{ form.tags.help_text }}</p>
+              {% endif %}
+              {% if form.tags.errors %}
+              <p class="help is-danger">{{ form.tags.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+            <div class="field">
+              <label class="label" for="id_status">{{ form.status.label }}</label>
+              <div class="control">
+                <div class="select">
+                  {{ form.status }}
+                </div>
+              </div>
+              {% if form.status.errors %}
+              <p class="help is-danger">{{ form.status.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+            <div class="field is-grouped mt-4">
+              <div class="control">
+                <button type="submit" class="button is-primary">Save idea</button>
+              </div>
+              <div class="control">
+                <a class="button is-light" href="{% url 'twist-token' %}">View API Token</a>
+              </div>
+              <div class="control">
+                <a class="button is-light" href="/api/ideas/">Ideas API</a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="column is-6">
+        <div class="box">
+          <h2 class="title is-4">Recent ideas</h2>
+          <form method="get" class="mb-5">
+            <div class="field is-grouped">
+              <div class="control is-expanded">
+                <input class="input" type="text" name="q" value="{{ search_query }}" placeholder="Search ideas or tags">
+              </div>
+              <div class="control">
+                <div class="select">
+                  <select name="status">
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="control">
+                <button type="submit" class="button is-light">Search</button>
+              </div>
+            </div>
+          </form>
+          {% if ideas %}
+          <div class="content">
+            {% for idea in ideas %}
+            <article class="mb-5">
+              <p>{{ idea.content }}</p>
+              <p class="is-size-7 has-text-grey-dark">Stage: {{ idea.get_status_display }}</p>
+              {% if idea.tags %}
+              <div class="tags mt-2">
+                {% for tag in idea.tag_list %}
+                <a class="tag is-info is-light" href="?q={{ tag|urlencode }}&status={{ status_filter }}">#{{ tag }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <p class="is-size-7 has-text-grey">{{ idea.created_at|date:"M j, Y g:i A" }}</p>
+              <div class="buttons are-small mt-2">
+                <a class="button is-light" href="{% url 'twist-idea-edit' idea.pk %}">Edit</a>
+                <a class="button is-danger is-light" href="{% url 'twist-idea-delete' idea.pk %}">Delete</a>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+          {% if page_obj and page_obj.paginator.num_pages > 1 %}
+          <nav class="pagination is-small" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+            <a class="pagination-previous" href="?q={{ search_query|urlencode }}&status={{ status_filter }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            {% else %}
+            <a class="pagination-previous" disabled>Previous</a>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+            <a class="pagination-next" href="?q={{ search_query|urlencode }}&status={{ status_filter }}&page={{ page_obj.next_page_number }}">Next</a>
+            {% else %}
+            <a class="pagination-next" disabled>Next</a>
+            {% endif %}
+
+            <ul class="pagination-list">
+              <li>
+                <span class="pagination-link is-current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+              </li>
+            </ul>
+          </nav>
+          {% endif %}
+          {% else %}
+          <p>No ideas matched your search yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="notification is-warning is-light">
+      Please log in first to save your ideas.
+    </div>
+    <a class="button is-primary" href="/accounts/login/">Log in to access Twist</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block page_js %}
+{{ block.super }}
+<script>
+  (function() {
+    const modal = document.getElementById('polish-reminder-modal');
+    if (!modal) return;
+
+    function closeModal() {
+      modal.classList.remove('is-active');
+    }
+
+    const closeTop = document.getElementById('close-polish-reminder-top');
+    const closeBottom = document.getElementById('close-polish-reminder-bottom');
+    const backdrop = modal.querySelector('.modal-background');
+
+    if (closeTop) closeTop.addEventListener('click', closeModal);
+    if (closeBottom) closeBottom.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+  })();
+</script>
+{% endblock %}

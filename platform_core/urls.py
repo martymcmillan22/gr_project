@@ -1,0 +1,48 @@
+from django.urls import path
+
+from .views import (
+    classification_executive_view,
+    customer_billing_invoice_view,
+    customer_billing_view,
+    customer_invoice_center_view,
+    preset_bundle_compare_view,
+    preset_bundle_create_view,
+    preset_bundle_delete_view,
+    preset_bundle_history_view,
+    preset_bundle_list_view,
+    preset_bundle_rollback_view,
+    preset_bundle_share_view,
+    preset_bundle_tag_view,
+    quadrant_heatmap_view,
+    quadrant_overlay_view,
+    preset_list_view,
+    quadrant_route_view,
+    quadrant_redirect_view,
+    slide_generate_bundle_view,
+    slide_apply_preset_view,
+    slide_detail_view,
+)
+
+
+urlpatterns = [
+    path("classification/executive/", classification_executive_view, name="platform-core-classification-executive"),
+    path("quadrant/", quadrant_redirect_view, name="quadrant-redirect"),
+    path("quadrant/route/", quadrant_route_view, name="quadrant-route"),
+    path("quadrant/heatmap/", quadrant_heatmap_view, name="quadrant-heatmap"),
+    path("quadrant/overlay/", quadrant_overlay_view, name="quadrant-overlay"),
+    path("billing/", customer_billing_view, name="customer-billing"),
+    path("billing/invoice/", customer_billing_invoice_view, name="customer-billing-invoice"),
+    path("billing/invoices/", customer_invoice_center_view, name="customer-invoice-center"),
+    path("presets/", preset_list_view, name="platform-core-preset-list"),
+    path("preset-bundles/", preset_bundle_list_view, name="platform-core-preset-bundle-list"),
+    path("preset-bundles/create/", preset_bundle_create_view, name="platform-core-preset-bundle-create"),
+    path("preset-bundles/<str:bundle_name>/history/", preset_bundle_history_view, name="platform-core-preset-bundle-history"),
+    path("preset-bundles/<str:bundle_name>/compare/", preset_bundle_compare_view, name="platform-core-preset-bundle-compare"),
+    path("preset-bundles/<str:bundle_name>/rollback/", preset_bundle_rollback_view, name="platform-core-preset-bundle-rollback"),
+    path("preset-bundles/<str:bundle_name>/tags/", preset_bundle_tag_view, name="platform-core-preset-bundle-tag"),
+    path("preset-bundles/<str:bundle_name>/shares/", preset_bundle_share_view, name="platform-core-preset-bundle-share"),
+    path("preset-bundles/<str:bundle_name>/delete/", preset_bundle_delete_view, name="platform-core-preset-bundle-delete"),
+    path("slides/<int:slide_id>/", slide_detail_view, name="platform-core-slide-detail"),
+    path("slides/<int:slide_id>/apply-preset/", slide_apply_preset_view, name="platform-core-slide-apply-preset"),
+    path("slides/<int:slide_id>/generate-bundle/", slide_generate_bundle_view, name="platform-core-slide-generate-bundle"),
+]

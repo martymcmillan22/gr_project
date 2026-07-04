@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}BaseTrue{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/base-true-wheel.css' %}?v=20260627.2">
+<style>
+  body.home-page .navbar.is-dark {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .home-top-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .home-greeting-block {
+    padding-top: 7.25rem;
+  }
+
+  .home-wheel-wrap {
+    position: relative;
+    min-height: 120px;
+    width: 130px;
+    flex: 0 0 auto;
+  }
+
+  .home-wheel-wrap .base-true-wheel {
+    transform: scale(1.06);
+    transform-origin: top right;
+  }
+
+  @media screen and (max-width: 768px) {
+    .home-mobile-hide {
+      display: none;
+    }
+
+    .home-greeting-block {
+      padding-top: 6.5rem;
+    }
+
+    .home-wheel-wrap {
+      width: 110px;
+      min-height: 100px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block bodyclass %}home-page{% endblock %}
+
+{% block content %}
+<div class="home-wheel-stage">
+<div class="home-top-layout">
+  <div class="home-greeting-block">
+    <h1 class="title is-size-4">
+      Hello {% if user.is_authenticated %}{{ user.get_short_name }}{% else %}there{% endif %}
+    </h1>
+    <p class="subtitle">
+      Today is {{today}}
+    </p>
+  </div>
+
+  <div class="home-wheel-wrap">
+    <div class="base-true-wheel" id="home-base-true-wheel" data-domain-url="{% url 'domain:index' %}">
+      <img src="{% static 'images/base-true.png' %}" alt="Base True Wheel">
+      <a href="{% url 'center:cell_detail' 'bos' %}" class="hotspot n1" aria-label="Number 1 - BOS"></a>
+      <a href="{% url 'center:cell_detail' 'bol' %}" class="hotspot n2" aria-label="Number 2 - BOL"></a>
+      <a href="{% url 'center:cell_detail' 'boe' %}" class="hotspot n3" aria-label="Number 3 - BOE"></a>
+      <a href="{% url 'center:cell_detail' 'bop' %}" class="hotspot n4" aria-label="Number 4 - BOP"></a>
+      <a href="{% url 'center:cell_detail' 'library' %}" class="hotspot n5" aria-label="Number 5 - Library"></a>
+      <a href="{% url 'center:cell_detail' 'duseum' %}" class="hotspot n6" aria-label="Number 6 - Duseum"></a>
+      <a href="{% url 'center:cell_detail' 'nuseum' %}" class="hotspot n7" aria-label="Number 7 - Nuseum"></a>
+      <a href="{% url 'center:cell_detail' 'monuments' %}" class="hotspot n8" aria-label="Number 8 - Monuments"></a>
+      <a href="{% url 'center:cell_detail' 'grassroots' %}" class="hotspot n9" aria-label="Number 9 - GrassRoots"></a>
+      <a href="{% url 'center:cell_detail' 'pjs' %}" class="hotspot n10" aria-label="Number 10 - PJS"></a>
+      <a href="{% url 'center:cell_detail' 'agendatime' %}" class="hotspot n11" aria-label="Number 11 - AgendaTime"></a>
+      <a href="{% url 'center:cell_detail' 'harvestcrops' %}" class="hotspot n12" aria-label="Number 12 - HarvestCrops"></a>
+    </div>
+  </div>
+</div>
+<div class="block mt-6 has-text-centered">
+  <h2 class="is-size-3 home-mobile-hide">Welcome to BaseTrue</h2>
+  <p class="mt-4 home-mobile-hide">
+    Information - Format
+  </p>
+  <div class="box mt-5" style="max-width: 460px; margin-left: auto; margin-right: auto;">
+    <p class="has-text-weight-semibold mb-3">Profiles</p>
+    <div class="field has-addons is-justify-content-center">
+      <p class="control">
+        <a href="{% url 'center:index' %}" class="button is-light">Public</a>
+      </p>
+      <p class="control">
+        <a href="{% url 'domain:index' %}" class="button is-dark">Personal</a>
+      </p>
+    </div>
+  </div>
+  <div class="mt-4" style="max-width: 460px; margin-left: auto; margin-right: auto;">
+    <div class="columns is-mobile is-variable is-2">
+      <div class="column is-hidden-tablet">
+        <a href="{% url 'twist-entry' %}" class="button is-success is-medium is-fullwidth">Open Twist</a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function() {
+    const wheel = document.getElementById("home-base-true-wheel");
+    if (!wheel) return;
+
+    const targetUrl = wheel.dataset.domainUrl;
+    const image = wheel.querySelector("img");
+    if (!image || !targetUrl) return;
+
+    image.addEventListener("dblclick", function() {
+      window.location.href = targetUrl;
+    });
+  })();
+</script>
+{% endblock %}
+

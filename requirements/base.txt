@@ -1,0 +1,3 @@
+django-bulma  # https://github.com/timonweb/django-bulma
+Pillow   # https://pillow.readthedocs.io/en/latest/
+reportlab

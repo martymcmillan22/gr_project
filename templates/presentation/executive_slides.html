@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incubation Ecosystem Executive Deck</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+
+  <style>
+    :root {
+      --ink: #142128;
+      --teal: #0e7c86;
+      --coral: #d1643f;
+      --gold: #c58e12;
+      --paper: #fbfaf7;
+      --mist: #e9efe9;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 85% 10%, rgba(209, 100, 63, 0.12), transparent 36%),
+        radial-gradient(circle at 8% 85%, rgba(14, 124, 134, 0.12), transparent 40%),
+        linear-gradient(140deg, var(--paper), var(--mist));
+      color: var(--ink);
+      font-family: "Outfit", sans-serif;
+    }
+
+    .reveal {
+      font-family: "Outfit", sans-serif;
+      color: var(--ink);
+    }
+
+    .reveal h1,
+    .reveal h2,
+    .reveal h3 {
+      text-transform: none;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+
+    .reveal h1 { font-size: 2.4rem; }
+    .reveal h2 { font-size: 1.65rem; }
+    .reveal p, .reveal li { font-size: 0.9rem; line-height: 1.45; }
+
+    .reveal .slides section {
+      border-radius: 18px;
+      border: 1px solid rgba(20, 33, 40, 0.16);
+      background: rgba(255, 255, 255, 0.78);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 12px 28px rgba(20, 33, 40, 0.08);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-top: 0.8rem;
+    }
+
+    .kpi {
+      border: 1px solid rgba(20, 33, 40, 0.18);
+      border-radius: 12px;
+      padding: 0.55rem 0.7rem;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .kpi h3 {
+      margin: 0;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #385561;
+    }
+
+    .kpi p {
+      margin: 0.15rem 0 0;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .flag {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 0.25rem;
+      border: 1px solid rgba(20, 33, 40, 0.16);
+      background: #fff;
+    }
+
+    .flag.capture { color: #9c3f14; border-color: rgba(156, 63, 20, 0.45); }
+    .flag.incubate { color: #875f00; border-color: rgba(135, 95, 0, 0.45); }
+    .flag.launch { color: #0c6a38; border-color: rgba(12, 106, 56, 0.45); }
+
+    .accent {
+      border-left: 5px solid var(--teal);
+      background: rgba(14, 124, 134, 0.08);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-top: 0.9rem;
+    }
+
+    .accent.warn {
+      border-left-color: var(--coral);
+      background: rgba(209, 100, 63, 0.1);
+    }
+
+    @media (max-width: 900px) {
+      .reveal h1 { font-size: 1.7rem; }
+      .reveal h2 { font-size: 1.3rem; }
+      .reveal p, .reveal li { font-size: 0.76rem; }
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h1>Incubation Ecosystem</h1>
+        <p>Executive Strategy Deck</p>
+        <p>
+          <span class="flag capture">Capture</span>
+          <span class="flag incubate">Incubate</span>
+          <span class="flag launch">Launch</span>
+        </p>
+        <div class="accent">Objective: transform ideas into launch-ready businesses with measurable governance across 64 industries.</div>
+      </section>
+
+      <section>
+        <h2>Strategic Problem</h2>
+        <ul>
+          <li>High idea volume with inconsistent classification and weak traceability.</li>
+          <li>Industry requirements vary, so fixed schemas break at scale.</li>
+          <li>Launch risk increases when readiness checks are not systemic.</li>
+        </ul>
+        <div class="accent warn">Decision pressure: scale speed without sacrificing governance.</div>
+      </section>
+
+      <section>
+        <h2>Solution Architecture</h2>
+        <ul>
+          <li>Dynamic industry taxonomy (database-driven, no hard-coded sector logic).</li>
+          <li>Lifecycle model: RAW to SEED to BUSINESS with service-layer transitions.</li>
+          <li>Read-only cross-reference engine for ecosystem intelligence.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Capability Roadmap</h2>
+        <ul>
+          <li><strong>Phase 1 Capture:</strong> ingestion API, taxonomy validation, identity mapping.</li>
+          <li><strong>Phase 2 Incubate:</strong> JSON metadata rules, snapshots, collaborative polish.</li>
+          <li><strong>Phase 3 Launch:</strong> readiness monitor, transformation service, cross-reference API.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>12-Compartment Lattice Advantage</h2>
+        <ul>
+          <li>Numeric structure uses base 4^n to model compartment capacity growth.</li>
+          <li>Time-frame constraints (Past, Present/Past, Present/Future, Future) enforce discipline.</li>
+          <li>Registry-backed logic lets product and AI workflows align to one source of truth.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Operating KPIs</h2>
+        <div class="kpi-grid">
+          <div class="kpi"><h3>Conversion</h3><p>RAW to SEED, SEED to BUSINESS rate</p></div>
+          <div class="kpi"><h3>Quality</h3><p>Readiness gate pass/fail trend</p></div>
+          <div class="kpi"><h3>Performance</h3><p>Cross-reference API p95 under 100ms</p></div>
+          <div class="kpi"><h3>Governance</h3><p>Audit and contributor attribution coverage</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Build Status</h2>
+        <ul>
+          <li>Lifecycle statuses and cross-reference model implemented.</li>
+          <li>Lattice registry + validator framework implemented.</li>
+          <li>Slide-ready architecture and benchmark command integrated.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Next Investment Milestones</h2>
+        <ul>
+          <li>Frontend: status-aware capture and cross-reference explorer.</li>
+          <li>Workflow: readiness checklist UX tied to JSON metadata gates.</li>
+          <li>Analytics: KPI board for conversion, quality, and latency.</li>
+        </ul>
+        <div class="accent">Recommendation: approve this as the operating baseline for design and delivery.</div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      transition: "slide",
+      center: true
+    });
+  </script>
+</body>
+</html>

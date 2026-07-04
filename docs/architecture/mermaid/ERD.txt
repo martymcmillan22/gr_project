@@ -1,0 +1,78 @@
+---
+config:
+  layout: elk
+---
+graph TD
+    A[Architecture-as-Code Workflow] --> B[Text-Based Diagramming]
+    B --> C[Mermaid.js]
+    C --> D[Version Control]
+    C --> E[AI-Readable]
+    C --> F[Editable]
+    
+    G[Workflow Loop] --> H[1. Update Diagram]
+    G --> I[2. Contextual Prompting]
+    G --> J[3. Refactor & Merge]
+    
+    H --> K[Mermaid Code Changes]
+    I --> L[AI Generates Code]
+    J --> M[Repo Stays Aligned]
+    
+    N[Recommended Diagram Types] --> O[Sequence Diagrams]
+    N --> P[ERDs]
+    
+    O --> Q[Business Logic Flow]
+    Q --> R[User → API → Service → DB]
+    
+    P --> S[Data Schema]
+    S --> T[Entity Relationships]
+    
+    U[Docs Structure] --> V[/docs/architecture/]
+    V --> W[logic_flow.mmd]
+    V --> X[data_schema.mmd]
+    
+    W --> Y[Permanent AI Memory]
+    X --> Y
+    
+    classDef process fill:#eef2ff,stroke:#818cf8
+    classDef tool fill:#f0fdf4,stroke:#4ade80
+    classDef artifact fill:#fff7ed,stroke:#fb923c
+    classDef benefit fill:#f0f9ff,stroke:#38bdf8
+    
+    class A,H,I,J process
+    class C,O,P tool
+    class K,L,M,W,X artifact
+    class D,E,F,Y benefit
+
+---------------------------------------------------------------------
+64 Industries
+--------------
+erDiagram
+    INDUSTRY ||--o{ IDEA : contains
+    USER ||--o{ IDEA : submits
+    IDEA ||--|| SEED : matures_into
+    SEED ||--|| BUSINESS : launches_as
+    
+    INDUSTRY {
+        int id
+        string name
+        string sector_code
+    }
+    
+    IDEA {
+        int id
+        string raw_content
+        string status "RAW, SEED, BUSINESS"
+    }
+    
+    SEED {
+        int id
+        jsonb polish_notes
+        date germination_date
+    }
+    
+    BUSINESS {
+        int id
+        string brand_name
+        string market_status
+    }
+-----------------------------------------------End of 64 Industries----------------------------------------------

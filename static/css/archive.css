@@ -1,0 +1,61 @@
+.archive-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.archive-nav {
+    margin-bottom: 1rem;
+}
+
+.month-jump-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.month-articles,
+.archive-articles {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.article-card {
+    border-left: 3px solid #9bb2a0;
+    background: #f7faf7;
+    padding: 0.9rem 1rem;
+    margin: 0.8rem 0 1rem;
+    border-radius: 4px;
+}
+
+.article-headline {
+    font-size: 1.1rem;
+    margin: 0 0 0.3rem;
+}
+
+.article-headline a {
+    text-decoration: none;
+}
+
+.article-headline a:hover,
+.article-headline a:focus {
+    text-decoration: underline;
+}
+
+.article-meta {
+    color: #4a5a4f;
+    font-size: 0.95rem;
+    margin-bottom: 0.65rem;
+}
+
+.article-content p {
+    margin: 0.5rem 0;
+}
+
+.month-back {
+    margin-top: 0.25rem;
+    margin-bottom: 1.75rem;
+}

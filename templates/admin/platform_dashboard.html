@@ -1,0 +1,867 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<style>
+  .bt-rail.bt-rail-collapsed {
+    display: block;
+    padding: 8px 10px;
+    margin: 0 0 14px auto;
+    width: fit-content;
+    max-height: none;
+    overflow: visible;
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+  }
+
+  .bt-rail.bt-rail-collapsed summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .bt-rail.bt-rail-collapsed summary::after {
+    content: "Open";
+    font-size: 0.72rem;
+    opacity: 0.85;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] summary::after {
+    content: "Close";
+  }
+
+  .bt-rail.bt-rail-collapsed:not([open]) a,
+  .bt-rail.bt-rail-collapsed:not([open]) button,
+  .bt-rail.bt-rail-collapsed:not([open]) .bt-rail-health {
+    display: none;
+  }
+
+  .bt-rail.bt-rail-collapsed[open] {
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+  }
+</style>
+
+<details class="bt-rail bt-rail-collapsed" aria-label="Dashboard shortcuts">
+  <summary>Main Dashboard Shortcuts</summary>
+  <a href="#bt-top">Top</a>
+  <a href="#bt-ops">Ops</a>
+  <a href="#bt-analytics">Analytics</a>
+  <a href="#bt-insights">Insights</a>
+  <a href="#bt-system">System</a>
+  <a href="{% url 'admin:basetrue-insights' %}">Insights Layer</a>
+  <a href="{% url 'admin:dashboard' %}">Platform</a>
+  <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
+  <a href="{% url 'admin:operator-dashboard' %}">Operator</a>
+  <a href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+  <button type="button" id="bt-theme-toggle">Theme</button>
+  <div class="bt-rail-health" aria-label="Health legend">
+    <span class="bt-rail-chip bt-rail-chip-green">G {{ health_legend.green }}</span>
+    <span class="bt-rail-chip bt-rail-chip-yellow">Y {{ health_legend.yellow }}</span>
+    <span class="bt-rail-chip bt-rail-chip-red">R {{ health_legend.red }}</span>
+    <span class="bt-rail-chip">↑ {{ health_legend.up }}</span>
+    <span class="bt-rail-chip">→ {{ health_legend.flat }}</span>
+    <span class="bt-rail-chip">↓ {{ health_legend.down }}</span>
+    <span class="bt-rail-chip bt-rail-chip-flag">! {{ health_legend.flags }}</span>
+  </div>
+</details>
+
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="/homepage/" title="Go to homepage">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">BaseTrue Admin Dashboard</h1>
+    <p class="bt-brand-sub">Control Center</p>
+  </div>
+</div>
+<p>Global control center for Twist, Center, Domain, Seeds, News, Homepage, Ontology, Career, and Forums.</p>
+
+<h2 class="bt-section bt-q-red" id="bt-ops">Quick Actions</h2>
+<div class="bt-actions">
+  <a class="bt-action bt-q-green" href="{% url 'admin:basetrue-insights' %}">BaseTrue Insights</a>
+  <a class="bt-action bt-q-blue" href="{% url 'task-manager-admin:index' %}">Task Manager Admin</a>
+  <a class="bt-action bt-q-red" href="{% url 'admin:executive-dashboard' %}">Executive Dashboard</a>
+  <a class="bt-action bt-q-blue" href="{% url 'admin:operator-dashboard' %}">Operator Dashboard</a>
+  <a class="bt-action bt-q-yellow" href="{% url 'admin:moderator-dashboard' %}">Moderator Dashboard</a>
+  <a class="bt-action bt-q-red" href="/admin/homepage_backend/homepageflow/add/">Create Flow</a>
+  <a class="bt-action bt-q-blue" href="/admin/homepage_backend/homepagetask/add/">Create Task</a>
+  <a class="bt-action bt-q-yellow" href="/admin/baseTrue_news/issue/add/">Create News Issue</a>
+  <a class="bt-action bt-q-green" href="/admin/twist/creativeidea/add/">Create Twist Idea</a>
+  <a class="bt-action bt-q-red" href="/admin/domain/domaincell/add/">Create Domain Cell</a>
+  <a class="bt-action bt-q-blue" href="/admin/users/user/">Open Users</a>
+  <a class="bt-action bt-q-yellow" href="/admin/">Admin Home</a>
+</div>
+
+<h2 class="bt-section bt-q-blue">Application Control Matrix</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0 20px;">
+  {% for app in app_control_panels %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as matrix_quad silent %}
+    <section class="bt-overview-card {{ matrix_quad }}" style="padding:14px;">
+      <div class="bt-analytics-head" style="margin-bottom:6px;">
+        <h3 style="margin:0;">{{ app.title }}</h3>
+        <span class="bt-health bt-health-{{ app.health.level }}">{{ app.health.label }}</span>
+      </div>
+      <p style="margin:0 0 4px;"><strong>Rows:</strong> {{ app.row_count }}</p>
+      <p style="margin:0 0 4px;"><strong>Activity:</strong> {{ app.activity_count }}</p>
+      <p style="margin:0 0 4px;"><strong>Trend:</strong> {{ app.health.trend_symbol }} {{ app.health.trend_label }}</p>
+      <p style="margin:0 0 4px;"><strong>Score:</strong> {{ app.health.score }}</p>
+      <p style="margin:0 0 10px;"><strong>Models:</strong> {{ app.model_count }}</p>
+      {% if app.health.attention_flags %}
+        <p class="bt-flag">{{ app.health.attention_flags.0 }}</p>
+      {% endif %}
+      <a href="{{ app.route }}" target="_blank" rel="noopener">Open app</a>
+    </section>
+  {% empty %}
+    <p>No control-center apps found.</p>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-yellow">Dashboard Cards</h2>
+<div class="bt-grid" style="margin:18px 0 22px;">
+  <section class="bt-card bt-accent-users bt-q-red">
+    <h3>Total Users</h3>
+    <p class="bt-metric">{{ users_total }}</p>
+    <p class="bt-note">All registered users in the platform.</p>
+  </section>
+
+  <section class="bt-card bt-accent-staff bt-q-blue">
+    <h3>Staff Users</h3>
+    <p class="bt-metric">{{ users_staff }}</p>
+    <p class="bt-note">Users with elevated administrative access.</p>
+  </section>
+
+  <section class="bt-card bt-accent-roles bt-q-yellow">
+    <h3>Roles</h3>
+    <p class="bt-metric">{{ roles_total }}</p>
+    <p class="bt-note">Role groups currently configured.</p>
+  </section>
+
+  <section class="bt-card bt-accent-perms bt-q-green">
+    <h3>Permissions</h3>
+    <p class="bt-metric">{{ permissions_total }}</p>
+    <p class="bt-note">Granular permission entries in auth system.</p>
+  </section>
+
+  <section class="bt-card bt-accent-task bt-q-blue">
+    <h3>Taskboard Rows</h3>
+    <p class="bt-metric">{{ taskboard_rows }}</p>
+    <p class="bt-note">Rows detected across task-like models.</p>
+  </section>
+
+  <section class="bt-card bt-accent-flow bt-q-red">
+    <h3>Flow Rows</h3>
+    <p class="bt-metric">{{ flow_rows }}</p>
+    <p class="bt-note">Rows detected across flow-like models.</p>
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-red">Flow Panel</h2>
+<section class="bt-flow-panel bt-q-red">
+  <h3>Flow Control Snapshot</h3>
+  <div class="bt-flow-grid">
+    <article class="bt-flow-chip">
+      <span>Total Flow Rows</span>
+      <strong>{{ flow_rows }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Total Taskboard Rows</span>
+      <strong>{{ taskboard_rows }}</strong>
+    </article>
+    <article class="bt-flow-chip">
+      <span>Tracked Flow Apps</span>
+      <strong>{{ app_control_panels|length }}</strong>
+    </article>
+  </div>
+  {% if taskboard_rows %}
+    {% widthratio flow_rows taskboard_rows 100 as flow_vs_task_pct %}
+  {% else %}
+    {% widthratio 0 1 100 as flow_vs_task_pct %}
+  {% endif %}
+  <div class="bt-ratio-wrap">
+    <p class="bt-note">Flow pressure vs taskboard capacity</p>
+    <div class="bt-ratio-track">
+      <div class="bt-ratio-fill-flow" style="width:{{ flow_vs_task_pct }}%;"></div>
+    </div>
+    <div class="bt-ratio-legend">
+      <span>Flow {{ flow_rows }}</span>
+      <span>Taskboard {{ taskboard_rows }}</span>
+    </div>
+  </div>
+  <div class="bt-flow-links">
+    <a class="bt-flow-link" href="/admin/homepage_backend/homepageflow/">Open Flow List</a>
+    <a class="bt-flow-link" href="/admin/homepage_backend/homepageflow/add/">Create Flow</a>
+    <a class="bt-flow-link" href="/admin/homepage_backend/homepagetask/">Open Taskboard</a>
+    <a class="bt-flow-link" href="/admin/homepage_backend/homepagetask/add/">Create Task</a>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue">Taskboard Panel</h2>
+<section class="bt-task-panel bt-q-blue">
+  <h3>Taskboard Control Snapshot</h3>
+  <div class="bt-task-grid">
+    <article class="bt-task-chip">
+      <span>Total Taskboard Rows</span>
+      <strong>{{ taskboard_rows }}</strong>
+    </article>
+    <article class="bt-task-chip">
+      <span>Flow to Task Ratio</span>
+      <strong>{{ flow_rows }} : {{ taskboard_rows }}</strong>
+    </article>
+    <article class="bt-task-chip">
+      <span>Recent Admin Actions</span>
+      <strong>{{ recent_actions|length }}</strong>
+    </article>
+  </div>
+  {% if flow_rows %}
+    {% widthratio taskboard_rows flow_rows 100 as task_vs_flow_pct %}
+  {% else %}
+    {% widthratio 0 1 100 as task_vs_flow_pct %}
+  {% endif %}
+  <div class="bt-ratio-wrap">
+    <p class="bt-note">Taskboard load vs flow volume</p>
+    <div class="bt-ratio-track">
+      <div class="bt-ratio-fill-task" style="width:{{ task_vs_flow_pct }}%;"></div>
+    </div>
+    <div class="bt-ratio-legend">
+      <span>Taskboard {{ taskboard_rows }}</span>
+      <span>Flow {{ flow_rows }}</span>
+    </div>
+  </div>
+  <div class="bt-task-links">
+    <a class="bt-task-link" href="/admin/homepage_backend/homepagetask/">Open Task List</a>
+    <a class="bt-task-link" href="/admin/homepage_backend/homepagetask/add/">Create Task</a>
+    <a class="bt-task-link" href="/admin/homepage_backend/homepageflow/">Open Flow List</a>
+    <a class="bt-task-link" href="/admin/homepage_backend/homepagepreference/">Open Preferences</a>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow">Role-Based Sections</h2>
+<div class="bt-role-grid">
+  {% if request.user.is_superuser %}
+    <section class="bt-role-card bt-q-red">
+      <span class="bt-role-badge">Superuser</span>
+      <h3>Executive Controls</h3>
+      <p class="bt-note">Full-system controls for identity, permissions, and global oversight.</p>
+      <div class="bt-role-links">
+        <a class="bt-role-link" href="/admin/users/user/">Manage Users</a>
+        <a class="bt-role-link" href="/admin/auth/group/">Manage Roles</a>
+        <a class="bt-role-link" href="/admin/auth/permission/">View Permissions</a>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if request.user.is_staff %}
+    <section class="bt-role-card bt-q-blue">
+      <span class="bt-role-badge">Staff</span>
+      <h3>Operations Controls</h3>
+      <p class="bt-note">Daily operation workflows for content, flows, and execution lanes.</p>
+      <div class="bt-role-links">
+        <a class="bt-role-link" href="/admin/homepage_backend/homepagetask/">Task Operations</a>
+        <a class="bt-role-link" href="/admin/homepage_backend/homepageflow/">Flow Operations</a>
+        <a class="bt-role-link" href="/admin/baseTrue_news/issue/">News Operations</a>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if perms.forums.view_thread or perms.forums.view_post %}
+    <section class="bt-role-card bt-q-yellow">
+      <span class="bt-role-badge">Community</span>
+      <h3>Forums Moderation</h3>
+      <p class="bt-note">Moderation access for forum content and community hygiene.</p>
+      <div class="bt-role-links">
+        <a class="bt-role-link" href="/admin/forums/">Open Forums Admin</a>
+      </div>
+    </section>
+  {% endif %}
+</div>
+
+<h2 class="bt-section bt-q-green">Settings Panel</h2>
+<section class="bt-settings-panel bt-q-green">
+  <p class="bt-note">Runtime and environment snapshot for quick operations checks.</p>
+  <div class="bt-settings-grid">
+    <article class="bt-settings-item">
+      <span>Debug Mode</span>
+      <strong>{{ diagnostics.debug }}</strong>
+    </article>
+    <article class="bt-settings-item">
+      <span>Database Engine</span>
+      <strong>{{ diagnostics.database_engine }}</strong>
+    </article>
+    <article class="bt-settings-item">
+      <span>Timezone</span>
+      <strong>{{ diagnostics.timezone }}</strong>
+    </article>
+    <article class="bt-settings-item">
+      <span>Installed Apps</span>
+      <strong>{{ diagnostics.installed_apps }}</strong>
+    </article>
+    <article class="bt-settings-item">
+      <span>Staff Users</span>
+      <strong>{{ users_staff }}</strong>
+    </article>
+    <article class="bt-settings-item">
+      <span>Total Roles</span>
+      <strong>{{ roles_total }}</strong>
+    </article>
+  </div>
+  <div class="bt-settings-links">
+    <a class="bt-settings-link" href="/admin/">Admin Home</a>
+    <a class="bt-settings-link" href="/admin/auth/group/">Roles</a>
+    <a class="bt-settings-link" href="/admin/auth/permission/">Permissions</a>
+    <a class="bt-settings-link" href="{% url 'admin:dashboard' %}">Refresh Dashboard</a>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-system">System Diagnostics</h2>
+<table id="result_list">
+  <thead>
+    <tr>
+      <th>Check</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Debug</td><td>{{ diagnostics.debug }}</td></tr>
+    <tr><td>Database Engine</td><td>{{ diagnostics.database_engine }}</td></tr>
+    <tr><td>Installed Apps</td><td>{{ diagnostics.installed_apps }}</td></tr>
+    <tr><td>Timezone</td><td>{{ diagnostics.timezone }}</td></tr>
+  </tbody>
+</table>
+
+<h2 class="bt-section bt-q-blue">Activity (Last 7 Days)</h2>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(80px,1fr));gap:8px;margin-bottom:18px;align-items:end;">
+  {% for row in activity_rows %}
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div style="height:100px;width:100%;display:flex;align-items:flex-end;">
+        <div style="width:100%;background:#417690;height:{{ row.pct }}%;border-radius:6px 6px 0 0;"></div>
+      </div>
+      <strong>{{ row.day }}</strong>
+      <span>{{ row.count }}</span>
+    </div>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-yellow">Recent Activity Logs</h2>
+<table id="result_list">
+  <thead>
+    <tr>
+      <th>When</th>
+      <th>User</th>
+      <th>Model</th>
+      <th>Action</th>
+      <th>Object</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in recent_actions %}
+      <tr>
+        <td>{{ entry.action_time }}</td>
+        <td>{{ entry.user }}</td>
+        <td>{{ entry.content_type }}</td>
+        <td>{{ entry.get_action_flag_display }}</td>
+        <td>{{ entry.object_repr }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No activity found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="bt-section bt-q-blue">App Overview Grid</h2>
+<div class="bt-overview-grid">
+  {% for app in app_control_panels %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as overview_quad silent %}
+    <section class="bt-overview-card {{ overview_quad }}">
+      <h3>{{ app.title }}</h3>
+      <p class="bt-overview-value">{{ app.row_count }}</p>
+      <p class="bt-overview-row"><span>Activity</span><strong>{{ app.activity_count }}</strong></p>
+      <p class="bt-overview-row"><span>Models</span><strong>{{ app.model_count }}</strong></p>
+      <p class="bt-overview-row"><span>Route</span><a href="{{ app.route }}" target="_blank" rel="noopener">Open</a></p>
+    </section>
+  {% empty %}
+    <p>No app metrics available.</p>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-red" id="bt-analytics">Twist Deep Analytics</h2>
+<section class="bt-twist-panel bt-q-red">
+  {% if twist_health %}
+    <div class="bt-health-row">
+      <span class="bt-health bt-health-{{ twist_health.level }}">Twist {{ twist_health.label }}</span>
+      <span class="bt-health-trend">Trend {{ twist_health.trend_symbol }} {{ twist_health.trend_label }}</span>
+      <span class="bt-health-score">Score {{ twist_health.score }}</span>
+    </div>
+    {% if twist_health.attention_flags %}
+      <ul class="bt-flag-list">
+        {% for flag in twist_health.attention_flags %}
+          <li class="bt-flag">{{ flag }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+  <div class="bt-twist-kpi-grid">
+    <article class="bt-twist-kpi">
+      <span>Idea Velocity (7d)</span>
+      <strong>{{ twist_deep_analytics.ideas_last_7_days }}</strong>
+      <p class="bt-note">{{ twist_deep_analytics.ideas_per_week }}/week pace from 30-day trend.</p>
+    </article>
+    <article class="bt-twist-kpi">
+      <span>Seed Conversion Rate</span>
+      <strong>{{ twist_deep_analytics.seed_conversion_rate }}%</strong>
+      <p class="bt-note">Ideas that reached seed/business stage.</p>
+    </article>
+    <article class="bt-twist-kpi">
+      <span>Idea Depth Score</span>
+      <strong>{{ twist_deep_analytics.idea_depth_score }}</strong>
+      <p class="bt-note">Derived from content richness and tagging depth.</p>
+    </article>
+  </div>
+
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Idea Lifecycle</h3>
+      {% for stage in twist_deep_analytics.lifecycle %}
+        <p class="bt-twist-row"><span>{{ stage.label }}</span><strong><a class="bt-inline-link" href="{{ stage.url }}">{{ stage.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No lifecycle data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Quadrant Category Distribution</h3>
+      {% for q in twist_deep_analytics.quadrant_distribution %}
+        <p class="bt-twist-row"><span>{{ q.name }}</span><strong><a class="bt-inline-link" href="{{ q.url }}">{{ q.count }} ({{ q.pct }}%)</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No quadrant data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>User Contribution Map</h3>
+      {% for user in twist_deep_analytics.top_contributors %}
+        <p class="bt-twist-row"><span>{{ user.label }}</span><strong><a class="bt-inline-link" href="{{ user.url }}">{{ user.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No contributor data yet.</p>
+      {% endfor %}
+    </section>
+  </div>
+
+  <section class="bt-twist-box" style="margin-top:10px;">
+    <h3>Idea Velocity Timeline (14d)</h3>
+    <div class="bt-mini-timeline">
+      {% for row in twist_deep_analytics.timeline %}
+        <div class="bt-mini-col" title="{{ row.day }}: {{ row.count }}">
+          <a class="bt-mini-link" href="{{ row.url }}">
+            <div class="bt-mini-bar-wrap">
+              <div class="bt-mini-bar" style="height:{{ row.pct }}%;"></div>
+            </div>
+            <span>{{ row.day }}</span>
+          </a>
+        </div>
+      {% empty %}
+        <p class="bt-note">No timeline data available.</p>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+
+<h2 class="bt-section bt-q-blue">Center Deep Analytics</h2>
+<section class="bt-center-panel bt-q-blue">
+  {% if center_health %}
+    <div class="bt-health-row">
+      <span class="bt-health bt-health-{{ center_health.level }}">Center {{ center_health.label }}</span>
+      <span class="bt-health-trend">Trend {{ center_health.trend_symbol }} {{ center_health.trend_label }}</span>
+      <span class="bt-health-score">Score {{ center_health.score }}</span>
+    </div>
+    {% if center_health.attention_flags %}
+      <ul class="bt-flag-list">
+        {% for flag in center_health.attention_flags %}
+          <li class="bt-flag">{{ flag }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+  <div class="bt-twist-kpi-grid">
+    <article class="bt-twist-kpi">
+      <span>Items Velocity (7d)</span>
+      <strong>{{ center_deep_analytics.items_last_7_days }}</strong>
+      <p class="bt-note">{{ center_deep_analytics.items_per_week }}/week pace from 30-day trend.</p>
+    </article>
+    <article class="bt-twist-kpi">
+      <span>Posting Rate</span>
+      <strong>{{ center_deep_analytics.posting_rate }}%</strong>
+      <p class="bt-note">Corporation items in posted state.</p>
+    </article>
+    <article class="bt-twist-kpi">
+      <span>Completion Rate</span>
+      <strong>{{ center_deep_analytics.completion_rate }}%</strong>
+      <p class="bt-note">Items marked done in workflow tracking.</p>
+    </article>
+    <article class="bt-twist-kpi">
+      <span>Overdue Items</span>
+      <strong><a class="bt-inline-link" href="{{ center_deep_analytics.overdue_url }}">{{ center_deep_analytics.overdue_count }}</a></strong>
+      <p class="bt-note">Past due date and not yet posted.</p>
+    </article>
+  </div>
+
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Status Breakdown</h3>
+      {% for row in center_deep_analytics.status_breakdown %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No status data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Work Status Breakdown</h3>
+      {% for row in center_deep_analytics.work_breakdown %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No work-status data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Owner Contribution Map</h3>
+      {% for row in center_deep_analytics.top_owners %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No owner data yet.</p>
+      {% endfor %}
+    </section>
+  </div>
+
+  <div class="bt-twist-split" style="margin-top:10px;">
+    <section class="bt-twist-box">
+      <h3>Priority Mix</h3>
+      {% for row in center_deep_analytics.priority_breakdown %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No priority data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Type Mix</h3>
+      {% for row in center_deep_analytics.type_breakdown %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+      {% empty %}
+        <p class="bt-note">No type data yet.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Center Timeline (14d)</h3>
+      <div class="bt-mini-timeline">
+        {% for row in center_deep_analytics.timeline %}
+          <div class="bt-mini-col" title="{{ row.day }}: {{ row.count }}">
+            <a class="bt-mini-link" href="{{ row.url }}">
+              <div class="bt-mini-bar-wrap">
+                <div class="bt-mini-bar" style="height:{{ row.pct }}%;"></div>
+              </div>
+              <span>{{ row.day }}</span>
+            </a>
+          </div>
+        {% empty %}
+          <p class="bt-note">No timeline data available.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-analytics">Semantic Cross-App Pipeline Analytics</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel">
+  <div class="bt-health-row" style="margin-top:0;">
+    <span class="bt-health-score">End-to-End Conversion {{ semantic_cross_app_analytics.overall_conversion_rate }}%</span>
+    <span class="bt-health-trend">Bottleneck {{ semantic_cross_app_analytics.bottleneck.label }} ({{ semantic_cross_app_analytics.bottleneck.dropoff_pct }}% drop)</span>
+  </div>
+
+  <div class="bt-pipeline-visual">
+    {% for stage in semantic_cross_app_analytics.stages %}
+      <article class="bt-pipeline-stage bt-pipeline-stage-{{ stage.key }}">
+        <h3>{{ stage.label }}</h3>
+        <p class="bt-metric" style="font-size:1.45rem;">{{ stage.count }}</p>
+        <p class="bt-note">30d: {{ stage.last_30_days }}</p>
+        <div class="bt-pipeline-mini-bar">
+          <div class="bt-pipeline-mini-fill" style="width:{{ stage.pct }}%;"></div>
+        </div>
+        <a class="bt-inline-link" href="{{ stage.url }}" target="_blank" rel="noopener">Open stage</a>
+      </article>
+      {% if not forloop.last %}
+        <div class="bt-pipeline-arrow" aria-hidden="true">→</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Stage Conversion + Drop-Off</h3>
+      {% for link in semantic_cross_app_analytics.links %}
+        <p class="bt-twist-row">
+          <span>{{ link.from }} → {{ link.to }}</span>
+          <strong>{{ link.conversion_pct }}% (drop {{ link.dropoff_count }})</strong>
+        </p>
+      {% empty %}
+        <p class="bt-note">No stage conversion data available.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>User Continuity</h3>
+      {% for link in semantic_cross_app_analytics.user_links %}
+        <p class="bt-twist-row">
+          <span>{{ link.from }} → {{ link.to }}</span>
+          <strong>{{ link.overlap }} users ({{ link.overlap_pct }}%)</strong>
+        </p>
+      {% empty %}
+        <p class="bt-note">No user overlap data available.</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Pipeline Alerts</h3>
+      {% if semantic_cross_app_analytics.alerts %}
+        <ul class="bt-flag-list" style="margin-bottom:0;">
+          {% for alert in semantic_cross_app_analytics.alerts %}
+            <li class="bt-flag">{{ alert }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="bt-note">No semantic pipeline alerts right now.</p>
+      {% endif %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-insights">Cross-Dashboard Insights Layer</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel">
+  <div class="bt-health-row" style="margin-top:0;">
+    <span class="bt-health-score">{{ cross_dashboard_insights.state_label }}</span>
+    <span class="bt-health-trend">Pressure proxy {{ cross_dashboard_insights.pressure_proxy }}</span>
+  </div>
+  <p class="bt-note">{{ cross_dashboard_insights.state_note }}</p>
+
+  <div class="bt-insight-grid">
+    {% for card in cross_dashboard_insights.cards %}
+      <article class="bt-insight-card">
+        <h3>{{ card.label }}</h3>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.secondary }}</p>
+        <a class="bt-inline-link" href="{{ card.url }}" target="_blank" rel="noopener">Open</a>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Shared Signals</h3>
+      {% for signal in cross_dashboard_insights.signals %}
+        <p class="bt-twist-row"><span>{{ signal.label }}</span><strong>{{ signal.value }}</strong></p>
+        <p class="bt-note">{{ signal.secondary }}</p>
+      {% endfor %}
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Cross-Dashboard Links</h3>
+      {% for link in cross_dashboard_insights.links %}
+        <p class="bt-twist-row"><span>{{ link.label }}</span><strong><a class="bt-inline-link" href="{{ link.url }}">Open</a></strong></p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow">Extended App Deep Analytics</h2>
+<div class="bt-extra-grid">
+  {% for panel in remaining_app_deep_analytics %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as extra_quad silent %}
+    <section class="bt-center-panel {{ extra_quad }}">
+      <div class="bt-analytics-head">
+        <h3>{{ panel.title }} Deep Analytics</h3>
+        <span class="bt-health bt-health-{{ panel.health.level }}">{{ panel.health.label }}</span>
+      </div>
+      <div class="bt-health-row" style="margin-top:0;margin-bottom:8px;">
+        <span class="bt-health-trend">Trend {{ panel.health.trend_symbol }} {{ panel.health.trend_label }}</span>
+        <span class="bt-health-score">Score {{ panel.health.score }}</span>
+      </div>
+      {% if panel.health.attention_flags %}
+        <ul class="bt-flag-list">
+          {% for flag in panel.health.attention_flags %}
+            <li class="bt-flag">{{ flag }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <div class="bt-twist-kpi-grid">
+        <article class="bt-twist-kpi">
+          <span>Total Rows</span>
+          <strong>{{ panel.total_rows }}</strong>
+          <p class="bt-note">Across {{ panel.model_count }} models.</p>
+        </article>
+        <article class="bt-twist-kpi">
+          <span>Velocity (7d)</span>
+          <strong>{{ panel.rows_last_7_days }}</strong>
+          <p class="bt-note">{{ panel.rows_per_week }}/week from 30-day trend.</p>
+        </article>
+        <article class="bt-twist-kpi">
+          <span>Velocity (30d)</span>
+          <strong>{{ panel.rows_last_30_days }}</strong>
+          <p class="bt-note">Primary model: {{ panel.primary_model_label }}</p>
+        </article>
+        <article class="bt-twist-kpi">
+          <span>Admin Activity</span>
+          <strong>{{ panel.activity_count }}</strong>
+          <p class="bt-note"><a class="bt-inline-link" href="{{ panel.route }}" target="_blank" rel="noopener">Open app route</a></p>
+        </article>
+      </div>
+
+      <div class="bt-twist-split">
+        <section class="bt-twist-box">
+          <h3>{{ panel.category_label }} Mix</h3>
+          {% for row in panel.status_breakdown %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No status field available in primary model.</p>
+          {% endfor %}
+        </section>
+
+        <section class="bt-twist-box">
+          <h3>Top Contributors</h3>
+          {% for row in panel.top_contributors %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No user-linked contributor field in primary model.</p>
+          {% endfor %}
+        </section>
+
+        <section class="bt-twist-box">
+          <h3>Top Models</h3>
+          {% for row in panel.top_models %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No model metrics available.</p>
+          {% endfor %}
+        </section>
+      </div>
+
+      <section class="bt-twist-box" style="margin-top:10px;">
+        <h3>Timeline (14d)</h3>
+        <div class="bt-mini-timeline">
+          {% for row in panel.timeline %}
+            <div class="bt-mini-col" title="{{ row.day }}: {{ row.count }}">
+              <a class="bt-mini-link" href="{{ row.url }}">
+                <div class="bt-mini-bar-wrap">
+                  <div class="bt-mini-bar" style="height:{{ row.pct }}%;"></div>
+                </div>
+                <span>{{ row.day }}</span>
+              </a>
+            </div>
+          {% empty %}
+            <p class="bt-note">No timestamp field available for timeline plotting.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </section>
+  {% empty %}
+    <p>No extended app analytics available.</p>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-red">Per-App Analytics Panels</h2>
+<div class="bt-analytics-grid">
+  {% for app in app_control_panels %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as analytics_quad silent %}
+    <section class="bt-analytics-card {{ analytics_quad }}">
+      <div class="bt-analytics-head">
+        <h3>{{ app.title }}</h3>
+        <span class="bt-health bt-health-{{ app.health.level }}">{{ app.health.label }}</span>
+      </div>
+      <div class="bt-health-row" style="margin-top:0;margin-bottom:8px;">
+        <span class="bt-health-trend">Trend {{ app.health.trend_symbol }} {{ app.health.trend_label }}</span>
+        <span class="bt-health-score">Score {{ app.health.score }}</span>
+      </div>
+      {% if app.health.attention_flags %}
+        <p class="bt-flag">{{ app.health.attention_flags.0 }}</p>
+      {% endif %}
+
+      <div class="bt-analytics-kpis">
+        <div class="bt-analytics-kpi">
+          <span>Rows</span>
+          <strong>{{ app.row_count }}</strong>
+        </div>
+        <div class="bt-analytics-kpi">
+          <span>Activity</span>
+          <strong>{{ app.activity_count }}</strong>
+        </div>
+        <div class="bt-analytics-kpi">
+          <span>Models</span>
+          <strong>{{ app.model_count }}</strong>
+        </div>
+      </div>
+
+      <div class="bt-analytics-links">
+        <a class="bt-analytics-link" href="{{ app.route }}" target="_blank" rel="noopener">Open App</a>
+        {% if app.title == "Homepage" %}
+          <a class="bt-analytics-link" href="/admin/homepage_backend/homepagetask/add/">Create Task</a>
+        {% elif app.title == "News" %}
+          <a class="bt-analytics-link" href="/admin/baseTrue_news/issue/add/">Create Issue</a>
+        {% elif app.title == "Twist" %}
+          <a class="bt-analytics-link" href="/admin/twist/creativeidea/add/">Create Idea</a>
+        {% elif app.title == "Domain" %}
+          <a class="bt-analytics-link" href="/admin/domain/domaincell/add/">Create Cell</a>
+        {% elif app.title == "Career" %}
+          <a class="bt-analytics-link" href="/admin/career_app/">Open Admin</a>
+        {% elif app.title == "Forums" %}
+          <a class="bt-analytics-link" href="/admin/forums/">Open Admin</a>
+        {% else %}
+          <a class="bt-analytics-link" href="/admin/">Admin Home</a>
+        {% endif %}
+      </div>
+    </section>
+  {% empty %}
+    <p>No per-app analytics available.</p>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-yellow">Model Overview Grid</h2>
+<div class="bt-model-grid">
+  {% for item in model_metrics %}
+    {% cycle 'bt-q-red' 'bt-q-blue' 'bt-q-yellow' 'bt-q-green' as model_quad silent %}
+    <section class="bt-model-card {{ model_quad }}">
+      <span class="bt-model-rank">#{{ forloop.counter }}</span>
+      <h3>{{ item.label }}</h3>
+      <p class="bt-model-rows">{{ item.count }}</p>
+      <p class="bt-note">Rows in this model.</p>
+    </section>
+  {% empty %}
+    <p>No metrics available.</p>
+  {% endfor %}
+</div>
+
+<p style="margin-top:20px;">
+  Open <a href="{% url 'admin:dashboard' %}">dashboard</a> anytime from the admin URL.
+</p>
+
+<script src="{% static 'admin/platform_dashboard.js' %}"></script>
+{% endblock %}

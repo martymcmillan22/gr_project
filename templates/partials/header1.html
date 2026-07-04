@@ -1,0 +1,42 @@
+{% load static %}
+<nav class="navbar p-5 is-dark" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+
+    <a class="navbar-item is-size-4 has-text-weight-semibold" href="{% url 'index' %}">
+      <figure class="image is-48x48 mr-3">
+        <img src="{% static 'images/icon.png' %}">
+      </figure>
+
+    </a>
+  </div>
+  <div id="navbar" class="navbar-menu">
+    <div class="navbar-start">
+<!--
+      <a class="navbar-item" href="{% url 'index' %}">
+        Home
+      </a>
+-->
+      {% if request.user.is_staff %}
+      <a class="navbar-item" href="{% url 'admin:index' %}">
+        Admin
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="navbar-end">
+
+      <div class="navbar-item">
+        <form action="{% url 'logout'%}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="button is-dark">Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+</nav>

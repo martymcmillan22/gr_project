@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing %}Edit POV Set{% else %}Create Your Own POV{% endif %}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <a href="{% url 'povs-home' %}" class="button is-light mb-5">← Back to POVs</a>
+
+    <h1 class="title">{% if editing %}Edit POV Set{% else %}Create Your Own POV{% endif %}</h1>
+    <p class="subtitle">
+      {% if editing %}
+        Update your facts or context below.
+      {% else %}
+        Post a set of facts or a topic you want to work through. You'll respond to it using all five POV stages.
+      {% endif %}
+    </p>
+
+    <div class="box">
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label class="label" for="id_title">{{ form.title.label }}</label>
+          <div class="control">
+            {{ form.title }}
+          </div>
+          {% if form.title.errors %}
+          <p class="help is-danger">{{ form.title.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="label" for="id_content">{{ form.content.label }}</label>
+          <div class="control">
+            {{ form.content }}
+          </div>
+          {% if form.content.errors %}
+          <p class="help is-danger">{{ form.content.errors|join:", " }}</p>
+          {% endif %}
+          <p class="help">State the facts, news, or context clearly. You will respond to this using all POV stages.</p>
+        </div>
+        <div class="field is-grouped mt-4">
+          <div class="control">
+            <button type="submit" class="button is-danger">
+              {% if editing %}Update{% else %}Create POV Set{% endif %}
+            </button>
+          </div>
+          <div class="control">
+            <a href="{% url 'povs-home' %}" class="button is-light">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

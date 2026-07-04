@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static archive_tags %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/archive.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="archive-wrap">
+<h1>Articles for {{ year }}</h1>
+
+<p class="archive-nav">
+    <a href="{% url 'polls:archive_year_detail' year=year %}">View archive details for {{ year }}</a>
+</p>
+
+<ul class="archive-articles">
+    {% for article in article_list %}
+        {% url 'polls:article_detail' article.id as article_detail_url %}
+        {% archive_article_card article headline_level="h2" headline_url=article_detail_url %}
+    {% empty %}
+        <li>No articles found for this year.</li>
+    {% endfor %}
+</ul>
+</section>
+{% endblock %}

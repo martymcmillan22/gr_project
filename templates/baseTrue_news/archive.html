@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Newsletter Archive{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/base_true_news.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="news-wrap">
+    <header class="masthead">
+        <div class="nameplate">
+            <div>
+                <span class="logo-mark">Archive</span>
+                <h1>BaseTrue Monthly Archive</h1>
+                <p>Browse published monthly issues.</p>
+            </div>
+        </div>
+    </header>
+
+    {% if issue_list %}
+    <ul class="archive-list">
+        {% for issue in issue_list %}
+        <li>
+            <a href="{% url 'baseTrue_news:issue_detail' year=issue.year month=issue.month %}">{{ issue.month_name }} {{ issue.year }} - {{ issue.masthead_title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">No published issues yet.</div>
+    {% endif %}
+</section>
+{% endblock %}

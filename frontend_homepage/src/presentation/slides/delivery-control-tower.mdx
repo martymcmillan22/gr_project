@@ -1,0 +1,36 @@
+---
+category: delivery
+labels: reliability, incidents
+---
+
+# Delivery Control Tower
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Pipeline Control" tone="primary">
+    <p>Monitor release trains, deployment gates, and rollback posture.</p>
+    <ComponentPreview component="PipelineControlGrid" status="ready" />
+  </Panel>
+  <Panel title="Alert Console" tone="danger">
+    <p>Escalations, unresolved incidents, and operator workload.</p>
+    <ComponentPreview component="AlertConsole" status="ready" />
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="2" gap="12">
+  <Quadrant label="Q1: Throughput" emphasis="medium">
+    <p>Cycle time and handoff efficiency by stream.</p>
+    <ComponentPreview component="ThroughputTrend" status="planned" />
+  </Quadrant>
+  <Quadrant label="Q2: Quality" emphasis="high">
+    <p>Defect escape rates and validation confidence.</p>
+    <ComponentPreview component="QualityWall" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q3: Reliability" emphasis="critical">
+    <p>Runtime incidents, latency spikes, and service health.</p>
+    <ComponentPreview component="ReliabilityBoard" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q4: Learning" emphasis="low">
+    <p>Post-incident actions and process experiments.</p>
+    <ComponentPreview component="LearningLoop" status="in-progress" />
+  </Quadrant>
+</LayoutGrid>

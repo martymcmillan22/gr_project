@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ forum.title }}{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <h1 class="title is-3">{{ forum.title }}</h1>
+    <p class="subtitle is-6">{{ forum.subtitle }}</p>
+  </div>
+  <div class="box">
+    <p>{{ forum.summary }}</p>
+    <p class="mt-3"><strong>Share entry link:</strong> <a href="{{ forum_share_path }}">{{ forum_share_path }}</a></p>
+  </div>
+  <div class="box">
+    <h2 class="title is-5">Discussion Board</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label class="label" for="id_title">Title</label>
+        <div class="control">{{ post_form.title }}</div>
+        {% if post_form.title.errors %}<p class="help is-danger">{{ post_form.title.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div class="field">
+        <label class="label" for="id_body">Body</label>
+        <div class="control">{{ post_form.body }}</div>
+        {% if post_form.body.errors %}<p class="help is-danger">{{ post_form.body.errors|join:", " }}</p>{% endif %}
+      </div>
+      <button type="submit" class="button is-dark">Post to {{ forum.title }}</button>
+    </form>
+  </div>
+  <div class="box">
+    <h2 class="title is-5">Recent Posts</h2>
+    {% if posts %}
+      {% for post in posts %}
+      <article class="notification is-light mb-3">
+        <p class="title is-6 mb-2">{{ post.title }}</p>
+        <p class="is-size-7 mb-2">By {{ post.author }} on {{ post.created_at }}</p>
+        <div class="content"><p>{{ post.body|linebreaksbr }}</p></div>
+      </article>
+      {% endfor %}
+    {% else %}
+    <p class="is-size-7">No posts yet. Start the discussion.</p>
+    {% endif %}
+  </div>
+  <div class="box">
+    <h2 class="title is-5">SEVM</h2>
+    <div class="content">
+      <ul>
+        {% for branch in sevm_branches %}
+        <li>{{ branch.letter }}: {{ branch.subject }} / {{ branch.format }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <a class="button is-light" href="{% url forum.back_url_name %}">{{ forum.back_label }}</a>
+</section>
+{% endblock %}

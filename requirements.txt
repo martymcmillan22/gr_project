@@ -1,0 +1,8 @@
+django       # https://github.com/django/django
+django-bulma>=0.8,<0.9
+djangorestframework
+djangorestframework-authtoken
+django-cors-headers>=4.0,<5.0
+django-debug-toolbar>=4.0,<5.0
+pillow
+reportlab

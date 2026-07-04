@@ -1,0 +1,54 @@
+<button
+  id="{{ toggle_id }}"
+  type="button"
+  class="{{ button_class }}"
+  aria-pressed="false"
+  aria-label="{{ enable_label }}"
+  title="{{ enable_label }}"
+>
+  <span class="icon" aria-hidden="true"><i data-theme-toggle-icon class="fas fa-moon"></i></span>
+  <span class="sr-only" data-theme-toggle-text>{{ enable_label }}</span>
+</button>
+
+<script>
+  (function() {
+    var toggle = document.getElementById('{{ toggle_id|escapejs }}');
+    if (!toggle) return;
+
+    var body = document.body;
+    var themeKey = '{{ storage_key|escapejs }}';
+    var legacyThemeKey = '{{ legacy_storage_key|default_if_none:""|escapejs }}';
+    var bodyClass = '{{ body_class|escapejs }}';
+    var enableLabel = '{{ enable_label|escapejs }}';
+    var disableLabel = '{{ disable_label|escapejs }}';
+    var toggleText = toggle.querySelector('[data-theme-toggle-text]');
+    var toggleIcon = toggle.querySelector('[data-theme-toggle-icon]');
+
+    function renderTheme(enabled) {
+      body.classList.toggle(bodyClass, enabled);
+      toggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      toggle.setAttribute('aria-label', enabled ? disableLabel : enableLabel);
+      toggle.setAttribute('title', enabled ? disableLabel : enableLabel);
+      if (toggleText) {
+        toggleText.textContent = enabled ? disableLabel : enableLabel;
+      }
+      if (toggleIcon) {
+        toggleIcon.classList.toggle('fa-moon', !enabled);
+        toggleIcon.classList.toggle('fa-sun', enabled);
+      }
+    }
+
+    var darkModeEnabled = localStorage.getItem(themeKey) === 'true';
+    if (!darkModeEnabled && legacyThemeKey && localStorage.getItem(legacyThemeKey) === 'true') {
+      darkModeEnabled = true;
+      localStorage.setItem(themeKey, 'true');
+    }
+    renderTheme(darkModeEnabled);
+
+    toggle.addEventListener('click', function() {
+      darkModeEnabled = !darkModeEnabled;
+      localStorage.setItem(themeKey, darkModeEnabled ? 'true' : 'false');
+      renderTheme(darkModeEnabled);
+    });
+  })();
+</script>

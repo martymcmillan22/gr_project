@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}Center{% endblock %}
+
+{% block extra_css %}
+<style>
+  .center-index-page {
+    --center-bg-surface: #ffffff;
+    --center-bg-soft: #f7faf7;
+    --center-border: #d9e2d7;
+    --center-text: #232323;
+    --center-muted: #4f5b57;
+  }
+
+  .center-index-page .box {
+    background: var(--center-bg-surface);
+    border: 1px solid var(--center-border);
+    color: var(--center-text);
+  }
+
+  .center-carousel-shell {
+    background: linear-gradient(120deg, #eff6ee 0%, #f6f2e9 100%);
+    border: 1px solid #d9e2d7;
+  }
+
+  .center-index-page .notification.is-light {
+    background: var(--center-bg-soft);
+    color: var(--center-text);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .center-index-page .title,
+  .center-index-page .subtitle {
+    color: var(--center-text);
+  }
+
+  .center-index-page .is-size-7 {
+    color: var(--center-muted);
+  }
+
+  .center-index-page .button.is-light {
+    background: #f1f5f2;
+    border-color: var(--center-border);
+    color: var(--center-text);
+  }
+
+  .center-index-page .button.is-light:hover,
+  .center-index-page .button.is-light:focus {
+    background: #e8efea;
+  }
+
+  .center-theme-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .center-theme-toggle .icon {
+    pointer-events: none;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  body.center-index-dark-mode {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(41, 68, 106, 0.35), transparent 34%),
+      radial-gradient(circle at 92% 88%, rgba(73, 48, 24, 0.32), transparent 30%),
+      #0a0d12;
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .center-index-page {
+    --center-bg-surface: #141a23;
+    --center-bg-soft: #0f141b;
+    --center-border: #2f3c52;
+    --center-text: #f3f6fb;
+    --center-muted: #a8b8d8;
+  }
+
+  body.center-index-dark-mode .section,
+  body.center-index-dark-mode main,
+  body.center-index-dark-mode .container {
+    background: transparent;
+  }
+
+  body.center-index-dark-mode .center-carousel-shell {
+    background: linear-gradient(120deg, #0f141b 0%, #141a23 100%);
+    border-color: #2f3c52;
+  }
+
+  body.center-index-dark-mode .center-index-page .box {
+    background: linear-gradient(180deg, #141a23 0%, #10161f 100%);
+    border-color: #2f3c52;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+
+  body.center-index-dark-mode .center-index-page .title,
+  body.center-index-dark-mode .center-index-page .subtitle,
+  body.center-index-dark-mode .center-index-page p,
+  body.center-index-dark-mode .center-index-page a {
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .center-index-page .is-size-7 {
+    color: #a8b8d8;
+  }
+
+  body.center-index-dark-mode .center-index-page .button.is-light {
+    background: #1e2534;
+    border-color: #2f3c52;
+    color: #f3f6fb;
+  }
+
+  body.center-index-dark-mode .center-index-page .button.is-light:hover,
+  body.center-index-dark-mode .center-index-page .button.is-light:focus {
+    background: #2d3a4f;
+    border-color: #4a5d7a;
+  }
+
+  body.center-index-dark-mode .center-index-page .button.is-dark.is-outlined {
+    border-color: #89a3c8;
+    color: #dce8fb;
+    background: transparent;
+  }
+
+  body.center-index-dark-mode .center-index-page .button.is-dark.is-outlined:hover,
+  body.center-index-dark-mode .center-index-page .button.is-dark.is-outlined:focus {
+    background: #223247;
+    border-color: #c1d7f4;
+    color: #ffffff;
+  }
+
+  body.center-index-dark-mode .footer {
+    background: #0f141b;
+    border-top: 1px solid #2f3c52;
+  }
+
+  body.center-index-dark-mode .footer,
+  body.center-index-dark-mode .footer p,
+  body.center-index-dark-mode .footer strong,
+  body.center-index-dark-mode .footer a {
+    color: #dce8fb;
+  }
+
+  body.center-index-dark-mode .navbar.is-dark,
+  body.center-index-dark-mode .navbar-menu {
+    background: #0f141b;
+    border-bottom: 1px solid #2f3c52;
+  }
+
+  body.center-index-dark-mode .navbar-item,
+  body.center-index-dark-mode .navbar-link,
+  body.center-index-dark-mode .navbar-burger,
+  body.center-index-dark-mode .navbar-burger span {
+    color: #dce8fb;
+  }
+
+  body.center-index-dark-mode .navbar-item:hover,
+  body.center-index-dark-mode .navbar-link:hover,
+  body.center-index-dark-mode .navbar-item:focus,
+  body.center-index-dark-mode .navbar-link:focus {
+    background: #1a2433;
+    color: #ffffff;
+  }
+
+  /* Colored cell styling for dark mode */
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(1) .notification {
+    background: rgba(220, 53, 69, 0.12) !important;
+    border: 2px solid rgba(220, 53, 69, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(1) .notification:hover {
+    background: rgba(220, 53, 69, 0.25);
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(2) .notification {
+    background: rgba(0, 123, 255, 0.12) !important;
+    border: 2px solid rgba(0, 123, 255, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(2) .notification:hover {
+    background: rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(3) .notification {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border: 2px solid rgba(255, 193, 7, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(3) .notification:hover {
+    background: rgba(255, 193, 7, 0.25);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(4) .notification {
+    background: rgba(40, 167, 69, 0.12) !important;
+    border: 2px solid rgba(40, 167, 69, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(4) .notification:hover {
+    background: rgba(40, 167, 69, 0.25);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(5) .notification {
+    background: rgba(111, 66, 193, 0.12) !important;
+    border: 2px solid rgba(111, 66, 193, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(5) .notification:hover {
+    background: rgba(111, 66, 193, 0.25);
+    box-shadow: 0 0 20px rgba(111, 66, 193, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(6) .notification {
+    background: rgba(23, 162, 184, 0.12) !important;
+    border: 2px solid rgba(23, 162, 184, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(6) .notification:hover {
+    background: rgba(23, 162, 184, 0.25);
+    box-shadow: 0 0 20px rgba(23, 162, 184, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(7) .notification {
+    background: rgba(253, 126, 20, 0.12) !important;
+    border: 2px solid rgba(253, 126, 20, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(7) .notification:hover {
+    background: rgba(253, 126, 20, 0.25);
+    box-shadow: 0 0 20px rgba(253, 126, 20, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(8) .notification {
+    background: rgba(50, 205, 50, 0.12) !important;
+    border: 2px solid rgba(50, 205, 50, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(8) .notification:hover {
+    background: rgba(50, 205, 50, 0.25);
+    box-shadow: 0 0 20px rgba(50, 205, 50, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(9) .notification {
+    background: rgba(220, 102, 170, 0.12) !important;
+    border: 2px solid rgba(220, 102, 170, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(9) .notification:hover {
+    background: rgba(220, 102, 170, 0.25);
+    box-shadow: 0 0 20px rgba(220, 102, 170, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(10) .notification {
+    background: rgba(0, 188, 212, 0.12) !important;
+    border: 2px solid rgba(0, 188, 212, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(10) .notification:hover {
+    background: rgba(0, 188, 212, 0.25);
+    box-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(11) .notification {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border: 2px solid rgba(255, 193, 7, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(11) .notification:hover {
+    background: rgba(255, 193, 7, 0.25);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(12) .notification {
+    background: rgba(50, 205, 102, 0.12) !important;
+    border: 2px solid rgba(50, 205, 102, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.center-index-dark-mode .center-grid-cells .column:nth-child(12) .notification:hover {
+    background: rgba(50, 205, 102, 0.25);
+    box-shadow: 0 0 20px rgba(50, 205, 102, 0.3);
+  }
+
+  .center-grid-cells .notification {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .center-grid-cells .notification.is-hovered {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  .center-carousel {
+    position: relative;
+    min-height: 130px;
+  }
+
+  .center-slide {
+    display: none;
+  }
+
+  .center-slide.is-active {
+    display: block;
+  }
+
+  .center-carousel-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .center-carousel-controls .button {
+    flex: 1;
+  }
+
+  .center-grid-link {
+    display: block;
+    color: inherit;
+  }
+
+  .center-grid-link:hover,
+  .center-grid-link:focus {
+    color: inherit;
+  }
+
+  .center-board-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .center-board-link:hover,
+  .center-board-link:focus {
+    color: inherit;
+  }
+
+  @media (max-width: 768px) {
+    .center-board-label,
+    .center-grid-label {
+      font-size: 0;
+    }
+
+    .center-board-label .icon,
+    .center-grid-label .icon {
+      font-size: 1rem;
+    }
+
+    .center-board-label .label-text,
+    .center-grid-label .label-text {
+      display: none;
+    }
+
+    .column.is-8 {
+      order: 2;
+    }
+
+    .column.is-4 {
+      order: 1;
+    }
+  }
+</style>
+{% endblock %}
+{% block content %}
+<section class="center-index-page">
+  <div class="box center-carousel-shell">
+    <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap mb-3" style="gap: 0.75rem;">
+      <h1 class="title is-3 mb-0">Public Center</h1>
+      {% include "partials/theme_toggle.html" with toggle_id="center-theme-toggle" button_class="button is-dark is-outlined center-theme-toggle" storage_key="centerDarkModeEnabled" body_class="center-index-dark-mode" enable_label="Enable night mode" disable_label="Disable night mode" %}
+    </div>
+    <div class="center-carousel" id="center-carousel" aria-live="polite">
+      <div class="center-slide is-active">
+        <article class="notification is-light mb-0">
+          <p class="title is-6">The 12 Colors of Inverse Rule</p>
+          <p class="is-size-7">Each color has an inverse pair: red vs green, blue vs yellow, purple vs lime, teal vs orange, pink vs green-lime, and cyan vs amber.</p>
+        </article>
+      </div>
+      <div class="center-slide">
+        <article class="notification is-light mb-0">
+          <p class="title is-6">The Linear Relay</p>
+          <p class="is-size-7">Each color hands off to the next in sequence: red, blue, yellow, green, purple, teal, orange, lime, pink, cyan, amber, and green-lime.</p>
+        </article>
+      </div>
+      <div class="center-slide">
+        <article class="notification is-light mb-0">
+          <p class="title is-6">The Square Root Lattice</p>
+          <p class="is-size-7">The Square Root Lattice starts with 4 subjects, relates to 16 branches, then 64 terms, and then 256 meta-terms.</p>
+        </article>
+      </div>
+      <div class="center-slide">
+        <article class="notification is-light mb-0">
+          <p class="title is-6">The Four Tenses of Time</p>
+          <p class="is-size-7">The fourth slide covers the four tenses of time: past, present past, present future, and future.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="center-carousel-controls">
+      <button class="button is-small is-light" type="button" id="center-carousel-prev">Previous</button>
+      <button class="button is-small is-light" type="button" id="center-carousel-next">Next</button>
+    </div>
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-8">
+      <div class="box">
+        <h2 class="title is-5">Center Grid</h2>
+        <div class="columns is-mobile is-multiline center-grid-cells">
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bos' %}"><article class="notification is-light has-text-centered p-3">BOS</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bol' %}"><article class="notification is-light has-text-centered p-3">BOL</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='boe' %}"><article class="notification is-light has-text-centered p-3">BOE</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bop' %}"><article class="notification is-light has-text-centered p-3">BOP</article></a></div>
+
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='library' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-book" aria-hidden="true"></i></span> <span class="label-text">Library</span></div></article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='duseum' %}"><article class="notification is-light has-text-centered p-3">Duseum</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='nuseum' %}"><article class="notification is-light has-text-centered p-3">Nuseum</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='monuments' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Monuments</span></div></article></a></div>
+
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='grassroots' %}"><article class="notification is-light has-text-centered p-3">GR</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='pjs' %}"><article class="notification is-light has-text-centered p-3">PJs</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='agendatime' %}"><article class="notification is-light has-text-centered p-3">AT</article></a></div>
+          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='harvestcrops' %}"><article class="notification is-light has-text-centered p-3">HC</article></a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-4">
+      <div class="box" style="min-height: 277px;">
+        <h2 class="title is-6">Center Boards</h2>
+        <a class="center-board-link" href="{% url 'center:corporation_admin' %}">
+          <article class="notification is-light mb-3">
+            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-building" aria-hidden="true"></i></span> <span class="label-text">Corporation (Create)</span></p>
+          </article>
+        </a>
+        <a class="center-board-link" href="{% url 'center:museum_social' %}">
+          <article class="notification is-light mb-3">
+            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Museum (Post)</span></p>
+          </article>
+        </a>
+        <a class="center-board-link" href="{% url 'center:garden_board' %}">
+          <article class="notification is-light mb-0">
+            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-leaf" aria-hidden="true"></i></span> <span class="label-text">Garden (Work)</span></p>
+          </article>
+        </a>
+      </div>
+
+      {% if request.user.is_staff %}
+      <div class="box">
+        <h2 class="title is-6">Staff</h2>
+        <a class="button is-dark is-fullwidth" href="{% url 'admin:index' %}">Open Admin</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function() {
+    const carousel = document.getElementById('center-carousel');
+    if (!carousel) return;
+
+    const slides = Array.from(carousel.querySelectorAll('.center-slide'));
+    const prevBtn = document.getElementById('center-carousel-prev');
+    const nextBtn = document.getElementById('center-carousel-next');
+
+    if (!slides.length || !prevBtn || !nextBtn) return;
+
+    let activeIndex = 0;
+
+    function renderSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('is-active', i === index);
+      });
+    }
+
+    function goNext() {
+      activeIndex = (activeIndex + 1) % slides.length;
+      renderSlide(activeIndex);
+    }
+
+    function goPrev() {
+      activeIndex = (activeIndex - 1 + slides.length) % slides.length;
+      renderSlide(activeIndex);
+    }
+
+    prevBtn.addEventListener('click', goPrev);
+    nextBtn.addEventListener('click', goNext);
+
+    setInterval(goNext, 5000);
+
+    const cellCards = Array.from(document.querySelectorAll('.center-grid-cells .notification'));
+    cellCards.forEach((card) => {
+      card.addEventListener('mouseenter', function() {
+        card.classList.add('is-hovered');
+      });
+      card.addEventListener('mouseleave', function() {
+        card.classList.remove('is-hovered');
+      });
+      card.addEventListener('focusin', function() {
+        card.classList.add('is-hovered');
+      });
+      card.addEventListener('focusout', function() {
+        card.classList.remove('is-hovered');
+      });
+    });
+  })();
+</script>
+{% endblock %}

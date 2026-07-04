@@ -1,0 +1,49 @@
+section.main {
+  min-height: calc(100vh - 280px);
+}
+
+.is-unclickable {
+  cursor: auto !important;
+  pointer-events: none;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.question {
+  height: unset;
+}
+
+.details {
+  width: fit-content;
+}
+
+.bottom-row {
+  width: 100%;
+}
+
+.navbar-item img {
+max-height: unset
+}
+
+/* Keep navigation color stable on hover/focus across themes. */
+.navbar-item:hover,
+.navbar-item:focus,
+.navbar-link:hover,
+.navbar-link:focus,
+.navbar-item.has-dropdown:hover .navbar-link,
+.navbar-item.has-dropdown:focus-within .navbar-link,
+.navbar-item.has-dropdown.is-active .navbar-link,
+.navbar-dropdown .navbar-item:hover,
+.navbar-dropdown .navbar-item:focus {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Keep dropdown menu items readable inside dark navbar contexts. */
+.navbar-dropdown .navbar-item,
+.navbar-dropdown .navbar-item:hover,
+.navbar-dropdown .navbar-item:focus {
+  color: #363636 !important;
+}

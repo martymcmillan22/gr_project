@@ -1,0 +1,40 @@
+name: Reference Promotion Gate
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  gate-licensed-gics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Apply migrations
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Optionally import licensed GICS dataset
+        run: |
+          if [ -n "${GICS_CSV_PATH:-}" ]; then
+            echo "Licensed GICS path provided; validating and importing before promotion gate"
+            python manage.py validate_gics_reference --file "$GICS_CSV_PATH"
+            python manage.py import_gics_reference --file "$GICS_CSV_PATH"
+          else
+            echo "No GICS_CSV_PATH provided; running promotion gate against current database state"
+          fi
+
+      - name: Enforce production promotion gate
+        run: |
+          python manage.py check_reference_promotion_gate --enforce-production

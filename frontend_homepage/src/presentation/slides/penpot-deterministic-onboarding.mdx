@@ -1,0 +1,60 @@
+---
+category: blueprint
+labels: penpot, onboarding, deterministic
+---
+
+# Penpot Deterministic Onboarding Guide
+
+<Panel title="Goal" tone="primary">
+  <p>Set up a beginner-friendly, repeatable workflow for Penpot to MDX to React to MLAS BTIF.</p>
+</Panel>
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Part 1: Application Structure Setup" tone="success">
+    <p>Build your design system in Penpot as the visual source of truth.</p>
+    <ol>
+      <li>Create project pages: App Structure, Component Library, Graphical Assets, Interactive Maps.</li>
+      <li>Use frame names that mirror implementation targets: HomeFrame, DashboardFrame, WheelDiagramFrame.</li>
+      <li>Convert reusable UI into named components: WheelDiagram, Quadrant, GrassrootsCard, SemanticButton.</li>
+      <li>Add deterministic hotspot IDs for click regions: Hotspot_Q2, Hotspot_Q6, Hotspot_Q10.</li>
+      <li>Export assets plus structure map: frame hierarchy, component names, hotspot IDs.</li>
+    </ol>
+  </Panel>
+
+  <Panel title="Part 2: Map Images to VS Code AI" tone="warning">
+    <p>Use images as design references in Penpot, then map structure explicitly for code generation.</p>
+    <ol>
+      <li>Import each graphic into a named frame, for example WheelDiagramFrame.</li>
+      <li>Draw transparent hotspot rectangles over interactive regions.</li>
+      <li>Name and componentize hotspots: QuadrantHotspot_Q2, QuadrantHotspot_Q6, QuadrantHotspot_Q10.</li>
+      <li>Export image plus hotspot map metadata for deterministic handoff.</li>
+      <li>Translate map to MDX structure and then implement typed React from MDX only.</li>
+    </ol>
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="3" gap="12">
+  <Quadrant label="Penpot" emphasis="high">
+    <p>Define frames, components, hotspot IDs, and asset names with stable naming.</p>
+    <ComponentPreview component="PenpotStructureMap" status="ready" />
+  </Quadrant>
+
+  <Quadrant label="MDX" emphasis="high">
+    <p>Express explicit hierarchy and semantic intent with no inferred nodes.</p>
+    <ComponentPreview component="DeterministicSlideBlueprint" status="ready" />
+  </Quadrant>
+
+  <Quadrant label="React + MLAS BTIF" emphasis="critical">
+    <p>Implement typed components and bind hotspots to deterministic routes and semantics.</p>
+    <ComponentPreview component="SemanticRouteMapper" status="ready" />
+  </Quadrant>
+</LayoutGrid>
+
+<Panel title="Pipeline Rules" tone="danger">
+  <ul>
+    <li>No screenshot-to-JSX generation.</li>
+    <li>No layout guessing from images.</li>
+    <li>Generate code only from explicit structure.</li>
+    <li>Preserve naming continuity across Penpot, MDX, React, and MLAS BTIF.</li>
+  </ul>
+</Panel>

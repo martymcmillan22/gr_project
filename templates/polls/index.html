@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bulma_tags %}
+
+{% block title %}News{% endblock %}
+
+{% block bodyclass %}has-background-light{% endblock %}
+
+{% block content %}
+
+<html lang="en">
+<title>BaseTrue News Letter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+<body>
+
+<div class="w3-light-grey w3-padding-64 w3-margin-bottom w3-center">
+  <h1>BaseTrue News</h1>
+</div>
+
+<div class="w3-row-padding w3-content" style="max-width:1400px">
+  <div class="w3-twothird">
+      <img src="{% static 'images/black.jpg' %}" alt="Water bottle" style="width:40%">
+    <h2>Perpetual Infrastructure Program</h2>
+    <div class="w3-justify">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <hr>
+        <h3>Base True</h3>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
+  </div>
+  <div class="w3-third">
+    <div class="w3-container w3-light-grey">
+      <h2>Infrastructure Features</h2>
+      {% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
+    <br>
+    <div class="w3-container w3-light-grey w3-justify">
+      <h2>BaseTrue Features</h2>
+      {% include "polls/monthly_archive.html" %}
+    <br>
+
+  </div>
+</div>
+
+</body>
+</html>
+
+{% endblock %}
+

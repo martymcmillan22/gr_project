@@ -1,0 +1,52 @@
+---
+title: BaseTrueWheel Component
+description: An interactive quadrant wheel component for the GrassRoots pipeline
+category: UI
+status: active
+---
+
+# BaseTrueWheel
+
+The BaseTrueWheel component is an interactive quadrant wheel that supports thin arc bands, exact quadrant orientation, keyboard focus, and quadrant selection callbacks.
+
+## Usage
+
+```jsx
+import { useState } from "react";
+import { BaseTrueWheel, type QuadrantId } from "@/components/grassroots";
+
+export function Example() {
+  const [activeQuadrant, setActiveQuadrant] = useState<QuadrantId | null>(null);
+
+  return (
+    <BaseTrueWheel
+      activeQuadrant={activeQuadrant}
+      onQuadrantSelect={(quadrant) => setActiveQuadrant(quadrant)}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `className` | `string` | - | Additional wrapper classes |
+| `activeQuadrant` | `QuadrantId \| null` | `null` | Highlights the selected quadrant |
+| `onQuadrantSelect` | `(quadrant: QuadrantId) => void` | - | Fired when a quadrant is selected |
+| `size` | `number` | `300` | Wheel diameter in pixels |
+
+## Quadrants
+
+| Quadrant | Numbers | Token Color |
+|----------|---------|-------------|
+| Green | `4 8 12` | `#4CAF50` |
+| Red | `1 5 9` | `#E53935` |
+| Yellow | `3 7 11` | `#FBC02D` |
+| Blue | `2 6 10` | `#1E88E5` |
+
+## Notes
+
+- Uses the exact quadrant colors and arc geometry from the supplied BaseTrue spec
+- Supports keyboard activation with Enter and Space
+- Designed for the GrassRoots component pipeline

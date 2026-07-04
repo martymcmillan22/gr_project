@@ -1,0 +1,36 @@
+---
+category: operations
+labels: risk, mitigation
+---
+
+# Risk Operations Matrix
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Risk Intake" tone="warning">
+    <p>Capture upstream risk signals and assign severity before triage.</p>
+    <ComponentPreview component="RiskIntakePanel" status="ready" />
+  </Panel>
+  <Panel title="Mitigation Queue" tone="primary">
+    <p>Track active mitigations and ownership windows by team.</p>
+    <ComponentPreview component="MitigationQueue" status="in-progress" />
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="2" gap="12">
+  <Quadrant label="Q1: Detect" emphasis="medium">
+    <p>Detection patterns and anomaly baselines.</p>
+    <ComponentPreview component="DetectionChart" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q2: Prioritize" emphasis="high">
+    <p>Impact scoring and response urgency lanes.</p>
+    <ComponentPreview component="PriorityLane" status="ready" />
+  </Quadrant>
+  <Quadrant label="Q3: Contain" emphasis="critical">
+    <p>Immediate containment actions with execution checklists.</p>
+    <ComponentPreview component="ContainmentBoard" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q4: Recover" emphasis="low">
+    <p>Post-action validation and operational stabilization.</p>
+    <ComponentPreview component="RecoveryTimeline" status="planned" />
+  </Quadrant>
+</LayoutGrid>

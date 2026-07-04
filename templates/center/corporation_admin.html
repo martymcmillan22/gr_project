@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Corporation Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .corporation-theme-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .corporation-theme-toggle .icon {
+    pointer-events: none;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  body.corporation-admin-dark-mode {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(41, 68, 106, 0.35), transparent 34%),
+      radial-gradient(circle at 92% 88%, rgba(73, 48, 24, 0.32), transparent 30%),
+      #0a0d12;
+    color: #f3f6fb;
+  }
+
+  body.corporation-admin-dark-mode .section,
+  body.corporation-admin-dark-mode main,
+  body.corporation-admin-dark-mode .container {
+    background: transparent;
+  }
+
+  body.corporation-admin-dark-mode .box {
+    background: linear-gradient(180deg, #141a23 0%, #10161f 100%);
+    border: 1px solid #2f3c52;
+    color: #f3f6fb;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+
+  body.corporation-admin-dark-mode .title,
+  body.corporation-admin-dark-mode .subtitle,
+  body.corporation-admin-dark-mode p,
+  body.corporation-admin-dark-mode label,
+  body.corporation-admin-dark-mode th,
+  body.corporation-admin-dark-mode td,
+  body.corporation-admin-dark-mode a {
+    color: #f3f6fb;
+  }
+
+  body.corporation-admin-dark-mode .table,
+  body.corporation-admin-dark-mode .table thead th,
+  body.corporation-admin-dark-mode .table td {
+    background: transparent;
+    color: #dce8fb;
+    border-color: #2f3c52;
+  }
+
+  body.corporation-admin-dark-mode .input,
+  body.corporation-admin-dark-mode .textarea,
+  body.corporation-admin-dark-mode .select select {
+    background: #1a2433;
+    border-color: #2f3c52;
+    color: #f3f6fb;
+  }
+
+  body.corporation-admin-dark-mode .button.is-dark.is-outlined {
+    border-color: #89a3c8;
+    color: #dce8fb;
+    background: transparent;
+  }
+
+  body.corporation-admin-dark-mode .button.is-dark.is-outlined:hover,
+  body.corporation-admin-dark-mode .button.is-dark.is-outlined:focus {
+    background: #223247;
+    border-color: #c1d7f4;
+    color: #ffffff;
+  }
+
+  body.corporation-admin-dark-mode .navbar.is-dark,
+  body.corporation-admin-dark-mode .navbar-menu {
+    background: #0f141b;
+    border-bottom: 1px solid #2f3c52;
+  }
+
+  body.corporation-admin-dark-mode .navbar-item,
+  body.corporation-admin-dark-mode .navbar-link,
+  body.corporation-admin-dark-mode .navbar-burger,
+  body.corporation-admin-dark-mode .navbar-burger span {
+    color: #dce8fb;
+  }
+
+  body.corporation-admin-dark-mode .navbar-item:hover,
+  body.corporation-admin-dark-mode .navbar-link:hover,
+  body.corporation-admin-dark-mode .navbar-item:focus,
+  body.corporation-admin-dark-mode .navbar-link:focus {
+    background: #1a2433;
+    color: #ffffff;
+  }
+
+  body.corporation-admin-dark-mode .footer {
+    background: #0f141b;
+    border-top: 1px solid #2f3c52;
+  }
+
+  body.corporation-admin-dark-mode .footer,
+  body.corporation-admin-dark-mode .footer p,
+  body.corporation-admin-dark-mode .footer strong,
+  body.corporation-admin-dark-mode .footer a {
+    color: #dce8fb;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap" style="gap: 0.75rem;">
+      <div>
+        <h1 class="title is-3">Corporation Admin</h1>
+        <p class="subtitle is-6">Create in WPC: define and manage corporation board operations from this Center workspace.</p>
+      </div>
+      <button
+        id="corporation-theme-toggle"
+        type="button"
+        class="button is-dark is-outlined corporation-theme-toggle"
+        aria-pressed="false"
+        aria-label="Enable night mode"
+        title="Enable night mode"
+      >
+        <span class="icon" aria-hidden="true"><i id="corporation-theme-toggle-icon" class="fas fa-moon"></i></span>
+        <span class="sr-only" id="corporation-theme-toggle-text">Enable night mode</span>
+      </button>
+    </div>
+    <a class="button is-primary is-light" href="{% url 'peringram:dashboard' %}">Open Peringram (PIP)</a>
+    <a class="button is-link is-light ml-2" href="{% url 'forums:national' %}">National Forum</a>
+    <a class="button is-light ml-2" href="{% url 'search_careers' %}">Career App</a>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">BTIF Quick Panel</h2>
+    <p class="is-size-7 mb-4">Use BTIF directly from Corporation. This section is ready to evolve into your one-page command strip.</p>
+    <div class="columns is-multiline">
+      <div class="column is-6">
+        <h3 class="title is-6">Core Views</h3>
+        <div class="buttons">
+          <a class="button is-dark" href="{% url 'btif:lattice-map' %}">Lattice Map</a>
+          <a class="button is-link is-light" href="{% url 'btif:generate-linear-hierarchy' %}">Generate Linear Hierarchy</a>
+          <a class="button is-light" href="/btif/api/">BTIF API Root</a>
+        </div>
+      </div>
+      <div class="column is-6">
+        <h3 class="title is-6">Data Endpoints</h3>
+        <div class="buttons">
+          <a class="button is-primary is-light" href="/btif/api/subjects/">Subjects</a>
+          <a class="button is-info is-light" href="/btif/api/branches/">Branches</a>
+          <a class="button is-warning is-light" href="/btif/api/industries/">Industries</a>
+          <a class="button is-success is-light" href="/btif/api/sub-industries/">Sub-Industries</a>
+          <a class="button is-light" href="/btif/api/temporal-slots/">Temporal Slots</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Task + Reminder (From Corporation)</h2>
+    <p class="is-size-7 mb-4">Polish task entry and reminder opt-in now live here.</p>
+
+    <div class="columns is-multiline">
+      <div class="column is-7">
+        <h3 class="title is-6">Add Task</h3>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_polish_task">
+
+          <div class="field">
+            <label class="label" for="id_title">Title</label>
+            <div class="control">{{ polish_task_form.title }}</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="id_details">Details</label>
+            <div class="control">{{ polish_task_form.details }}</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="id_due_date">Due Date</label>
+            <div class="control">{{ polish_task_form.due_date }}</div>
+          </div>
+
+          <button type="submit" class="button is-dark">Add Task</button>
+        </form>
+      </div>
+
+      <div class="column is-5">
+        <h3 class="title is-6">Reminder Opt-In</h3>
+        <form method="post" class="mb-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_polish_reminder_preference">
+          <label class="checkbox">
+            {{ polish_reminder_form.enabled }}
+            Enable daily Twist reminders
+          </label>
+          <div class="mt-3">
+            <button type="submit" class="button is-link is-light">Save Preference</button>
+          </div>
+        </form>
+
+        <p class="is-size-7">Current status:
+          {% if polish_reminder_enabled %}
+            <span class="tag is-success is-light">Enabled</span>
+          {% else %}
+            <span class="tag is-light">Disabled</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <hr>
+
+    <h3 class="title is-6">Task Queue</h3>
+    {% if polish_incomplete_tasks %}
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Due</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for task in polish_incomplete_tasks %}
+            <tr>
+              <td>
+                <p class="has-text-weight-semibold">{{ task.title }}</p>
+                <p class="is-size-7">{{ task.details|default:"No details." }}</p>
+              </td>
+              <td>{{ task.due_date|default:"-" }}</td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="complete_polish_task">
+                  <input type="hidden" name="task_id" value="{{ task.id }}">
+                  <button type="submit" class="button is-small is-success is-light">Complete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="is-size-7">No open tasks.</p>
+    {% endif %}
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Create Corporation Item</h2>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+
+      <div class="columns is-multiline">
+        <div class="column is-6">
+          <label class="label" for="id_title">Title</label>
+          {{ create_form.title }}
+        </div>
+        <div class="column is-3">
+          <label class="label" for="id_item_type">Type</label>
+          {{ create_form.item_type }}
+        </div>
+        <div class="column is-3">
+          <label class="label" for="id_priority">Priority</label>
+          {{ create_form.priority }}
+        </div>
+        <div class="column is-9">
+          <label class="label" for="id_description">Description</label>
+          {{ create_form.description }}
+        </div>
+        <div class="column is-3">
+          <label class="label" for="id_due_date">Due Date</label>
+          {{ create_form.due_date }}
+        </div>
+      </div>
+
+      <button type="submit" class="button is-dark">Add Item</button>
+    </form>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Corporation Workflow</h2>
+    {% if items %}
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Due</th>
+            <th>Next Step</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>
+              <p class="has-text-weight-semibold">{{ item.title }}</p>
+              <p class="is-size-7">{{ item.description|default:"No description." }}</p>
+            </td>
+            <td>{{ item.get_item_type_display }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td>{{ item.get_priority_display }}</td>
+            <td>{{ item.due_date|default:"-" }}</td>
+            <td>
+              {% if item.status == status_draft %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="transition">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <input type="hidden" name="next_status" value="{{ status_review }}">
+                <button type="submit" class="button is-small is-warning">Send to Review</button>
+              </form>
+              {% elif item.status == status_review %}
+              <div class="buttons are-small">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="transition">
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <input type="hidden" name="next_status" value="{{ status_approved }}">
+                  <button type="submit" class="button is-small is-success">Approve</button>
+                </form>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="transition">
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <input type="hidden" name="next_status" value="{{ status_draft }}">
+                  <button type="submit" class="button is-small is-light">Return to Draft</button>
+                </form>
+              </div>
+              {% elif item.status == status_approved %}
+              <a class="button is-small is-link" href="{% url 'center:museum_social' %}">Go to Museum to Post</a>
+              {% else %}
+              <span class="tag is-success is-light">Posted</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="is-size-7">No corporation items yet. Create your first item above.</p>
+    {% endif %}
+  </div>
+
+  {% if request.user.is_staff %}
+  <a class="button is-dark" href="{% url 'admin:index' %}">Open Django Admin</a>
+  {% endif %}
+  <a class="button is-light ml-2" href="{% url 'center:index' %}">Back to Center</a>
+</section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function() {
+    var toggle = document.getElementById('corporation-theme-toggle');
+    if (!toggle) return;
+
+    var toggleIcon = document.getElementById('corporation-theme-toggle-icon');
+    var toggleText = document.getElementById('corporation-theme-toggle-text');
+
+    var key = 'corporationDarkModeEnabled';
+    var body = document.body;
+
+    function render(enabled) {
+      body.classList.toggle('corporation-admin-dark-mode', enabled);
+      toggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      toggle.setAttribute('aria-label', enabled ? 'Disable night mode' : 'Enable night mode');
+      toggle.setAttribute('title', enabled ? 'Disable night mode' : 'Enable night mode');
+
+      if (toggleText) {
+        toggleText.textContent = enabled ? 'Disable night mode' : 'Enable night mode';
+      }
+
+      if (toggleIcon) {
+        toggleIcon.classList.toggle('fa-moon', !enabled);
+        toggleIcon.classList.toggle('fa-sun', enabled);
+      }
+    }
+
+    var enabled = localStorage.getItem(key) === 'true';
+    render(enabled);
+
+    toggle.addEventListener('click', function() {
+      enabled = !enabled;
+      localStorage.setItem(key, enabled ? 'true' : 'false');
+      render(enabled);
+    });
+  })();
+</script>
+{% endblock %}

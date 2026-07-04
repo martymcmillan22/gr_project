@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ issue.month_name }} {{ issue.year }} Newsletter{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/base_true_news.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="news-wrap">
+    <header class="masthead">
+        <div class="nameplate">
+            <div>
+                <span class="logo-mark">Official Monthly Publication</span>
+                <h1>{{ issue.publication_name }}</h1>
+                <p><strong>{{ issue.masthead_title }}</strong>{% if issue.tagline %} | {{ issue.tagline }}{% endif %}</p>
+            </div>
+            <div class="edition-meta">
+                <div>{{ issue.month_name }} {{ issue.year }} Edition</div>
+                <div><a href="{% url 'baseTrue_news:archive' %}">Back to archive</a></div>
+            </div>
+        </div>
+
+        {% if lead_story %}
+        <div class="banner-headline">
+            <h2>{{ lead_story.headline }}</h2>
+            <p class="byline">By {{ lead_story.byline }}</p>
+            {% if lead_story.dek %}
+            <p>{{ lead_story.dek }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </header>
+
+    <section class="topic-grid">
+        <article class="topic-panel">
+            <h3>Perpetual Infrastructure Program (PIP)</h3>
+            {% for story in pip_stories %}
+            <div class="story-card">
+                <h4>{{ story.headline }}</h4>
+                <div class="byline">By {{ story.byline }}</div>
+                {% if story.dek %}<p>{{ story.dek }}</p>{% endif %}
+                <div>{{ story.body|linebreaks }}</div>
+            </div>
+            {% empty %}
+            <p>No published PIP stories in this issue.</p>
+            {% endfor %}
+        </article>
+
+        <hr class="category-divider" aria-hidden="true">
+
+        <article class="topic-panel">
+            <h3>Base True Information Format</h3>
+            {% for story in base_true_stories %}
+            <div class="story-card">
+                <h4>{{ story.headline }}</h4>
+                <div class="byline">By {{ story.byline }}</div>
+                {% if story.dek %}<p>{{ story.dek }}</p>{% endif %}
+                <div>{{ story.body|linebreaks }}</div>
+            </div>
+            {% empty %}
+            <p>No published Base True stories in this issue.</p>
+            {% endfor %}
+        </article>
+    </section>
+</section>
+{% endblock %}

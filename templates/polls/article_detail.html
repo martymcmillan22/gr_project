@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ object.headline }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/archive.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="archive-wrap">
+    <p class="archive-nav">
+        <a href="{% url 'polls:archive_year' year=object.pub_date|date:'Y' %}">Back to {{ object.pub_date|date:"Y" }} archive</a>
+    </p>
+
+    <article class="article-card">
+        <h1 class="article-headline">{{ object.headline }}</h1>
+        <div class="article-meta">
+            By {{ object.reporter.full_name }} | Published {{ object.pub_date|date:"F j, Y" }}
+        </div>
+        <div class="article-content">{{ object.content|linebreaks }}</div>
+    </article>
+</section>
+{% endblock %}

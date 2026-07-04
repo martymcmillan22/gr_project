@@ -1,0 +1,1383 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}?v=railfix2">
+<style>
+  .bt-rail.bt-rail-inline {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 0 14px auto;
+    width: fit-content;
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+    z-index: 1 !important;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed {
+    display: block;
+    padding: 8px 10px;
+    max-height: none;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed summary::after {
+    content: "Open";
+    font-size: 0.72rem;
+    opacity: 0.85;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed[open] summary::after {
+    content: "Close";
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed:not([open]) a,
+  .bt-rail.bt-rail-inline.bt-rail-collapsed:not([open]) button {
+    display: none;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed[open] {
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 1100px) {
+    .bt-rail.bt-rail-inline {
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      margin: 0 0 12px;
+    }
+  }
+</style>
+
+<details class="bt-rail bt-rail-inline bt-rail-collapsed" aria-label="BaseTrue Insights shortcuts">
+  <summary>BaseTrue Insights Shortcuts</summary>
+  <a href="#bt-ins-top">Top</a>
+  <a href="#bt-ins-state">State</a>
+  <a href="#bt-ins-console">Console</a>
+  <a href="#bt-ins-ssot">SSOT</a>
+  <a href="#bt-ins-explainer">Explainer</a>
+  <a href="#bt-ins-narrative">Narrative</a>
+  <a href="#bt-ins-history">History</a>
+  <a href="#bt-ins-trend">Trend</a>
+  <a href="#bt-ins-qdrift">Quadrant Drift</a>
+  <a href="#bt-ins-pdrift">Pipeline Drift</a>
+  <a href="#bt-ins-nevo">Narrative Evo</a>
+  <a href="#bt-ins-anom">Anomalies</a>
+  <a href="#bt-ins-retro">Retrospective</a>
+  <a href="#bt-ins-onboard">Onboarding</a>
+  <a href="#bt-ins-diff">Diff Viewer</a>
+  <a href="#bt-ins-billing">Billing</a>
+  <a href="#bt-ins-weight">Weighting</a>
+  <a href="#bt-ins-sim">Simulator</a>
+  <a href="#bt-ins-horizon">Horizon</a>
+  <a href="#bt-ins-cross">Cross</a>
+  <a href="#bt-ins-pipeline">Pipeline</a>
+  <a href="#bt-ins-actions">Actions</a>
+  <a href="{% url 'admin:dashboard' %}">Platform</a>
+  <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
+  <a href="{% url 'admin:operator-dashboard' %}">Operator</a>
+  <a href="{% url 'admin:moderator-dashboard' %}">Moderator</a>
+  <button type="button" id="bt-theme-toggle">Theme</button>
+</details>
+
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="/admin/" title="Go to admin home">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green is-active"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-ins-top">BaseTrue Insights</h1>
+    <p class="bt-brand-sub">Unified Intelligence Layer</p>
+  </div>
+</div>
+<p>Single view of portfolio pressure, semantic flow, operator automation, and moderator escalation signals.</p>
+
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin:10px 0 18px;">
+  <div class="bt-insight-grid">
+    {% for badge in insight_change_badges %}
+      <article class="bt-insight-card">
+        <h3>{{ badge.label }}</h3>
+        <strong>{{ badge.value }}</strong>
+        <p>{{ badge.symbol }} {{ badge.delta }} · {{ badge.note }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-red" id="bt-ins-console">Leadership Action Console</h2>
+<section class="bt-center-panel bt-q-red bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    <article class="bt-insight-card">
+      <h3>#1 Fix</h3>
+      <strong>{{ leadership_action_console.fix.label }}</strong>
+      <p>{{ leadership_action_console.fix.detail }}</p>
+      <a class="bt-inline-link" href="{{ leadership_action_console.fix.url }}" target="_blank" rel="noopener">Open</a>
+    </article>
+    <article class="bt-insight-card">
+      <h3>#1 Watch</h3>
+      <strong>{{ leadership_action_console.watch.label }}</strong>
+      <p>{{ leadership_action_console.watch.detail }}</p>
+      <a class="bt-inline-link" href="{{ leadership_action_console.watch.url }}" target="_blank" rel="noopener">Open</a>
+    </article>
+    <article class="bt-insight-card">
+      <h3>#1 Grow</h3>
+      <strong>{{ leadership_action_console.grow.label }}</strong>
+      <p>{{ leadership_action_console.grow.detail }}</p>
+      <a class="bt-inline-link" href="{{ leadership_action_console.grow.url }}" target="_blank" rel="noopener">Open</a>
+    </article>
+    <article class="bt-insight-card">
+      <h3>#1 Stabilize</h3>
+      <strong>{{ leadership_action_console.stabilize.label }}</strong>
+      <p>{{ leadership_action_console.stabilize.detail }}</p>
+      <a class="bt-inline-link" href="{{ leadership_action_console.stabilize.url }}" target="_blank" rel="noopener">Open</a>
+    </article>
+  </div>
+  <p class="bt-note" style="margin-top:10px;">Quadrant focus: {{ leadership_action_console.quadrant }} · Pipeline focus: {{ leadership_action_console.pipeline_stage }}</p>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-ssot">Cross-Dashboard Insights Layer 2.0</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    <article class="bt-insight-card">
+      <h3>State</h3>
+      <strong>{{ insights_layer_v2.single_source_truth.state_label }}</strong>
+      <p>Pressure {{ insights_layer_v2.single_source_truth.pressure_index }}</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Growth Direction</h3>
+      <strong>{{ insights_layer_v2.single_source_truth.growth_direction }}</strong>
+      <p>Quadrant priority {{ insights_layer_v2.single_source_truth.quadrant_priority }}</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Pipeline Bottleneck</h3>
+      <strong>{{ insights_layer_v2.single_source_truth.pipeline_bottleneck }}</strong>
+      <p>{{ insights_layer_v2.single_source_truth.recommended_action }}</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Weighted Priority Score</h3>
+      <strong>{{ insights_layer_v2.weighted_priority_score }}</strong>
+      <p>Unified strategic priority weighting.</p>
+    </article>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-state">System State</h2>
+<div class="bt-grid" style="margin:12px 0 22px;">
+  <section class="bt-card bt-q-green">
+    <h3>State</h3>
+    <p class="bt-metric">{{ basetrue_insights.label }}</p>
+    <p class="bt-note">Unified platform state.</p>
+  </section>
+  <section class="bt-card bt-q-blue">
+    <h3>Pressure Index</h3>
+    <p class="bt-metric">{{ basetrue_insights.pressure_index }}</p>
+    <p class="bt-note">Composite pressure across all dashboards.</p>
+  </section>
+  <section class="bt-card bt-q-yellow">
+    <h3>Average Health</h3>
+    <p class="bt-metric">{{ basetrue_insights.average_health_score }}</p>
+    <p class="bt-note">Portfolio-wide health score mean.</p>
+  </section>
+  <section class="bt-card bt-q-red">
+    <h3>Attention Flags</h3>
+    <p class="bt-metric">{{ basetrue_insights.risk_flag_count }}</p>
+    <p class="bt-note">Active attention flags in app health.</p>
+  </section>
+</div>
+
+<h2 class="bt-section bt-q-yellow" id="bt-ins-explainer">Why It Changed</h2>
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    <article class="bt-insight-card">
+      <h3>Admin Activity (7d vs prior 7d)</h3>
+      <strong>{{ insight_change_explainer.activity.recent }} vs {{ insight_change_explainer.activity.previous }}</strong>
+      <p>Delta {{ insight_change_explainer.activity.delta }} ({{ insight_change_explainer.activity.delta_pct }}%).</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>User Growth (7d vs prior 7d)</h3>
+      <strong>{{ insight_change_explainer.users.recent }} vs {{ insight_change_explainer.users.previous }}</strong>
+      <p>Delta {{ insight_change_explainer.users.delta }} ({{ insight_change_explainer.users.delta_pct }}%).</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Top Drivers</h3>
+      {% for driver in insight_change_explainer.drivers %}
+        <p><strong>{{ driver.label }}:</strong> {{ driver.value }} · {{ driver.note }}</p>
+      {% endfor %}
+    </article>
+  </div>
+
+  <div class="bt-twist-split" style="margin-top:12px; margin-bottom:6px;">
+    <section class="bt-twist-box">
+      <h3>14-Day Activity Trend</h3>
+      <div class="bt-mini-trend-chart" aria-label="14 day admin activity trend">
+        {% for row in insight_change_explainer.activity_rows %}
+          <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.count }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.day|slice:":1" }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>14-Day User Trend</h3>
+      <div class="bt-mini-trend-chart" aria-label="14 day user growth trend">
+        {% for row in insight_change_explainer.user_rows %}
+          <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.count }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.day|slice:":1" }}</span>
+          </button>
+        {% empty %}
+          <p class="bt-note">No user growth timeline available.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="bt-twist-box">
+      <h3>Recommended Actions</h3>
+      {% for rec in insight_change_explainer.recommendations %}
+        <p class="bt-note">{{ rec }}</p>
+      {% endfor %}
+      {% for signal in insight_change_explainer.signals %}
+        <p class="bt-twist-row"><span>{{ signal.label }}</span><strong>{{ signal.value }}</strong></p>
+        <p class="bt-note">{{ signal.secondary }}</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-narrative">Strategic Narrative Generator</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Daily Executive Brief</h3>
+      <p class="bt-note">{{ strategic_narratives.daily }}</p>
+      <h3>Weekly Strategic Summary</h3>
+      <p class="bt-note">{{ strategic_narratives.weekly }}</p>
+      <h3>Monthly Outlook</h3>
+      <p class="bt-note">{{ strategic_narratives.monthly }}</p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Quadrant Narrative</h3>
+      <p class="bt-note">{{ strategic_narratives.quadrant }}</p>
+      <h3>Pipeline Narrative</h3>
+      <p class="bt-note">{{ strategic_narratives.pipeline }}</p>
+      <h3>Risk Narrative</h3>
+      <p class="bt-note">{{ strategic_narratives.risk }}</p>
+      <h3>Community Narrative</h3>
+      <p class="bt-note">{{ strategic_narratives.community }}</p>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-history">Strategy Snapshot History</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    {% for row in strategy_snapshot_history %}
+      <section class="bt-twist-box">
+        <h3>{{ row.snapshot_date }}</h3>
+        <p class="bt-twist-row"><span>State</span><strong>{{ row.state_label }}</strong></p>
+        <p class="bt-twist-row"><span>Pressure</span><strong>{{ row.pressure_index }}</strong></p>
+        <p class="bt-twist-row"><span>Priority Score</span><strong>{{ row.weighted_priority_score }}</strong></p>
+        <p class="bt-note">{{ row.daily_brief }}</p>
+      </section>
+    {% empty %}
+      <section class="bt-twist-box">
+        <h3>No snapshots yet</h3>
+        <p class="bt-note">Daily brief history will appear here after persisted snapshots are created.</p>
+      </section>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-trend">Snapshot Trend Visualization</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Pressure Trend</h3>
+      <div class="bt-mini-trend-chart" aria-label="Pressure trend timeline">
+        {% for row in snapshot_trends.pressure %}
+          <div class="bt-mini-trend-bar-wrap" title="{{ row.label }}: {{ row.value }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.label|slice:"-2:" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Growth Trend</h3>
+      <div class="bt-mini-trend-chart" aria-label="Growth trend timeline">
+        {% for row in snapshot_trends.growth %}
+          <div class="bt-mini-trend-bar-wrap" title="{{ row.label }}: {{ row.value }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.label|slice:"-2:" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Priority Trend</h3>
+      <div class="bt-mini-trend-chart" aria-label="Priority trend timeline">
+        {% for row in snapshot_trends.priority %}
+          <div class="bt-mini-trend-bar-wrap" title="{{ row.label }}: {{ row.value }}">
+            <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+            <span>{{ row.label|slice:"-2:" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow" id="bt-ins-qdrift">Quadrant Drift Analysis</h2>
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Quadrant Distribution</h3>
+      {% for row in quadrant_drift.counts %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></p>
+      {% empty %}
+        <p class="bt-note">No quadrant drift data yet.</p>
+      {% endfor %}
+      <p class="bt-note">Current: {{ quadrant_drift.current }} · Streak: {{ quadrant_drift.streak }} days</p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Recent Quadrant Shifts</h3>
+      {% for row in quadrant_drift.transitions %}
+        <p class="bt-twist-row"><span>{{ row.date }}</span><strong>{{ row.from }} → {{ row.to }}</strong></p>
+      {% empty %}
+        <p class="bt-note">No quadrant transitions detected in the sampled window.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-pdrift">Pipeline Drift Analysis</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Bottleneck Distribution</h3>
+      {% for row in pipeline_drift.counts %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></p>
+      {% empty %}
+        <p class="bt-note">No pipeline drift data yet.</p>
+      {% endfor %}
+      <p class="bt-note">Current bottleneck: {{ pipeline_drift.current }} · Streak: {{ pipeline_drift.streak }} days</p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Recent Bottleneck Shifts</h3>
+      {% for row in pipeline_drift.transitions %}
+        <p class="bt-twist-row"><span>{{ row.date }}</span><strong>{{ row.from }} → {{ row.to }}</strong></p>
+      {% empty %}
+        <p class="bt-note">No bottleneck transitions detected in the sampled window.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-nevo">Narrative Evolution Timeline</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    {% for row in narrative_evolution %}
+      <section class="bt-twist-box">
+        <h3>{{ row.date }}</h3>
+        <p class="bt-note"><strong>Daily:</strong> {{ row.daily }}</p>
+        <p class="bt-note"><strong>Weekly:</strong> {{ row.weekly }}</p>
+        <p class="bt-note"><strong>Monthly:</strong> {{ row.monthly }}</p>
+      </section>
+    {% empty %}
+      <section class="bt-twist-box">
+        <h3>No narrative history yet</h3>
+        <p class="bt-note">Narrative evolution appears as snapshots accumulate.</p>
+      </section>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-red" id="bt-ins-anom">Strategic Anomaly Detection</h2>
+<section class="bt-center-panel bt-q-red bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Detected Anomalies</h3>
+      {% for row in strategic_anomalies %}
+        <p class="bt-twist-row"><span>{{ row.label }}</span><strong>Detected</strong></p>
+        <p class="bt-note">{{ row.detail }}</p>
+      {% empty %}
+        <p class="bt-note">No anomalies detected.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-retro">Executive Retrospective Generator</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>{{ executive_retrospective.monthly.label }} Retrospective</h3>
+      <p class="bt-twist-row"><span>Snapshots</span><strong>{{ executive_retrospective.monthly.snapshot_count }}</strong></p>
+      <p class="bt-twist-row"><span>Avg Pressure</span><strong>{{ executive_retrospective.monthly.avg_pressure }}</strong></p>
+      <p class="bt-twist-row"><span>Avg Priority</span><strong>{{ executive_retrospective.monthly.avg_priority }}</strong></p>
+      <p class="bt-note">Quadrant {{ executive_retrospective.monthly.top_quadrant }} · Bottleneck {{ executive_retrospective.monthly.top_bottleneck }}</p>
+      <p class="bt-note">{{ executive_retrospective.monthly.headline }}</p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.monthly }}">Download Monthly Retrospective</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.monthly_json }}">Download Monthly JSON</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.monthly_json_v100 }}">Download Monthly JSON (v1.0.0)</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.monthly_json_v110 }}">Download Monthly JSON (v1.1.0)</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.schema }}">View JSON Schema Metadata</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.schema_diff }}">View Schema Diff (1.0.0 -> 1.1.0)</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.selftest }}">Run Contract Self-Test</a></p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate }}">Version Negotiation Assistant</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate }}" aria-label="Copy API URL for Version Negotiation Assistant" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate }}">Choose Best Schema Version</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate }}" aria-label="Copy API URL for Choose Best Schema Version" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate }}">Contract Recommendation Tool</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate }}" aria-label="Copy API URL for Contract Recommendation Tool" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate_stable }}">Profile: Stable Client</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate_stable }}" aria-label="Copy API URL for Stable Client profile" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate_legacy }}">Profile: Legacy Client</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate_legacy }}" aria-label="Copy API URL for Legacy Client profile" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate_experimental }}">Profile: Experimental Client</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate_experimental }}" aria-label="Copy API URL for Experimental Client profile" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate_strict }}">Profile: Strict Client</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate_strict }}" aria-label="Copy API URL for Strict Client profile" style="margin-left:8px;">Copy API URL</button>
+      </p>
+      <p>
+        <a class="bt-inline-link" href="{{ retrospective_export_links.negotiate_migration }}">Profile: Migration Client</a>
+        <button type="button" class="bt-copy-link" data-copy-url="{{ retrospective_export_links.negotiate_migration }}" aria-label="Copy API URL for Migration Client profile" style="margin-left:8px;">Copy API URL</button>
+      </p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>{{ executive_retrospective.quarterly.label }} Retrospective</h3>
+      <p class="bt-twist-row"><span>Snapshots</span><strong>{{ executive_retrospective.quarterly.snapshot_count }}</strong></p>
+      <p class="bt-twist-row"><span>Avg Pressure</span><strong>{{ executive_retrospective.quarterly.avg_pressure }}</strong></p>
+      <p class="bt-twist-row"><span>Avg Priority</span><strong>{{ executive_retrospective.quarterly.avg_priority }}</strong></p>
+      <p class="bt-note">Quadrant {{ executive_retrospective.quarterly.top_quadrant }} · Bottleneck {{ executive_retrospective.quarterly.top_bottleneck }}</p>
+      <p class="bt-note">{{ executive_retrospective.quarterly.headline }}</p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.quarterly }}">Download Quarterly Retrospective</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.quarterly_json }}">Download Quarterly JSON</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.quarterly_json_v100 }}">Download Quarterly JSON (v1.0.0)</a></p>
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.quarterly_json_v110 }}">Download Quarterly JSON (v1.1.0)</a></p>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-onboard">Contract Onboarding</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>How To Choose A Version</h3>
+      {% for row in contract_onboarding.version_guide %}
+        <p class="bt-twist-row"><span>{{ row.step }}</span><strong>Guide</strong></p>
+        <p class="bt-note">{{ row.detail }}</p>
+      {% endfor %}
+    </section>
+    <section class="bt-twist-box">
+      <h3>Client Capability Explainer</h3>
+      {% for row in contract_onboarding.capability_explainer %}
+        <p class="bt-twist-row"><span>{{ row.capability }}</span><strong>Capability</strong></p>
+        <p class="bt-note">{{ row.effect }}</p>
+      {% endfor %}
+    </section>
+  </div>
+  <section class="bt-twist-box" style="margin-top:12px;">
+    <h3>Quick-Start Checklist</h3>
+    {% for row in contract_onboarding.quick_start %}
+      <p>
+        <a class="bt-inline-link" href="{{ row.url }}">{{ forloop.counter }}. {{ row.label }}</a>
+        <button
+          type="button"
+          class="bt-copy-link"
+          data-copy-url="{{ row.url }}"
+          aria-label="Copy API URL for {{ row.label }}"
+          style="margin-left:8px;"
+        >
+          Copy API URL
+        </button>
+      </p>
+    {% endfor %}
+  </section>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-diff">Interactive Diff Viewer</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    <section class="bt-twist-box">
+      <h3>Compare Versions</h3>
+      <p class="bt-note">Preview required and optional field changes before switching client integrations.</p>
+      <p>
+        <label for="bt-diff-from">From</label>
+        <select id="bt-diff-from" style="margin-left:8px; margin-right:12px;">
+          {% for version in contract_diff_viewer.versions %}
+            <option value="{{ version }}"{% if version == contract_diff_viewer.default_from %} selected{% endif %}>{{ version }}</option>
+          {% endfor %}
+        </select>
+        <label for="bt-diff-to">To</label>
+        <select id="bt-diff-to" style="margin-left:8px; margin-right:12px;">
+          {% for version in contract_diff_viewer.versions %}
+            <option value="{{ version }}"{% if version == contract_diff_viewer.default_to %} selected{% endif %}>{{ version }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" id="bt-diff-load" data-endpoint="/admin/insights-retrospective-export-schema-diff/">Load Diff</button>
+      </p>
+    </section>
+    <section class="bt-twist-box" id="bt-diff-results">
+      <h3>Diff Summary</h3>
+      <p class="bt-twist-row"><span>From</span><strong>{{ contract_diff_viewer.initial_diff.from_version|default:contract_diff_viewer.default_from }}</strong></p>
+      <p class="bt-twist-row"><span>To</span><strong>{{ contract_diff_viewer.initial_diff.to_version|default:contract_diff_viewer.default_to }}</strong></p>
+      <p class="bt-note">Required added: {{ contract_diff_viewer.initial_diff.required_added|join:", "|default:"none" }}</p>
+      <p class="bt-note">Optional added: {{ contract_diff_viewer.initial_diff.optional_added|join:", "|default:"none" }}</p>
+      <p class="bt-note">Breaking change detected: {{ contract_diff_viewer.initial_diff.breaking_change_detected|yesno:"yes,no" }}</p>
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow" id="bt-ins-billing">Billing And Plan Enforcement</h2>
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    <article class="bt-insight-card">
+      <h3>30-Day Events</h3>
+      <strong>{{ contract_billing_dashboard.headline.total_events }}</strong>
+      <p>Tracked contract endpoint events.</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Billable Units</h3>
+      <strong>{{ contract_billing_dashboard.headline.billable_units }}</strong>
+      <p>Weighted usage units across export, schema, negotiate, and control-plane actions.</p>
+    </article>
+    <article class="bt-insight-card">
+      <h3>Estimated Amount</h3>
+      <strong>{{ contract_billing_dashboard.headline.billable_amount }}</strong>
+      <p>Aggregate estimated billable amount across the 30-day window.</p>
+    </article>
+  </div>
+  <section class="bt-twist-box" style="margin-top:12px; margin-bottom:12px;">
+    <h3>Billing Filters And Exports</h3>
+    <form method="get" action="">
+      <label for="bt-billing-tenant">Tenant</label>
+      <input class="bt-form-input" id="bt-billing-tenant" name="billing_tenant" type="text" value="{{ contract_billing_dashboard.filter_state.tenant }}" style="margin-left:8px; margin-right:12px;">
+      <label for="bt-billing-client">Client</label>
+      <input class="bt-form-input" id="bt-billing-client" name="billing_client" type="text" value="{{ contract_billing_dashboard.filter_state.client }}" style="margin-left:8px; margin-right:12px;">
+      <button class="bt-action bt-q-blue" type="submit">Apply Filters</button>
+    </form>
+    <p style="margin-top:10px;"><a class="bt-inline-link" href="{{ contract_billing_dashboard.export_links.json }}">Download Billing JSON</a></p>
+    <p><a class="bt-inline-link" href="{{ contract_billing_dashboard.export_links.csv }}">Download Billing CSV</a></p>
+    <p><a class="bt-inline-link" href="{{ contract_billing_dashboard.export_links.txt }}">Download Billing TXT</a></p>
+  </section>
+  <section class="bt-twist-box bt-billing-console" style="margin-top:12px; margin-bottom:12px;">
+    <h3>Issue Managed Billing Link</h3>
+    <form method="post" action="">
+      {% csrf_token %}
+      <input type="hidden" name="billing_console_action" value="issue_access_link">
+      <div class="bt-form-grid">
+        <label>Tenant
+          <input class="bt-form-input" name="billing_tenant" type="text" value="{{ contract_billing_dashboard.filter_state.tenant|default:'default' }}">
+        </label>
+        <label>Client
+          <input class="bt-form-input" name="billing_client" type="text" value="{{ contract_billing_dashboard.filter_state.client|default:'all' }}">
+        </label>
+        <label>Recipient Email
+          <input class="bt-form-input" name="recipient_email" type="email" value="">
+        </label>
+        <label>Label
+          <input class="bt-form-input" name="label" type="text" value="Customer billing portal">
+        </label>
+        <label>Window Days
+          <input class="bt-form-input" name="window_days" type="number" min="1" value="30">
+        </label>
+        <label>TTL Days
+          <input class="bt-form-input" name="ttl_days" type="number" min="1" value="7">
+        </label>
+      </div>
+      <button class="bt-action bt-q-green" type="submit">Issue Link</button>
+    </form>
+  </section>
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Top Billing Rows</h3>
+      {% for row in contract_billing_dashboard.top_rows %}
+        <p class="bt-twist-row"><span>{{ row.tenant_key }} / {{ row.client_key }}</span><strong>{{ row.billable_units }} units</strong></p>
+        <p class="bt-note">Plan {{ row.billing_plan }} · {{ row.usage_pct }}% of allowance · Estimated {{ row.estimated_amount }}</p>
+        <p><a class="bt-inline-link" href="{{ row.invoice_export_csv }}">Invoice CSV</a> · <a class="bt-inline-link" href="{{ row.invoice_export_json }}">Invoice JSON</a> · <a class="bt-inline-link" href="{{ row.invoice_export_txt }}">Invoice TXT</a> · <a class="bt-inline-link" href="{{ row.invoice_export_pdf }}">Invoice PDF</a></p>
+        <p><a class="bt-inline-link" href="{{ row.customer_billing_url }}">Customer Billing View</a> · <a class="bt-inline-link" href="{{ row.customer_invoice_center_url }}">Invoice Center</a></p>
+        {% if row.access_link %}
+          <p class="bt-note">Access link {{ row.access_link.status }} · expires {{ row.access_link.expires_at|default:"n/a" }} · uses {{ row.access_link.use_count }}</p>
+          <form method="post" action="" class="bt-inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="billing_console_action" value="revoke_access_link">
+            <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+            <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+            <input type="hidden" name="link_id" value="{{ row.access_link.id }}">
+            <button class="bt-action bt-q-red" type="submit">Revoke Link</button>
+          </form>
+        {% endif %}
+      {% empty %}
+        <p class="bt-note">No billing activity recorded yet.</p>
+      {% endfor %}
+      <p><a class="bt-inline-link" href="{{ retrospective_export_links.billing_summary_30d }}">Open Billing Summary</a></p>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Plan Enforcement Rules</h3>
+      {% for row in contract_billing_dashboard.enforcement_rows %}
+        <p class="bt-twist-row"><span>{{ row.tenant_key }} / {{ row.client_key }}</span><strong class="bt-threshold-{{ row.threshold_key }}">{{ row.enforcement_state|title }}</strong></p>
+        <p class="bt-note">Allowance {{ row.monthly_event_allowance }} · Usage {{ row.billable_units }} units ({{ row.usage_pct }}%)</p>
+        <p class="bt-note">{{ row.enforcement_action }}</p>
+        {% if row.hard_action_url %}
+          <p><a class="bt-inline-link" href="{{ row.hard_action_url }}">{{ row.hard_action_label }}</a></p>
+        {% endif %}
+      {% empty %}
+        <p class="bt-note">No enforcement actions triggered.</p>
+      {% endfor %}
+    </section>
+  </div>
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Access Link History</h3>
+      <div class="bt-insight-grid" style="margin-bottom:10px;">
+        <article class="bt-insight-card">
+          <h3>Billing Health Score</h3>
+          <strong class="bt-threshold-{{ contract_billing_dashboard.health_score.threshold_key }}">{{ contract_billing_dashboard.health_score.score }}</strong>
+          <p>{{ contract_billing_dashboard.health_score.label }}</p>
+        </article>
+        <article class="bt-insight-card">
+          <h3>Total Links</h3>
+          <strong>{{ contract_billing_dashboard.access_link_analytics.total_links }}</strong>
+          <p>Active {{ contract_billing_dashboard.access_link_analytics.active_links }} · Revoked {{ contract_billing_dashboard.access_link_analytics.revoked_links }}</p>
+        </article>
+        <article class="bt-insight-card">
+          <h3>Expiry Watch</h3>
+          <strong>{{ contract_billing_dashboard.access_link_analytics.expiring_soon }}</strong>
+          <p>Expiring soon · Expired {{ contract_billing_dashboard.access_link_analytics.expired_links }}</p>
+        </article>
+        <article class="bt-insight-card">
+          <h3>Usage</h3>
+          <strong>{{ contract_billing_dashboard.access_link_analytics.total_uses }}</strong>
+          <p>Avg {{ contract_billing_dashboard.access_link_analytics.avg_uses }} · Never used {{ contract_billing_dashboard.access_link_analytics.never_used_links }}</p>
+        </article>
+        <article class="bt-insight-card">
+          <h3>Access-Link Risk</h3>
+          <strong class="bt-threshold-{{ contract_billing_dashboard.access_link_risk.threshold_key }}">{{ contract_billing_dashboard.access_link_risk.score }}</strong>
+          <p>{{ contract_billing_dashboard.access_link_risk.label }} risk posture · {{ contract_billing_dashboard.access_link_risk.severity_label }}</p>
+        </article>
+      </div>
+      <section class="bt-twist-box" style="margin-bottom:10px;">
+        <h3>Risk Threshold Bands</h3>
+        {% for band in contract_billing_dashboard.access_link_risk.threshold_bands %}
+          <p class="bt-twist-row"><span>{{ band.label }}</span><strong class="bt-threshold-{{ band.key }}">{{ band.min }}-{{ band.max }}</strong></p>
+        {% endfor %}
+      </section>
+      <section class="bt-twist-box" style="margin-bottom:10px;">
+        <h3>Billing Health Explainer</h3>
+        <p class="bt-note">{{ contract_billing_dashboard.health_explainer.summary }}</p>
+        {% for tip in contract_billing_dashboard.health_explainer.actions %}
+          <p class="bt-note">- {{ tip }}</p>
+        {% endfor %}
+      </section>
+      <div class="bt-twist-split" style="margin-bottom:10px;">
+        <section class="bt-twist-box">
+          <h3>Access-Link Activity ({{ contract_billing_dashboard.micro_trends.window_days }}d)</h3>
+          <p class="bt-twist-row"><span>7-day total activity</span><strong>{{ contract_billing_dashboard.micro_trends.total_link_activity }}</strong></p>
+          <div class="bt-mini-trend-chart" aria-label="Access-link activity sparkline">
+            {% for row in contract_billing_dashboard.micro_trends.link_activity_rows %}
+              <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.count }}">
+                <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+                <span>{{ row.day|slice:":1" }}</span>
+              </button>
+            {% empty %}
+              <p class="bt-note">No access-link activity trend available.</p>
+            {% endfor %}
+          </div>
+        </section>
+        <section class="bt-twist-box">
+          <h3>Invoice Email Success ({{ contract_billing_dashboard.micro_trends.window_days }}d)</h3>
+          <p class="bt-twist-row"><span>7-day avg success</span><strong>{{ contract_billing_dashboard.micro_trends.avg_invoice_success_rate }}%</strong></p>
+          <div class="bt-mini-trend-chart" aria-label="Invoice email success sparkline">
+            {% for row in contract_billing_dashboard.micro_trends.invoice_email_rows %}
+              <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.success_rate }}%">
+                <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+                <span>{{ row.day|slice:":1" }}</span>
+              </button>
+            {% empty %}
+              <p class="bt-note">No invoice email trend available.</p>
+            {% endfor %}
+          </div>
+        </section>
+        <section class="bt-twist-box">
+          <h3>Access-Link Risk Trend ({{ contract_billing_dashboard.access_link_risk_trend.window_days }}d)</h3>
+          <p class="bt-twist-row"><span>{{ contract_billing_dashboard.access_link_risk_trend.window_days }}-day avg risk</span><strong>{{ contract_billing_dashboard.access_link_risk_trend.avg_score }}</strong></p>
+          <div class="bt-mini-trend-chart" aria-label="Access-link risk score sparkline">
+            {% for row in contract_billing_dashboard.access_link_risk_trend.rows %}
+              <button class="bt-mini-trend-bar-wrap" type="button" aria-label="{{ row.day }} {{ row.score }}">
+                <div class="bt-mini-trend-bar" style="height:{{ row.pct }}%;"></div>
+                <span>{{ row.day|slice:":1" }}</span>
+              </button>
+            {% empty %}
+              <p class="bt-note">No risk trend available.</p>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+      <div class="bt-twist-split" style="margin-bottom:10px;">
+        <section class="bt-twist-box">
+          <h3>Analytics Drill-Downs</h3>
+          {% for row in contract_billing_dashboard.access_link_drilldowns.status_rows %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No status drill-downs available.</p>
+          {% endfor %}
+          <h3 style="margin-top:10px;">Top Tenants</h3>
+          {% for row in contract_billing_dashboard.access_link_drilldowns.top_tenants %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No tenant drill-downs available.</p>
+          {% endfor %}
+          <h3 style="margin-top:10px;">Top Clients</h3>
+          {% for row in contract_billing_dashboard.access_link_drilldowns.top_clients %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong><a class="bt-inline-link" href="{{ row.url }}">{{ row.count }}</a></strong></p>
+          {% empty %}
+            <p class="bt-note">No client drill-downs available.</p>
+          {% endfor %}
+        </section>
+        <section class="bt-twist-box">
+          <h3>Access-Link Lifecycle Timeline</h3>
+          {% for item in contract_billing_dashboard.access_link_timeline %}
+            <p class="bt-twist-row"><span>{{ item.event }}</span><strong class="bt-threshold-{{ item.tone }}">{{ item.timestamp|default:"" }}</strong></p>
+            <p class="bt-note">{{ item.detail }}</p>
+          {% empty %}
+            <p class="bt-note">No lifecycle events recorded yet.</p>
+          {% endfor %}
+        </section>
+        <section class="bt-twist-box">
+          <h3>Access-Link Anomalies</h3>
+          <p class="bt-note">Total anomalies: {{ contract_billing_dashboard.access_link_anomalies.total }}</p>
+          {% for row in contract_billing_dashboard.access_link_anomalies.rows %}
+            <p class="bt-twist-row"><span>{{ row.label }}</span><strong class="bt-threshold-{{ row.severity }}">{{ row.type }}</strong></p>
+            <p class="bt-note">Risk {{ row.risk_score|default:0 }} · {{ row.explanation|default:"Operational anomaly detected." }}</p>
+            <p class="bt-note">{{ row.detail }}</p>
+            {% if row.link_id %}
+              <form method="post" action="" class="bt-inline-form" style="margin-bottom:8px;">
+                {% csrf_token %}
+                <input type="hidden" name="billing_console_action" value="resolve_access_link_anomaly">
+                <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+                <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+                <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+                <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+                <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+                <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+                <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+                <input type="hidden" name="link_id" value="{{ row.link_id }}">
+                <input type="hidden" name="resolve_mode" value="{{ row.suggested_action|default:'revoke' }}">
+                <button class="bt-action bt-q-{{ row.severity }}" type="submit">{{ row.suggested_action_label|default:"Resolve" }}</button>
+              </form>
+            {% endif %}
+          {% empty %}
+            <p class="bt-note">No access-link anomalies detected.</p>
+          {% endfor %}
+        </section>
+      </div>
+      <p>
+        <a class="bt-inline-link" href="{{ contract_billing_dashboard.access_link_export_links.json }}">Download Access Link Audit JSON</a>
+        ·
+        <a class="bt-inline-link" href="{{ contract_billing_dashboard.access_link_export_links.csv }}">Download Access Link Audit CSV</a>
+      </p>
+      <div class="bt-form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:10px;">
+        <form method="post" action="" class="bt-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="billing_console_action" value="bulk_issue_access_links">
+          <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+          <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+          <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+          <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+          <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+          <label class="bt-note" for="bt-bulk-issue-limit">Bulk issue (filtered billing rows)</label>
+          <input id="bt-bulk-issue-limit" class="bt-form-input" name="bulk_issue_limit" type="number" min="1" max="100" value="20" style="margin-bottom:8px;">
+          <label class="bt-note" for="bt-bulk-issue-window">Window days</label>
+          <input id="bt-bulk-issue-window" class="bt-form-input" name="window_days" type="number" min="1" value="30" style="margin-bottom:8px;">
+          <label class="bt-note" for="bt-bulk-issue-ttl">TTL days</label>
+          <input id="bt-bulk-issue-ttl" class="bt-form-input" name="ttl_days" type="number" min="1" value="7" style="margin-bottom:8px;">
+          <button class="bt-action bt-q-green" type="submit">Bulk Issue Links</button>
+        </form>
+
+        <form method="post" action="" class="bt-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="billing_console_action" value="bulk_issue_preset_batch">
+          <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+          <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+          <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+          <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+          <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+          <label class="bt-note" for="bt-preset-batch-size">Bulk issue presets (tenant/client)</label>
+          <input id="bt-preset-batch-size" class="bt-form-input" name="preset_batch_size" type="number" min="1" max="20" value="5" style="margin-bottom:8px;">
+          <label class="bt-note" for="bt-preset-window-days">Window days</label>
+          <input id="bt-preset-window-days" class="bt-form-input" name="window_days" type="number" min="1" value="30" style="margin-bottom:8px;">
+          <label class="bt-note" for="bt-preset-ttl-days">TTL days</label>
+          <input id="bt-preset-ttl-days" class="bt-form-input" name="ttl_days" type="number" min="1" value="7" style="margin-bottom:8px;">
+          <button class="bt-action bt-q-blue" type="submit">Issue Preset Batch</button>
+          {% if contract_billing_dashboard.bulk_issue_presets %}
+            <p class="bt-note" style="margin-top:8px;">Preset preview:</p>
+            {% for preset in contract_billing_dashboard.bulk_issue_presets|slice:":5" %}
+              <p class="bt-note">{{ preset.label }}</p>
+            {% endfor %}
+          {% endif %}
+        </form>
+
+        <form method="post" action="" class="bt-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="billing_console_action" value="bulk_revoke_filtered_access_links">
+          <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+          <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+          <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+          <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+          <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+          <p class="bt-note" style="margin-bottom:8px;">Bulk revoke all currently filtered active links.</p>
+          <label class="bt-note" for="bt-bulk-revoke-confirm" style="display:block; margin-bottom:8px;">
+            <input id="bt-bulk-revoke-confirm" type="checkbox" name="bulk_revoke_confirm" value="1" style="margin-right:6px;">
+            I confirm I want to revoke all filtered active links.
+          </label>
+          <button class="bt-action bt-q-red" type="submit">Bulk Revoke Filtered</button>
+        </form>
+
+        <form method="post" action="" class="bt-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="billing_console_action" value="run_billing_operational_automation">
+          <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+          <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+          <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+          <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+          <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+          <p class="bt-note" style="margin-bottom:8px;">Run automation: high-risk auto-rotation, safe bounce retries, and billing health alerts.</p>
+          <button class="bt-action bt-q-yellow" type="submit">Run Operational Automation</button>
+        </form>
+
+        <form method="post" action="" class="bt-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="billing_console_action" value="queue_billing_operational_automation">
+          <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+          <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+          <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+          <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+          <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+          <p class="bt-note" style="margin-bottom:8px;">Queue an hourly automation job for the billing job worker.</p>
+          <button class="bt-action bt-q-blue" type="submit">Queue Automation Job</button>
+        </form>
+      </div>
+      <form method="get" action="" style="margin-bottom:10px;">
+        <div class="bt-form-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+          <label>Status
+            <select class="bt-form-input" name="billing_link_status">
+              <option value="all"{% if contract_billing_dashboard.access_link_filter_state.status == 'all' %} selected{% endif %}>All</option>
+              <option value="active"{% if contract_billing_dashboard.access_link_filter_state.status == 'active' %} selected{% endif %}>Active</option>
+              <option value="revoked"{% if contract_billing_dashboard.access_link_filter_state.status == 'revoked' %} selected{% endif %}>Revoked</option>
+              <option value="expired"{% if contract_billing_dashboard.access_link_filter_state.status == 'expired' %} selected{% endif %}>Expired</option>
+            </select>
+          </label>
+          <label>Expires
+            <select class="bt-form-input" name="billing_link_expires">
+              <option value="all"{% if contract_billing_dashboard.access_link_filter_state.expires == 'all' %} selected{% endif %}>All</option>
+              <option value="soon"{% if contract_billing_dashboard.access_link_filter_state.expires == 'soon' %} selected{% endif %}>Soon (0-3d)</option>
+              <option value="expired"{% if contract_billing_dashboard.access_link_filter_state.expires == 'expired' %} selected{% endif %}>Expired</option>
+              <option value="no_expiry"{% if contract_billing_dashboard.access_link_filter_state.expires == 'no_expiry' %} selected{% endif %}>No Expiry</option>
+            </select>
+          </label>
+          <label>Tenant
+            <input class="bt-form-input" type="text" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+          </label>
+          <label>Client
+            <input class="bt-form-input" type="text" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+          </label>
+          <label>Sort
+            <select class="bt-form-input" name="billing_link_sort">
+              <option value="newest"{% if contract_billing_dashboard.access_link_filter_state.sort == 'newest' %} selected{% endif %}>Newest</option>
+              <option value="oldest"{% if contract_billing_dashboard.access_link_filter_state.sort == 'oldest' %} selected{% endif %}>Oldest</option>
+              <option value="expires_soonest"{% if contract_billing_dashboard.access_link_filter_state.sort == 'expires_soonest' %} selected{% endif %}>Expires Soonest</option>
+              <option value="expires_latest"{% if contract_billing_dashboard.access_link_filter_state.sort == 'expires_latest' %} selected{% endif %}>Expires Latest</option>
+              <option value="most_used"{% if contract_billing_dashboard.access_link_filter_state.sort == 'most_used' %} selected{% endif %}>Most Used</option>
+              <option value="least_used"{% if contract_billing_dashboard.access_link_filter_state.sort == 'least_used' %} selected{% endif %}>Least Used</option>
+            </select>
+          </label>
+        </div>
+        <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+        <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+        <button class="bt-action bt-q-blue" type="submit" style="margin-top:10px;">Apply Link Filters</button>
+        <a
+          class="bt-inline-link"
+          href="?billing_tenant={{ contract_billing_dashboard.filter_state.tenant|urlencode }}&billing_client={{ contract_billing_dashboard.filter_state.client|urlencode }}#bt-ins-billing"
+          style="margin-left:10px;"
+        >Clear Link Filters</a>
+      </form>
+      <p class="bt-note">Filtering tenant/client: {{ contract_billing_dashboard.access_link_filter_state.resolved_tenant|default:"all" }} / {{ contract_billing_dashboard.access_link_filter_state.resolved_client|default:"all" }}</p>
+      <div class="bt-link-history-wrap">
+        <table class="bt-link-history-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Tenant / Client</th>
+              <th>Status</th>
+              <th>Expiry</th>
+              <th>Uses</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in contract_billing_dashboard.access_links_history %}
+              <tr>
+                <td>
+                  <strong>{{ row.label|default:"Customer billing portal" }}</strong>
+                  <p class="bt-note">{{ row.created_at|default:"" }}</p>
+                </td>
+                <td>
+                  <span>{{ row.tenant_key }}</span>
+                  <span class="bt-note">{{ row.client_key }}</span>
+                </td>
+                <td>
+                  <span class="bt-health-score-badge bt-threshold-{{ row.status_badge_key }}">{{ row.status|title }}</span>
+                </td>
+                <td>
+                  <span class="bt-health-score-badge bt-threshold-{{ row.expiry_badge_key }}">{{ row.expiry_badge_label }}</span>
+                  <p class="bt-note">{{ row.expires_at|default:"n/a" }}</p>
+                </td>
+                <td>{{ row.use_count }}</td>
+                <td>
+                  <p>
+                    <a class="bt-inline-link" href="{{ row.customer_billing_url }}">Open</a>
+                    <button type="button" class="bt-copy-link" data-copy-url="{{ row.customer_billing_url }}" style="margin-left:8px;">Copy</button>
+                  </p>
+                  <p>
+                    <a class="bt-inline-link" href="{{ row.invoice_center_url }}">Invoice</a>
+                    <button type="button" class="bt-copy-link" data-copy-url="{{ row.invoice_center_url }}" style="margin-left:8px;">Copy</button>
+                  </p>
+                  <form method="post" action="" class="bt-inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="billing_console_action" value="revoke_access_link">
+                    <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+                    <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+                    <input type="hidden" name="billing_link_tenant" value="{{ contract_billing_dashboard.access_link_filter_state.tenant }}">
+                    <input type="hidden" name="billing_link_client" value="{{ contract_billing_dashboard.access_link_filter_state.client }}">
+                    <input type="hidden" name="billing_link_status" value="{{ contract_billing_dashboard.access_link_filter_state.status }}">
+                    <input type="hidden" name="billing_link_expires" value="{{ contract_billing_dashboard.access_link_filter_state.expires }}">
+                    <input type="hidden" name="billing_link_sort" value="{{ contract_billing_dashboard.access_link_filter_state.sort }}">
+                    <input type="hidden" name="link_id" value="{{ row.id }}">
+                    <button class="bt-action bt-q-red" type="submit">Revoke</button>
+                  </form>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="bt-note">No managed access links yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="bt-twist-box">
+      <h3>Notification Delivery</h3>
+      {% for row in contract_billing_dashboard.notifications %}
+        <p class="bt-twist-row"><span>{{ row.subject|default:"Billing notification" }}</span><strong>{{ row.status|title }}</strong></p>
+        <p class="bt-note">Recipient {{ row.recipient|default:"unassigned" }} · Attempts {{ row.retry_count }}</p>
+        {% if row.last_error %}
+          <p class="bt-note">Last error: {{ row.last_error }}</p>
+        {% endif %}
+        {% if row.can_retry %}
+          <form method="post" action="" class="bt-inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="billing_console_action" value="retry_notification">
+            <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+            <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+            <input type="hidden" name="notification_id" value="{{ row.id }}">
+            <input type="hidden" name="recipient_email" value="{{ row.recipient }}">
+            <button class="bt-action bt-q-yellow" type="submit">Retry Delivery</button>
+          </form>
+        {% endif %}
+      {% empty %}
+        <p class="bt-note">No billing notifications recorded yet.</p>
+      {% endfor %}
+
+      <h3 style="margin-top:12px;">Invoice Email Delivery And Tracking</h3>
+      <p class="bt-twist-row"><span>Success rate</span><strong>{{ contract_billing_dashboard.invoice_email_diagnostics.success_rate }}%</strong></p>
+      <p class="bt-note">Failures {{ contract_billing_dashboard.invoice_email_diagnostics.failed }} · Bounce-like diagnostics {{ contract_billing_dashboard.invoice_email_diagnostics.bounce_like }}</p>
+      <form method="post" action="" class="bt-inline-form" style="margin-bottom:10px;">
+        {% csrf_token %}
+        <input type="hidden" name="billing_console_action" value="send_invoice_email">
+        <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+        <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+        <label class="bt-note" for="bt-invoice-tenant">Tenant</label>
+        <input id="bt-invoice-tenant" class="bt-form-input" name="invoice_tenant" type="text" value="{{ contract_billing_dashboard.filter_state.tenant|default:'default' }}" style="margin-bottom:8px;">
+        <label class="bt-note" for="bt-invoice-client">Client</label>
+        <input id="bt-invoice-client" class="bt-form-input" name="invoice_client" type="text" value="{{ contract_billing_dashboard.filter_state.client|default:'all' }}" style="margin-bottom:8px;">
+        <label class="bt-note" for="bt-invoice-recipient">Recipient Email (optional override)</label>
+        <input id="bt-invoice-recipient" class="bt-form-input" name="recipient_email" type="email" value="" style="margin-bottom:8px;">
+        <button class="bt-action bt-q-green" type="submit">Send Invoice Email</button>
+      </form>
+      {% for row in contract_billing_dashboard.invoice_email_notifications %}
+        <p class="bt-twist-row"><span>{{ row.subject|default:"Invoice email" }}</span><strong>{{ row.status|title }}</strong></p>
+        <p class="bt-note">{{ row.tenant_key }} / {{ row.client_key }} · {{ row.recipient|default:"unassigned" }} · channel {{ row.channel }}</p>
+        <p class="bt-note">Created {{ row.created_at }} · Last attempt {{ row.last_attempt_at|default:"n/a" }} · Sent {{ row.sent_at|default:"n/a" }}</p>
+        {% if row.last_error %}
+          <p class="bt-note">Last error: {{ row.last_error }}</p>
+        {% endif %}
+        {% if row.can_retry %}
+          <form method="post" action="" class="bt-inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="billing_console_action" value="retry_notification">
+            <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+            <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+            <input type="hidden" name="notification_id" value="{{ row.id }}">
+            <input type="hidden" name="recipient_email" value="{{ row.recipient }}">
+            <button class="bt-action bt-q-yellow" type="submit">Retry Invoice Email</button>
+          </form>
+        {% endif %}
+      {% empty %}
+        <p class="bt-note">No invoice email deliveries tracked yet.</p>
+      {% endfor %}
+      {% if contract_billing_dashboard.invoice_email_diagnostics.rows %}
+        <h3 style="margin-top:10px;">Bounce Diagnostics</h3>
+        {% for row in contract_billing_dashboard.invoice_email_diagnostics.rows %}
+          <p class="bt-twist-row"><span>{{ row.recipient }}</span><strong class="bt-threshold-{{ row.severity }}">{{ row.status|title }}</strong></p>
+          <p class="bt-note">Category {{ row.category|default:"uncategorized"|title }}</p>
+          <p class="bt-note">Guidance: {{ row.retry_guidance|default:"Inspect delivery logs and retry." }}</p>
+          <p class="bt-note">{{ row.error }}</p>
+          <form method="post" action="" class="bt-inline-form" style="margin-bottom:8px;">
+            {% csrf_token %}
+            <input type="hidden" name="billing_console_action" value="retry_invoice_bounce">
+            <input type="hidden" name="billing_tenant" value="{{ contract_billing_dashboard.filter_state.tenant }}">
+            <input type="hidden" name="billing_client" value="{{ contract_billing_dashboard.filter_state.client }}">
+            <input type="hidden" name="notification_id" value="{{ row.id }}">
+            <input type="hidden" name="recipient_email" value="{{ row.recipient }}">
+            <button class="bt-action bt-q-yellow" type="submit">Retry Diagnostic Email</button>
+          </form>
+        {% endfor %}
+      {% endif %}
+      {% if contract_billing_dashboard.invoice_email_diagnostics.categories %}
+        <h3 style="margin-top:10px;">Bounce Categories</h3>
+        {% for row in contract_billing_dashboard.invoice_email_diagnostics.categories %}
+          <p class="bt-twist-row"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></p>
+          <p class="bt-note">{{ row.guidance|default:"Review and retry." }}</p>
+        {% endfor %}
+      {% endif %}
+
+      <h3 style="margin-top:12px;">Anomaly Resolution History</h3>
+      {% for item in contract_billing_dashboard.anomaly_resolution_history %}
+        <p class="bt-twist-row"><span>{{ item.action }}</span><strong class="bt-threshold-{{ item.tone }}">{{ item.timestamp }}</strong></p>
+        <p class="bt-note">{{ item.detail }} · {{ item.outcome }}</p>
+      {% empty %}
+        <p class="bt-note">No anomaly resolution activity recorded yet.</p>
+      {% endfor %}
+
+      <h3 style="margin-top:12px;">Anomaly Groups (Tenant/Client)</h3>
+      {% for row in contract_billing_dashboard.access_link_anomaly_groups %}
+        <p class="bt-twist-row"><span>{{ row.scope }}</span><strong class="bt-threshold-{{ row.highest_severity }}">{{ row.count }}</strong></p>
+        <p class="bt-note">Highest risk {{ row.highest_risk_score }}</p>
+      {% empty %}
+        <p class="bt-note">No anomaly groups detected.</p>
+      {% endfor %}
+
+      <h3 style="margin-top:12px;">Link Rotation Analytics</h3>
+      <p class="bt-twist-row"><span>Rotation rate (30d)</span><strong>{{ contract_billing_dashboard.link_rotation_analytics.rotation_rate }}%</strong></p>
+      <p class="bt-note">Estimated rotations {{ contract_billing_dashboard.link_rotation_analytics.estimated_rotations }} · Total issued {{ contract_billing_dashboard.link_rotation_analytics.total_issued }}</p>
+      {% for row in contract_billing_dashboard.link_rotation_analytics.recent_rotations %}
+        <p class="bt-note">{{ row.timestamp }} · {{ row.scope }} · {{ row.label }}</p>
+      {% empty %}
+        <p class="bt-note">No recent link rotations detected.</p>
+      {% endfor %}
+
+      <h3 style="margin-top:12px;">Invoice Email Deliverability Heatmap</h3>
+      <p class="bt-note">{{ contract_billing_dashboard.invoice_deliverability_heatmap.window_days }}-day snapshot by time bucket.</p>
+      {% for day in contract_billing_dashboard.invoice_deliverability_heatmap.rows %}
+        <p class="bt-twist-row"><span>{{ day.day }} · {{ day.date }}</span><strong> </strong></p>
+        {% for cell in day.cells %}
+          <p class="bt-note"><span class="bt-health-score-badge bt-threshold-{{ cell.tone }}">{{ cell.label }}</span> {{ cell.rate }}% ({{ cell.sent }}/{{ cell.total }})</p>
+        {% endfor %}
+      {% empty %}
+        <p class="bt-note">No deliverability heatmap data.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-yellow" id="bt-ins-weight">Strategic Resource Allocation Engine</h2>
+<section class="bt-center-panel bt-q-yellow bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-insight-grid">
+    {% for row in insights_layer_v2.weighting_rows %}
+      <article class="bt-insight-card">
+        <h3>{{ row.label }}</h3>
+        <strong>{{ row.value }}</strong>
+        <p>Weighted contribution to priority score.</p>
+      </article>
+    {% endfor %}
+  </div>
+  <div class="bt-twist-split" style="margin-top:12px;">
+    <section class="bt-twist-box">
+      <h3>Resource Allocation</h3>
+      {% for alloc in resource_allocation_engine %}
+        <p class="bt-twist-row"><span>{{ alloc.label }}</span><strong>{{ alloc.pct }}%</strong></p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-sim">Executive Scenario Simulator</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel" style="margin-bottom:22px;">
+  <p class="bt-note">Baseline: pressure {{ scenario_simulator.baseline.pressure }}, growth {{ scenario_simulator.baseline.growth }}, risk {{ scenario_simulator.baseline.risk }}.</p>
+  <div class="bt-insight-grid">
+    {% for scenario in scenario_simulator.scenarios %}
+      <article class="bt-insight-card">
+        <h3>{{ scenario.label }}</h3>
+        <strong>Pressure {{ scenario.pressure }}</strong>
+        <p>Growth {{ scenario.growth }} · Risk {{ scenario.risk }}</p>
+        <p>{{ scenario.action }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-red" id="bt-ins-horizon">Strategic Horizon Planner</h2>
+<section class="bt-center-panel bt-q-red bt-insight-panel" style="margin-bottom:22px;">
+  <div class="bt-twist-split">
+    {% for row in horizon_planner %}
+      <section class="bt-twist-box">
+        <h3>{{ row.horizon }}</h3>
+        <p class="bt-twist-row"><span>Focus</span><strong>{{ row.focus }}</strong></p>
+        <p class="bt-twist-row"><span>Priority</span><strong>{{ row.priority }}</strong></p>
+        <p class="bt-note">{{ row.plan }}</p>
+      </section>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-blue" id="bt-ins-cross">Cross-Dashboard Insights</h2>
+<section class="bt-center-panel bt-q-blue bt-insight-panel">
+  <div class="bt-health-row" style="margin-top:0;">
+    <span class="bt-health-score">{{ cross_dashboard_insights.state_label }}</span>
+    <span class="bt-health-trend">Pressure proxy {{ cross_dashboard_insights.pressure_proxy }}</span>
+  </div>
+  <p class="bt-note">{{ cross_dashboard_insights.state_note }}</p>
+
+  <div class="bt-insight-grid">
+    {% for card in cross_dashboard_insights.cards %}
+      <article class="bt-insight-card">
+        <h3>{{ card.label }}</h3>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.secondary }}</p>
+        <a class="bt-inline-link" href="{{ card.url }}" target="_blank" rel="noopener">Open</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-green" id="bt-ins-pipeline">Semantic Pipeline</h2>
+<section class="bt-center-panel bt-q-green bt-insight-panel">
+  <div class="bt-health-row" style="margin-top:0;">
+    <span class="bt-health-score">End-to-End Conversion {{ insight_semantic.overall_conversion_rate }}%</span>
+    <span class="bt-health-trend">Bottleneck {{ basetrue_insights.bottleneck_label }} ({{ basetrue_insights.bottleneck_dropoff }}% drop)</span>
+  </div>
+
+  <div class="bt-pipeline-visual">
+    {% for stage in insight_semantic.stages %}
+      <article class="bt-pipeline-stage bt-pipeline-stage-{{ stage.key }}">
+        <h3>{{ stage.label }}</h3>
+        <p class="bt-metric" style="font-size:1.35rem;">{{ stage.count }}</p>
+        <p class="bt-note">30d: {{ stage.last_30_days }}</p>
+        <div class="bt-pipeline-mini-bar">
+          <div class="bt-pipeline-mini-fill" style="width:{{ stage.pct }}%;"></div>
+        </div>
+        <a class="bt-inline-link" href="{{ stage.url }}" target="_blank" rel="noopener">Open stage</a>
+      </article>
+      {% if not forloop.last %}
+        <div class="bt-pipeline-arrow" aria-hidden="true">→</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<h2 class="bt-section bt-q-red" id="bt-ins-actions">Unified Action Queue</h2>
+<div class="bt-twist-split" style="margin-bottom:22px;">
+  <section class="bt-twist-box">
+    <h3>Executive Risk Queue</h3>
+    {% for app in insight_risk_queue %}
+      <p class="bt-twist-row"><span>{{ app.title }}</span><strong>{{ app.health.label }} · {{ app.health.score }}</strong></p>
+      {% if app.health.attention_flags %}
+        <p class="bt-note">{{ app.health.attention_flags.0 }}</p>
+      {% endif %}
+    {% empty %}
+      <p class="bt-note">No executive risks detected.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Operator Queue</h3>
+    {% for item in insight_operator.automation_queue %}
+      <p class="bt-twist-row"><span>{{ item.label }}</span><strong><a class="bt-inline-link" href="{{ item.url }}" target="_blank" rel="noopener">Open</a></strong></p>
+      <p class="bt-note">{{ item.detail }}</p>
+    {% empty %}
+      <p class="bt-note">No operator queue items available.</p>
+    {% endfor %}
+  </section>
+
+  <section class="bt-twist-box">
+    <h3>Moderator Escalation</h3>
+    {% for item in insight_moderator.escalation_queue %}
+      <p class="bt-twist-row"><span>{{ item.label }}</span><strong>{{ item.priority }}</strong></p>
+      <p class="bt-note">{{ item.detail }}</p>
+    {% empty %}
+      <p class="bt-note">No moderator escalation items available.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<p style="margin-top:20px;">
+  Back to <a href="{% url 'admin:dashboard' %}">platform dashboard</a>.
+</p>
+
+<script>
+  (function () {
+    function absoluteUrl(path) {
+      if (!path) {
+        return "";
+      }
+      if (/^https?:\/\//i.test(path)) {
+        return path;
+      }
+      return window.location.origin + path;
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "absolute";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+    }
+
+    document.querySelectorAll(".bt-copy-link").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const path = button.getAttribute("data-copy-url") || "";
+        const target = absoluteUrl(path);
+        if (!target) {
+          return;
+        }
+
+        const previousText = button.textContent;
+        try {
+          await copyText(target);
+          button.textContent = "Copied";
+        } catch (err) {
+          button.textContent = "Copy failed";
+        }
+
+        window.setTimeout(function () {
+          button.textContent = previousText;
+        }, 1200);
+      });
+    });
+
+    const diffButton = document.getElementById("bt-diff-load");
+    const diffFrom = document.getElementById("bt-diff-from");
+    const diffTo = document.getElementById("bt-diff-to");
+    const diffResults = document.getElementById("bt-diff-results");
+
+    function renderList(items) {
+      if (!items || !items.length) {
+        return "none";
+      }
+      return items.join(", ");
+    }
+
+    function renderDiff(data) {
+      diffResults.innerHTML = [
+        "<h3>Diff Summary</h3>",
+        "<p class=\"bt-twist-row\"><span>From</span><strong>" + (data.from_version || "-") + "</strong></p>",
+        "<p class=\"bt-twist-row\"><span>To</span><strong>" + (data.to_version || "-") + "</strong></p>",
+        "<p class=\"bt-note\">Required added: " + renderList(data.required_added) + "</p>",
+        "<p class=\"bt-note\">Required removed: " + renderList(data.required_removed) + "</p>",
+        "<p class=\"bt-note\">Optional added: " + renderList(data.optional_added) + "</p>",
+        "<p class=\"bt-note\">Optional removed: " + renderList(data.optional_removed) + "</p>",
+        "<p class=\"bt-note\">Breaking change detected: " + (data.breaking_change_detected ? "yes" : "no") + "</p>"
+      ].join("");
+    }
+
+    if (diffButton && diffFrom && diffTo && diffResults) {
+      diffButton.addEventListener("click", async function () {
+        const endpoint = diffButton.getAttribute("data-endpoint") || "";
+        const fromVersion = diffFrom.value;
+        const toVersion = diffTo.value;
+        if (!endpoint || !fromVersion || !toVersion) {
+          return;
+        }
+
+        diffResults.innerHTML = "<h3>Diff Summary</h3><p class=\"bt-note\">Loading diff...</p>";
+        try {
+          const response = await fetch(endpoint + "?from=" + encodeURIComponent(fromVersion) + "&to=" + encodeURIComponent(toVersion), {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load diff.");
+          }
+          renderDiff(data);
+        } catch (err) {
+          diffResults.innerHTML = "<h3>Diff Summary</h3><p class=\"bt-note\">" + (err && err.message ? err.message : "Unable to load diff.") + "</p>";
+        }
+      });
+    }
+  })();
+</script>
+
+<script src="{% static 'admin/platform_dashboard.js' %}"></script>
+{% endblock %}

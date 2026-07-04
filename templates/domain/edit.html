@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Domain{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap" style="gap: 0.75rem;">
+      <div>
+        <h1 class="title is-3 mb-2">Edit Domain</h1>
+        <p class="subtitle is-6 mb-0">Rename your account-specific compartments and board cards.</p>
+      </div>
+      <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+        <a class="button is-light" href="{% url 'domain:index' %}">Back to domain</a>
+        {% include "partials/theme_toggle.html" with toggle_id="domain-edit-theme-toggle" button_class="button is-dark is-outlined domain-theme-toggle" storage_key="domainDarkModeEnabled" legacy_storage_key="domainBlackBackgroundEnabled" body_class="domain-index-dark-mode" enable_label="Enable dark mode" disable_label="Disable dark mode" %}
+      </div>
+    </div>
+  </div>
+
+  <div class="box mt-4">
+    <form method="post">
+      {% csrf_token %}
+      <div class="columns is-variable is-5">
+        <div class="column is-7">
+          <h2 class="title is-5">Rename your compartments</h2>
+          <p class="is-size-7 mb-4">Leave any field blank to keep its current name. Compartment names need at least 12 characters when changed. Boards need at least 16 characters when changed.</p>
+
+          <div class="columns is-multiline">
+            <div class="column is-6">
+              {% for field in editable_compartment_fields %}
+              <div class="field mb-4">
+                <label class="label">{{ field.label }}</label>
+                <div class="control">{{ field }}</div>
+                {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="column is-6">
+              <div class="notification is-light mb-4">
+                <p class="title is-6 mb-2">Locked compartments</p>
+                {% for locked in locked_compartments %}
+                <p class="is-size-7 mb-1"><strong>{{ locked.form_label }}</strong> stays {{ locked.default }}.</p>
+                {% endfor %}
+              </div>
+
+              {% for field in board_fields %}
+              <div class="field mb-4">
+                <label class="label">{{ field.label }}</label>
+                <div class="control">{{ field }}</div>
+                {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="notification is-danger is-light">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="buttons">
+            <button type="submit" class="button is-dark">Save domain names</button>
+          </div>
+        </div>
+
+        <div class="column is-5">
+          <div class="box">
+            <h2 class="title is-6">Current preview</h2>
+            <div class="content is-size-7">
+              <p>The saved labels will update the personal domain grid and board cards.</p>
+              <p>Compartments 6 and 7 are fixed as Analyze and Evaluate for every account.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

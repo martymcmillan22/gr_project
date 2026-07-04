@@ -1,0 +1,95 @@
+{% load static %}
+<nav class="navbar p-5 is-dark" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item is-size-4 has-text-weight-semibold" href="{% url 'index' %}">
+      <figure class="image is-48x48 mr-3">
+        <img src="{% static 'images/logo-circle.png' %}" alt="BaseTrue logo">
+      </figure>
+      BaseTrue
+    </a>
+
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+
+  <div id="navbar" class="navbar-menu">
+    <div class="navbar-start">
+      <div class="navbar-item has-dropdown is-hoverable js-features-dropdown">
+        <a class="navbar-link">
+          Features
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="{% url 'forums:global' %}">
+            Global Forum
+          </a>
+          <a class="navbar-item" href="{% url 'baseTrue_news:index' %}">
+            BaseTrue Newsletter
+          </a>
+        </div>
+      </div>
+
+      <!--
+      <a class="navbar-item" href="{% url 'index' %}">
+        Home
+      </a>
+      -->
+      {% if request.resolver_match and request.resolver_match.namespace == 'center' and request.resolver_match.url_name == 'corporation_admin' or request.resolver_match and request.resolver_match.namespace == 'center' and request.resolver_match.url_name == 'corporation_btif' %}
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link" href="{% url 'btsrl' %}">
+          BTSRL
+        </a>
+
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="{% url 'btsrl' %}">
+            Simple workflow
+          </a>
+          <a class="navbar-item" href="{% url 'slides-hub' %}">
+            Slides hub
+          </a>
+          <a class="navbar-item" href="{% url 'architecture-slides' %}">
+            Technical deck
+          </a>
+          <a class="navbar-item" href="{% url 'executive-slides' %}">
+            Executive deck
+          </a>
+        </div>
+      </div>
+      {% endif %}
+      {% if request.user.is_staff %}
+      <a class="navbar-item" href="{% url 'admin:index' %}">
+        Admin
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="navbar-end">
+      {% if request.user.is_authenticated %}
+      <div class="navbar-item">
+        <form action="{% url 'logout'%}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="button is-dark">Logout</button>
+        </form>
+      </div>
+      <a class="navbar-item" href="{% url 'users:my-profile' %}" aria-label="My profile settings" title="My profile">
+        <span class="icon" aria-hidden="true">
+          <i class="fas fa-cog"></i>
+        </span>
+      </a>
+      {% else %}
+      <div class="navbar-item">
+        <div class="buttons">
+          <a class="button is-primary" href="{% url 'users:signup' %}">
+            <strong>Sign up</strong>
+          </a>
+          <a class="button is-light" href="{% url 'login' %}">
+            Log in
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

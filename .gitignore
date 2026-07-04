@@ -1,0 +1,21 @@
+# Virtual environment
+venv
+
+# Database
+*.sqlite3
+
+# User uploaded content
+media/
+
+# Python caches
+__pycache__
+
+# IDE config
+.idea/
+.vscode/
+
+dj_test/
+
+# Trivia site
+.env
+staticfiles/

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Polish{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <h1 class="title is-3">Polish</h1>
+    <p class="subtitle is-6">Track unfinished work and turn ideas into business agendas by sector.</p>
+  </div>
+
+  <div class="box">
+    <h2 class="title is-5">Reminder Settings</h2>
+    <p class="is-size-7 mb-3">Opt in to receive one daily Polish reminder pop-up when you open Twist and still have unfinished Polish tasks.</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_reminder_preference">
+      <label class="checkbox">
+        {{ reminder_form.enabled }} Enable daily Polish reminder on Twist
+      </label>
+      <div class="mt-3">
+        <button type="submit" class="button is-light">Save Reminder Preference</button>
+      </div>
+    </form>
+    <p class="is-size-7 mt-3">Current status: <strong>{% if reminder_enabled %}Opted in{% else %}Not opted in{% endif %}</strong></p>
+  </div>
+
+  <div class="box">
+    {% if incomplete_tasks %}
+    <article class="message is-warning">
+      <div class="message-body">
+        You have {{ incomplete_tasks|length }} unfinished task{{ incomplete_tasks|length|pluralize }} in Polish.
+      </div>
+    </article>
+    {% else %}
+    <article class="message is-success">
+      <div class="message-body">
+        No unfinished tasks right now.
+      </div>
+    </article>
+    {% endif %}
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-6">
+      <div class="box">
+        <h2 class="title is-5">Add Task</h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_task">
+          <div class="field">
+            <label class="label" for="id_title">Title</label>
+            <div class="control">{{ task_form.title }}</div>
+          </div>
+          <div class="field">
+            <label class="label" for="id_details">Details</label>
+            <div class="control">{{ task_form.details }}</div>
+          </div>
+          <div class="field">
+            <label class="label" for="id_due_date">Due Date</label>
+            <div class="control">{{ task_form.due_date }}</div>
+          </div>
+          <button type="submit" class="button is-dark">Add Task</button>
+        </form>
+      </div>
+
+      <div class="box">
+        <h2 class="title is-5">Unfinished Tasks</h2>
+        {% if incomplete_tasks %}
+        <ul>
+          {% for task in incomplete_tasks %}
+          <li class="mb-3">
+            <p class="has-text-weight-semibold">{{ task.title }}</p>
+            <p class="is-size-7">{{ task.details|default:"No details." }}</p>
+            <p class="is-size-7 mb-2">Due: {{ task.due_date|default:"No due date" }}</p>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="complete_task">
+              <input type="hidden" name="task_id" value="{{ task.id }}">
+              <button type="submit" class="button is-small is-success">Mark Complete</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No unfinished tasks.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="column is-6">
+      <div class="box">
+        <h2 class="title is-5">Create Sector Agenda</h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_agenda">
+          <div class="field">
+            <label class="label" for="id_sector_name">Industry Sector</label>
+            <div class="control">{{ agenda_form.sector_name }}</div>
+          </div>
+          <div class="field">
+            <label class="label" for="id_idea">Idea</label>
+            <div class="control">{{ agenda_form.idea }}</div>
+          </div>
+          <div class="field">
+            <label class="label" for="id_objective">Objective (optional)</label>
+            <div class="control">{{ agenda_form.objective }}</div>
+          </div>
+          <button type="submit" class="button is-link">Generate Agenda</button>
+        </form>
+      </div>
+
+      <div class="box">
+        <h2 class="title is-5">Recent Agendas</h2>
+        {% if recent_agendas %}
+        {% for agenda in recent_agendas %}
+        <article class="message is-info mb-3">
+          <div class="message-header">
+            <p>{{ agenda.sector_name }} - {{ agenda.idea }}</p>
+          </div>
+          <div class="message-body">
+            <pre style="white-space: pre-wrap; margin: 0;">{{ agenda.agenda_text }}</pre>
+          </div>
+        </article>
+        {% endfor %}
+        {% else %}
+        <p class="is-size-7">No agendas generated yet.</p>
+        {% endif %}
+      </div>
+
+      <div class="box">
+        <h2 class="title is-5">Task Manager</h2>
+        <p class="is-size-7 mb-3">Open the dedicated Task Manager admin workspace.</p>
+        <a class="button is-dark" href="{% url 'task-manager-admin:index' %}">Task Manager</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

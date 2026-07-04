@@ -1,0 +1,759 @@
+{
+  "generated_at": "2026-06-29T09:16:11.571003Z",
+  "slides": [
+    {
+      "id": "client-health-storyboard",
+      "title": "Client Health Storyboard",
+      "route": "/homepage/slides/client-health-storyboard",
+      "category": "customer",
+      "labels": [
+        "health",
+        "revenue"
+      ],
+      "source_file": "client-health-storyboard.mdx",
+      "preview_components": [
+        "HealthOverviewCard",
+        "SignalsStream",
+        "EngagementPulse",
+        "StabilityGauge",
+        "RevenueRiskPanel",
+        "ExpansionSignals"
+      ],
+      "tags": [
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "16"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Health Overview",
+            "tone": "success"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "HealthOverviewCard",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Signals Stream",
+            "tone": "primary"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "SignalsStream",
+            "status": "in-progress"
+          }
+        },
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "12"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q1: Engagement",
+            "emphasis": "medium"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "EngagementPulse",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q2: Stability",
+            "emphasis": "high"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "StabilityGauge",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q3: Revenue Risk",
+            "emphasis": "critical"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "RevenueRiskPanel",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q4: Expansion",
+            "emphasis": "low"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ExpansionSignals",
+            "status": "planned"
+          }
+        }
+      ],
+      "tag_count": 14,
+      "tags_by_type": {
+        "ComponentPreview": 6,
+        "LayoutGrid": 2,
+        "Panel": 2,
+        "Quadrant": 4
+      },
+      "component_name": "ClientHealthStoryboardSlideGenerated",
+      "page_name": "ClientHealthStoryboardPageGenerated"
+    },
+    {
+      "id": "customer-journey-canvas",
+      "title": "Customer Journey Canvas",
+      "route": "/homepage/slides/customer-journey-canvas",
+      "category": "customer",
+      "labels": [
+        "journey",
+        "lifecycle"
+      ],
+      "source_file": "customer-journey-canvas.mdx",
+      "preview_components": [
+        "DashboardCard",
+        "Taskboard",
+        "DiscoverPanel",
+        "DecisionPanel",
+        "ExecuteBoard",
+        "ReflectPanel"
+      ],
+      "tags": [
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "16"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Primary Surface",
+            "tone": "primary"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DashboardCard",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Operational Surface",
+            "tone": "success"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "Taskboard",
+            "status": "planned"
+          }
+        },
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "12"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q1: Discover",
+            "emphasis": "medium"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DiscoverPanel",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q2: Decide",
+            "emphasis": "high"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DecisionPanel",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q3: Execute",
+            "emphasis": "critical"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ExecuteBoard",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q4: Reflect",
+            "emphasis": "low"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ReflectPanel",
+            "status": "draft"
+          }
+        }
+      ],
+      "tag_count": 14,
+      "tags_by_type": {
+        "ComponentPreview": 6,
+        "LayoutGrid": 2,
+        "Panel": 2,
+        "Quadrant": 4
+      },
+      "component_name": "CustomerJourneyCanvasSlideGenerated",
+      "page_name": "CustomerJourneyCanvasPageGenerated"
+    },
+    {
+      "id": "delivery-control-tower",
+      "title": "Delivery Control Tower",
+      "route": "/homepage/slides/delivery-control-tower",
+      "category": "delivery",
+      "labels": [
+        "reliability",
+        "incidents"
+      ],
+      "source_file": "delivery-control-tower.mdx",
+      "preview_components": [
+        "PipelineControlGrid",
+        "AlertConsole",
+        "ThroughputTrend",
+        "QualityWall",
+        "ReliabilityBoard",
+        "LearningLoop"
+      ],
+      "tags": [
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "16"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Pipeline Control",
+            "tone": "primary"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "PipelineControlGrid",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Alert Console",
+            "tone": "danger"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "AlertConsole",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "12"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q1: Throughput",
+            "emphasis": "medium"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ThroughputTrend",
+            "status": "planned"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q2: Quality",
+            "emphasis": "high"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "QualityWall",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q3: Reliability",
+            "emphasis": "critical"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ReliabilityBoard",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q4: Learning",
+            "emphasis": "low"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "LearningLoop",
+            "status": "in-progress"
+          }
+        }
+      ],
+      "tag_count": 14,
+      "tags_by_type": {
+        "ComponentPreview": 6,
+        "LayoutGrid": 2,
+        "Panel": 2,
+        "Quadrant": 4
+      },
+      "component_name": "DeliveryControlTowerSlideGenerated",
+      "page_name": "DeliveryControlTowerPageGenerated"
+    },
+    {
+      "id": "risk-operations-matrix",
+      "title": "Risk Operations Matrix",
+      "route": "/homepage/slides/risk-operations-matrix",
+      "category": "operations",
+      "labels": [
+        "risk",
+        "mitigation"
+      ],
+      "source_file": "risk-operations-matrix.mdx",
+      "preview_components": [
+        "RiskIntakePanel",
+        "MitigationQueue",
+        "DetectionChart",
+        "PriorityLane",
+        "ContainmentBoard",
+        "RecoveryTimeline"
+      ],
+      "tags": [
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "16"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Risk Intake",
+            "tone": "warning"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "RiskIntakePanel",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Mitigation Queue",
+            "tone": "primary"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "MitigationQueue",
+            "status": "in-progress"
+          }
+        },
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "12"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q1: Detect",
+            "emphasis": "medium"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DetectionChart",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q2: Prioritize",
+            "emphasis": "high"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "PriorityLane",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q3: Contain",
+            "emphasis": "critical"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ContainmentBoard",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q4: Recover",
+            "emphasis": "low"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "RecoveryTimeline",
+            "status": "planned"
+          }
+        }
+      ],
+      "tag_count": 14,
+      "tags_by_type": {
+        "ComponentPreview": 6,
+        "LayoutGrid": 2,
+        "Panel": 2,
+        "Quadrant": 4
+      },
+      "component_name": "RiskOperationsMatrixSlideGenerated",
+      "page_name": "RiskOperationsMatrixPageGenerated"
+    },
+    {
+      "id": "ui-blueprint-standard",
+      "title": "UI Blueprint Standard",
+      "route": "/homepage/slides/ui-blueprint-standard",
+      "category": "blueprint",
+      "labels": [
+        "baseline",
+        "reference"
+      ],
+      "source_file": "ui_blueprint_standard.mdx",
+      "preview_components": [
+        "DashboardCard",
+        "Taskboard",
+        "DiscoveryPanel",
+        "DecisionPanel",
+        "ExecutionBoard",
+        "RetrospectivePanel"
+      ],
+      "tags": [
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "16"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Primary Control Surface",
+            "tone": "primary"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DashboardCard",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Operational Workspace",
+            "tone": "success"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "Taskboard",
+            "status": "in-progress"
+          }
+        },
+        {
+          "tag": "LayoutGrid",
+          "attrs": {
+            "columns": "2",
+            "gap": "12"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q1: Discover",
+            "emphasis": "medium"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DiscoveryPanel",
+            "status": "draft"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q2: Decide",
+            "emphasis": "high"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "DecisionPanel",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q3: Execute",
+            "emphasis": "critical"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "ExecutionBoard",
+            "status": "ready"
+          }
+        },
+        {
+          "tag": "Quadrant",
+          "attrs": {
+            "label": "Q4: Reflect",
+            "emphasis": "low"
+          }
+        },
+        {
+          "tag": "ComponentPreview",
+          "attrs": {
+            "component": "RetrospectivePanel",
+            "status": "planned"
+          }
+        },
+        {
+          "tag": "Panel",
+          "attrs": {
+            "title": "Assembly Notes",
+            "tone": "warning"
+          }
+        }
+      ],
+      "tag_count": 15,
+      "tags_by_type": {
+        "ComponentPreview": 6,
+        "LayoutGrid": 2,
+        "Panel": 3,
+        "Quadrant": 4
+      },
+      "component_name": "UiBlueprintStandardSlideGenerated",
+      "page_name": "UiBlueprintStandardPageGenerated"
+    }
+  ],
+  "summary": {
+    "slide_count": 5,
+    "tag_count": 71,
+    "tags_by_type": {
+      "ComponentPreview": 30,
+      "LayoutGrid": 10,
+      "Panel": 11,
+      "Quadrant": 20
+    },
+    "preview_components": {
+      "AlertConsole": 1,
+      "ContainmentBoard": 1,
+      "DashboardCard": 2,
+      "DecisionPanel": 2,
+      "DetectionChart": 1,
+      "DiscoverPanel": 1,
+      "DiscoveryPanel": 1,
+      "EngagementPulse": 1,
+      "ExecuteBoard": 1,
+      "ExecutionBoard": 1,
+      "ExpansionSignals": 1,
+      "HealthOverviewCard": 1,
+      "LearningLoop": 1,
+      "MitigationQueue": 1,
+      "PipelineControlGrid": 1,
+      "PriorityLane": 1,
+      "QualityWall": 1,
+      "RecoveryTimeline": 1,
+      "ReflectPanel": 1,
+      "ReliabilityBoard": 1,
+      "RetrospectivePanel": 1,
+      "RevenueRiskPanel": 1,
+      "RiskIntakePanel": 1,
+      "SignalsStream": 1,
+      "StabilityGauge": 1,
+      "Taskboard": 2,
+      "ThroughputTrend": 1
+    },
+    "categories": {
+      "blueprint": 1,
+      "customer": 2,
+      "delivery": 1,
+      "operations": 1
+    },
+    "presets": [
+      {
+        "id": "operations_view",
+        "name": "Operations View",
+        "quick_switch": true,
+        "filters": {
+          "tag_type": "all",
+          "tag_count_band": "11-14",
+          "category": "operations",
+          "component_name": "all",
+          "page_name": "all"
+        },
+        "sort_order": "tag_desc",
+        "grouping_mode": "tag_type",
+        "search_query": ""
+      },
+      {
+        "id": "customer_view",
+        "name": "Customer View",
+        "quick_switch": true,
+        "filters": {
+          "tag_type": "all",
+          "tag_count_band": "all",
+          "category": "customer",
+          "component_name": "all",
+          "page_name": "all"
+        },
+        "sort_order": "title_asc",
+        "grouping_mode": "none",
+        "search_query": ""
+      },
+      {
+        "id": "delivery_view",
+        "name": "Delivery View",
+        "quick_switch": true,
+        "filters": {
+          "tag_type": "all",
+          "tag_count_band": "all",
+          "category": "delivery",
+          "component_name": "all",
+          "page_name": "all"
+        },
+        "sort_order": "tag_desc",
+        "grouping_mode": "none",
+        "search_query": ""
+      },
+      {
+        "id": "executive_view",
+        "name": "Executive View",
+        "quick_switch": true,
+        "filters": {
+          "tag_type": "all",
+          "tag_count_band": "15+",
+          "category": "all",
+          "component_name": "all",
+          "page_name": "all"
+        },
+        "sort_order": "tag_desc",
+        "grouping_mode": "category",
+        "search_query": ""
+      }
+    ]
+  }
+}

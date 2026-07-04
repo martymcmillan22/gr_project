@@ -1,0 +1,36 @@
+---
+category: customer
+labels: journey, lifecycle
+---
+
+# Customer Journey Canvas
+
+<LayoutGrid columns="2" gap="16">
+  <Panel title="Primary Surface" tone="primary">
+    <p>Describe the primary user intent for this screen.</p>
+    <ComponentPreview component="DashboardCard" status="draft" />
+  </Panel>
+  <Panel title="Operational Surface" tone="success">
+    <p>Describe operational controls and workflow transitions.</p>
+    <ComponentPreview component="Taskboard" status="planned" />
+  </Panel>
+</LayoutGrid>
+
+<LayoutGrid columns="2" gap="12">
+  <Quadrant label="Q1: Discover" emphasis="medium">
+    <p>Inputs and discovery context.</p>
+    <ComponentPreview component="DiscoverPanel" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q2: Decide" emphasis="high">
+    <p>Decision support and key metrics.</p>
+    <ComponentPreview component="DecisionPanel" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q3: Execute" emphasis="critical">
+    <p>Actions and execution controls.</p>
+    <ComponentPreview component="ExecuteBoard" status="draft" />
+  </Quadrant>
+  <Quadrant label="Q4: Reflect" emphasis="low">
+    <p>Retrospective and learning notes.</p>
+    <ComponentPreview component="ReflectPanel" status="draft" />
+  </Quadrant>
+</LayoutGrid>

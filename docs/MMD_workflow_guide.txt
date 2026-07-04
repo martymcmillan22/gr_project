@@ -1,0 +1,44 @@
+# Architecture-as-Code: Your "Source of Truth" Workflow
+
+To make your diagrams work as the core infrastructure for your AI development, you should move away from static images and toward **text-based diagramming (Diagrams-as-Code)**. This allows your AI (like Gemini, Claude, or GPT) to "read" your architecture and update the code accordingly.
+
+## 1. The Tool: Mermaid.js
+Mermaid is the industry standard for creating diagrams using simple text. Most AI coding assistants can interpret Mermaid code immediately.
+
+### Why use it?
+*   **Version Control:** You can track changes to your architecture in Git alongside your code.
+*   **AI-Readable:** You can copy-paste the diagram text into your chat with the AI.
+*   **Editable:** Changing a flow is as easy as changing a line of text.
+
+## 2. The Workflow Loop
+Whenever you plan a new feature, follow this loop to keep your infrastructure synced:
+
+1.  **Update the Diagram:** Modify the Mermaid code (e.g., add a new service or update an ERD relationship).
+2.  **Contextual Prompting:** Use this prompt format:
+    > "Here is my updated system architecture (Mermaid diagram). Based on these changes, generate the necessary database migration and the new backend service logic."
+3.  **Refactor:** The AI builds the code -> You review/merge -> Your repo stays perfectly aligned with your diagrams.
+
+## 3. Recommended Diagram Types
+
+### For Business Logic (Back-end)
+Use **Sequence Diagrams**. They illustrate the flow of data between your frontend, API, and database services.
+*   *Example Structure:* 
+    `User -> API: Request`
+    `API -> Service: Execute Logic`
+    `Service -> DB: Save`
+
+### For Data/Persistence
+Use **ERDs (Entity Relationship Diagrams)**. They define your database schema clearly.
+*   *Example Structure:*
+    `User ||--o{ Order : places`
+    `Order ||--|{ LineItem : contains`
+
+## 4. Setting up your Docs
+Maintain a folder in your root directory named `/docs/architecture/`:
+*   `logic_flow.mmd` (Your Business Logic Diagram)
+*   `data_schema.mmd` (Your Data/Persistence Diagram)
+
+By keeping these files in your repository, you provide the AI with a "permanent memory" of how your application *should* behave.
+```eof
+
+This approach turns your architecture into a living document that your AI can actually understand and execute against. Would you like me to convert your existing diagram concepts into Mermaid code so you can get started with this workflow?

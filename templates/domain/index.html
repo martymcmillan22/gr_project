@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+
+{% block title %}Domain{% endblock %}
+
+{% block extra_css %}
+<style>
+  .domain-index-page {
+    --domain-bg-surface: #ffffff;
+    --domain-bg-soft: #f7faf7;
+    --domain-border: #d9e2d7;
+    --domain-text: #232323;
+    --domain-muted: #4f5b57;
+  }
+
+  .domain-index-page .box {
+    background: var(--domain-bg-surface);
+    border: 1px solid var(--domain-border);
+    color: var(--domain-text);
+  }
+
+  .domain-index-shell {
+    background: linear-gradient(120deg, #eff6ee 0%, #f6f2e9 100%);
+    border: 1px solid #d9e2d7;
+  }
+
+  .domain-index-page .notification.is-light {
+    background: var(--domain-bg-soft);
+    color: var(--domain-text);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .domain-index-page .title,
+  .domain-index-page .subtitle {
+    color: var(--domain-text);
+  }
+
+  .domain-index-page .is-size-7 {
+    color: var(--domain-muted);
+  }
+
+  .domain-index-page .button.is-light {
+    background: #f1f5f2;
+    border-color: var(--domain-border);
+    color: var(--domain-text);
+  }
+
+  .domain-index-page .button.is-light:hover,
+  .domain-index-page .button.is-light:focus {
+    background: #e8efea;
+  }
+
+  .domain-theme-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .domain-theme-toggle .icon {
+    pointer-events: none;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  body.domain-index-dark-mode {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(41, 68, 106, 0.35), transparent 34%),
+      radial-gradient(circle at 92% 88%, rgba(73, 48, 24, 0.32), transparent 30%),
+      #0a0d12;
+    color: #f3f6fb;
+  }
+
+  body.domain-index-dark-mode .domain-index-page {
+    --domain-bg-surface: #141a23;
+    --domain-bg-soft: #0f141b;
+    --domain-border: #2f3c52;
+    --domain-text: #f3f6fb;
+    --domain-muted: #a8b8d8;
+  }
+
+  body.domain-index-dark-mode .section,
+  body.domain-index-dark-mode main,
+  body.domain-index-dark-mode .container {
+    background: transparent;
+  }
+
+  body.domain-index-dark-mode .domain-index-shell {
+    background: linear-gradient(120deg, #0f141b 0%, #141a23 100%);
+    border-color: #2f3c52;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .box {
+    background: linear-gradient(180deg, #141a23 0%, #10161f 100%);
+    border-color: #2f3c52;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+
+  body.domain-index-dark-mode .domain-index-page .title,
+  body.domain-index-dark-mode .domain-index-page .subtitle,
+  body.domain-index-dark-mode .domain-index-page p,
+  body.domain-index-dark-mode .domain-index-page a {
+    color: #f3f6fb;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .is-size-7 {
+    color: #a8b8d8;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .button.is-light {
+    background: #1e2534;
+    border-color: #2f3c52;
+    color: #f3f6fb;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .button.is-light:hover,
+  body.domain-index-dark-mode .domain-index-page .button.is-light:focus {
+    background: #2d3a4f;
+    border-color: #4a5d7a;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .button.is-dark.is-outlined {
+    border-color: #89a3c8;
+    color: #dce8fb;
+    background: transparent;
+  }
+
+  body.domain-index-dark-mode .domain-index-page .button.is-dark.is-outlined:hover,
+  body.domain-index-dark-mode .domain-index-page .button.is-dark.is-outlined:focus {
+    background: #223247;
+    border-color: #c1d7f4;
+    color: #ffffff;
+  }
+
+  body.domain-index-dark-mode .footer {
+    background: #0f141b;
+    border-top: 1px solid #2f3c52;
+  }
+
+  body.domain-index-dark-mode .footer,
+  body.domain-index-dark-mode .footer p,
+  body.domain-index-dark-mode .footer strong,
+  body.domain-index-dark-mode .footer a {
+    color: #dce8fb;
+  }
+
+  body.domain-index-dark-mode .navbar.is-dark,
+  body.domain-index-dark-mode .navbar-menu {
+    background: #0f141b;
+    border-bottom: 1px solid #2f3c52;
+  }
+
+  body.domain-index-dark-mode .navbar-item,
+  body.domain-index-dark-mode .navbar-link,
+  body.domain-index-dark-mode .navbar-burger,
+  body.domain-index-dark-mode .navbar-burger span {
+    color: #dce8fb;
+  }
+
+  body.domain-index-dark-mode .navbar-item:hover,
+  body.domain-index-dark-mode .navbar-link:hover,
+  body.domain-index-dark-mode .navbar-item:focus,
+  body.domain-index-dark-mode .navbar-link:focus {
+    background: #1a2433;
+    color: #ffffff;
+  }
+
+  /* Colored cell styling for dark mode */
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(1) .notification {
+    background: rgba(220, 53, 69, 0.12) !important;
+    border: 2px solid rgba(220, 53, 69, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(1) .notification:hover {
+    background: rgba(220, 53, 69, 0.25);
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(2) .notification {
+    background: rgba(0, 123, 255, 0.12) !important;
+    border: 2px solid rgba(0, 123, 255, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(2) .notification:hover {
+    background: rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(3) .notification {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border: 2px solid rgba(255, 193, 7, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(3) .notification:hover {
+    background: rgba(255, 193, 7, 0.25);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(4) .notification {
+    background: rgba(40, 167, 69, 0.12) !important;
+    border: 2px solid rgba(40, 167, 69, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(4) .notification:hover {
+    background: rgba(40, 167, 69, 0.25);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(5) .notification {
+    background: rgba(111, 66, 193, 0.12) !important;
+    border: 2px solid rgba(111, 66, 193, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(5) .notification:hover {
+    background: rgba(111, 66, 193, 0.25);
+    box-shadow: 0 0 20px rgba(111, 66, 193, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(6) .notification {
+    background: rgba(23, 162, 184, 0.12) !important;
+    border: 2px solid rgba(23, 162, 184, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(6) .notification:hover {
+    background: rgba(23, 162, 184, 0.25);
+    box-shadow: 0 0 20px rgba(23, 162, 184, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(7) .notification {
+    background: rgba(253, 126, 20, 0.12) !important;
+    border: 2px solid rgba(253, 126, 20, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(7) .notification:hover {
+    background: rgba(253, 126, 20, 0.25);
+    box-shadow: 0 0 20px rgba(253, 126, 20, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(8) .notification {
+    background: rgba(50, 205, 50, 0.12) !important;
+    border: 2px solid rgba(50, 205, 50, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(8) .notification:hover {
+    background: rgba(50, 205, 50, 0.25);
+    box-shadow: 0 0 20px rgba(50, 205, 50, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(9) .notification {
+    background: rgba(220, 102, 170, 0.12) !important;
+    border: 2px solid rgba(220, 102, 170, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(9) .notification:hover {
+    background: rgba(220, 102, 170, 0.25);
+    box-shadow: 0 0 20px rgba(220, 102, 170, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(10) .notification {
+    background: rgba(0, 188, 212, 0.12) !important;
+    border: 2px solid rgba(0, 188, 212, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(10) .notification:hover {
+    background: rgba(0, 188, 212, 0.25);
+    box-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(11) .notification {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border: 2px solid rgba(255, 193, 7, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(11) .notification:hover {
+    background: rgba(255, 193, 7, 0.25);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(12) .notification {
+    background: rgba(50, 205, 102, 0.12) !important;
+    border: 2px solid rgba(50, 205, 102, 0.72) !important;
+    transition: all 0.3s ease;
+  }
+
+  body.domain-index-dark-mode .domain-grid-cells .column:nth-child(12) .notification:hover {
+    background: rgba(50, 205, 102, 0.25);
+    box-shadow: 0 0 20px rgba(50, 205, 102, 0.3);
+  }
+
+  .domain-grid-cells .notification {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .domain-grid-cells .notification.is-hovered {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  .domain-grid-cells .notification,
+  .domain-board-list .notification {
+    padding: 0.75rem;
+  }
+
+  .domain-grid-cells .notification p:last-child,
+  .domain-board-list .notification p:last-child {
+    margin-bottom: 0;
+  }
+
+  .domain-grid-link {
+    display: block;
+    color: inherit;
+  }
+
+  .domain-grid-link:hover,
+  .domain-grid-link:focus {
+    color: inherit;
+  }
+
+  @media (max-width: 768px) {
+    .domain-board-label,
+    .domain-grid-label {
+      font-size: 0;
+    }
+
+    .domain-board-label .icon,
+    .domain-grid-label .icon {
+      font-size: 1rem;
+    }
+
+    .domain-board-label .label-text,
+    .domain-grid-label .label-text {
+      display: none;
+    }
+
+    .column.is-8 {
+      order: 2;
+    }
+
+    .column.is-4 {
+      order: 1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="domain-index-page">
+  <div class="box domain-index-shell">
+    <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap mb-3" style="gap: 0.75rem;">
+      <h1 class="title is-3 mb-0">{{ profile_name }}</h1>
+      <div class="is-flex is-align-items-center" style="gap: 0.5rem;">
+        <a class="button is-dark is-outlined domain-theme-toggle" href="{% url 'domain:edit' %}" aria-label="Edit domain" title="Edit domain">
+          <span class="icon" aria-hidden="true"><i class="fas fa-cog"></i></span>
+        </a>
+        {% include "partials/theme_toggle.html" with toggle_id="domain-theme-toggle" button_class="button is-dark is-outlined domain-theme-toggle" storage_key="domainDarkModeEnabled" legacy_storage_key="domainBlackBackgroundEnabled" body_class="domain-index-dark-mode" enable_label="Enable dark mode" disable_label="Disable dark mode" %}
+      </div>
+    </div>
+
+    <div class="columns is-multiline">
+      <div class="column is-8">
+        <div class="box">
+          <h2 class="title is-5">Domain Grid</h2>
+          <div class="columns is-mobile is-multiline domain-grid-cells">
+            {% for cell in cells %}
+            <div class="column is-3">
+              <a class="domain-grid-link" href="{% url 'domain:cell_detail' slug=cell.slug %}">
+                <article class="notification is-light has-text-centered p-3">
+                  <p class="title is-6 mb-1">{{ cell.label }}</p>
+                </article>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-4">
+        <div class="box" style="min-height: 277px;">
+          <h2 class="title is-6">Domain Boards</h2>
+          <div class="domain-board-list">
+            {% for board in board_cards %}
+            <article class="notification is-light mb-3">
+              <p class="title is-6 domain-board-label mb-1">{{ board.label }}</p>
+              <p class="is-size-7">Board interface {{ forloop.counter }}</p>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% if request.user.is_staff %}
+        <div class="box">
+          <h2 class="title is-6">Staff</h2>
+          <a class="button is-dark is-fullwidth" href="{% url 'admin:index' %}">Open Admin</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function() {
+    const cellCards = Array.from(document.querySelectorAll('.domain-grid-cells .notification'));
+    cellCards.forEach((card) => {
+      card.addEventListener('mouseenter', function() {
+        card.classList.add('is-hovered');
+      });
+      card.addEventListener('mouseleave', function() {
+        card.classList.remove('is-hovered');
+      });
+      card.addEventListener('focusin', function() {
+        card.classList.add('is-hovered');
+      });
+      card.addEventListener('focusout', function() {
+        card.classList.remove('is-hovered');
+      });
+    });
+  })();
+</script>
+{% endblock %}

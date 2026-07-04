@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Twist Token{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Your Twist API Token</h1>
+    <p class="subtitle">Use this token for Flutter, Postman, or other API clients.</p>
+
+    <div class="notification is-info is-light">
+      Keep this token private. Send it in the Authorization header as <strong>Token {{ api_token }}</strong>.
+    </div>
+
+    <div class="box">
+      <p class="has-text-weight-semibold">Token</p>
+      <code style="display: block; word-break: break-all;">{{ api_token }}</code>
+    </div>
+
+    <div class="buttons">
+      <a class="button is-primary" href="{% url 'twist-entry' %}">Back to Twist</a>
+      <a class="button is-light" href="/api/ideas/">Open Ideas API</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
