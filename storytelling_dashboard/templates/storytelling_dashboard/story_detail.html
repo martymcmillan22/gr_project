@@ -26,6 +26,31 @@
         </div>
     </div>
 
+    <!-- Git Status Badge -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div id="gitStatusBadge" class="badge badge-secondary" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                <span id="gitStatusIcon">⏳</span> Loading git status...
+            </div>
+        </div>
+    </div>
+
+    <!-- Commit History Panel (Collapsible) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="cursor: pointer;" onclick="toggleCommitHistory()">
+                    <h6 style="margin: 0;" id="commitHistoryHeader">📋 Commit History <span id="commitHistoryToggle">▼</span></h6>
+                </div>
+                <div class="card-body" id="commitHistoryPanel" style="display: none; max-height: 300px; overflow-y: auto;">
+                    <div id="commitHistoryList" class="text-muted">
+                        <small>Loading commit history...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Form -->
     <form id="storyForm">
         {% csrf_token %}
@@ -240,6 +265,7 @@
             <div class="col-12">
                 <button type="button" class="btn btn-primary btn-lg" id="saveBtn" onclick="saveStory()">💾 Save Story</button>
                 <button type="button" class="btn btn-outline-secondary btn-lg ms-2" id="validateBtn" onclick="validateStory()">✓ Validate Against Schema</button>
+                <button type="button" class="btn btn-outline-success btn-lg ms-2" id="pushBtn" onclick="pushToGitHub()" style="display: none;">📤 Push to GitHub</button>
                 <a href="{% url 'storytelling_dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg ms-2">Cancel</a>
             </div>
         </div>
@@ -287,6 +313,34 @@
     .form-control-sm {
         font-size: 0.875rem;
         height: calc(1.5em + 0.5rem + 2px);
+    }
+    
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+        display: inline-block;
+    }
+    
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+        display: inline-block;
+    }
+    
+    .badge-warning {
+        background-color: #ffc107;
+        color: black;
+        display: inline-block;
+    }
+    
+    #commitHistoryList small {
+        display: block;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    #commitHistoryList small:last-child {
+        border-bottom: none;
     }
 </style>
 </style>
@@ -642,6 +696,8 @@ function saveStory() {
         showStatus(result.success, result.message || result.error);
         if (result.success) {
             document.getElementById('progressBar').style.width = result.progress + '%';
+            // Refresh git status after save
+            fetchGitStatus();
         }
     })
     .catch(error => showStatus(false, `Error: ${error.message}`));
@@ -710,6 +766,130 @@ document.getElementById('format').addEventListener('change', () => {
     updateProgress();
 });
 
+// Git integration functions
+let gitStatusCache = {};
+
+function fetchGitStatus() {
+    fetch(`/storytelling-dashboard/api/git/status/`)
+        .then(response => response.json())
+        .then(data => {
+            gitStatusCache = data.status || {};
+            updateGitStatusBadge();
+            
+            // Show push button if git is available
+            if (gitStatusCache.available) {
+                document.getElementById('pushBtn').style.display = 'inline-block';
+            }
+        })
+        .catch(error => {
+            console.warn('Git status fetch error:', error);
+            document.getElementById('gitStatusBadge').innerHTML = '❌ Git unavailable';
+        });
+}
+
+function updateGitStatusBadge() {
+    const badge = document.getElementById('gitStatusBadge');
+    const icon = document.getElementById('gitStatusIcon');
+    
+    if (!badge || !icon) return; // Safety check
+    
+    if (!gitStatusCache || !gitStatusCache.available) {
+        badge.className = 'badge badge-secondary';
+        icon.textContent = '❌';
+        badge.innerHTML = '❌ Git not available';
+        return;
+    }
+    
+    if (gitStatusCache.dirty) {
+        badge.className = 'badge badge-warning';
+        icon.textContent = '⚠️';
+        const modifiedCount = gitStatusCache.modified_files?.length || 0;
+        badge.innerHTML = `⚠️ ${modifiedCount} file(s) modified • Branch: ${gitStatusCache.branch || 'main'}`;
+    } else {
+        badge.className = 'badge badge-success';
+        icon.textContent = '✅';
+        badge.innerHTML = `✅ All changes committed • Branch: ${gitStatusCache.branch || 'main'}`;
+    }
+}
+
+function fetchCommitHistory() {
+    fetch(`/storytelling-dashboard/api/story/${entryId}/git-history/`)
+        .then(response => response.json())
+        .then(data => {
+            const historyList = document.getElementById('commitHistoryList');
+            
+            if (!data.available) {
+                historyList.innerHTML = '<small class="text-muted">Git not available</small>';
+                return;
+            }
+            
+            if (!data.history || data.history.length === 0) {
+                historyList.innerHTML = '<small class="text-muted">No commits yet</small>';
+                return;
+            }
+            
+            let html = '';
+            data.history.forEach(commit => {
+                const date = new Date(commit.timestamp).toLocaleString();
+                html += `
+                    <small>
+                        <strong>[${commit.hash}]</strong> ${commit.message}<br>
+                        <span class="text-muted">by ${commit.author} at ${date}</span>
+                    </small>
+                `;
+            });
+            historyList.innerHTML = html;
+        })
+        .catch(error => {
+            console.warn('Commit history fetch error:', error);
+            document.getElementById('commitHistoryList').innerHTML = '<small class="text-danger">Error loading history</small>';
+        });
+}
+
+function toggleCommitHistory() {
+    const panel = document.getElementById('commitHistoryPanel');
+    const toggle = document.getElementById('commitHistoryToggle');
+    
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        toggle.textContent = '▲';
+        fetchCommitHistory();
+    } else {
+        panel.style.display = 'none';
+        toggle.textContent = '▼';
+    }
+}
+
+function pushToGitHub() {
+    const pushBtn = document.getElementById('pushBtn');
+    pushBtn.disabled = true;
+    pushBtn.textContent = '📤 Pushing...';
+    
+    fetch(`/storytelling-dashboard/api/git/push/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStatus(true, '✅ <strong>Pushed successfully!</strong> Changes are now on GitHub.');
+            fetchGitStatus();
+            fetchCommitHistory();
+        } else {
+            showStatus(false, `❌ <strong>Push failed:</strong> ${data.message}`);
+        }
+    })
+    .catch(error => showStatus(false, `❌ <strong>Push error:</strong> ${error.message}`))
+    .finally(() => {
+        pushBtn.disabled = false;
+        pushBtn.textContent = '📤 Push to GitHub';
+    });
+}
+
 // Initialize
 loadTalkingPoints();
 loadChapters();
@@ -717,5 +897,6 @@ loadSoundtracks();
 loadCharacters();
 updateFormatHint();
 updateProgress();
+fetchGitStatus();
 </script>
 {% endblock %}
