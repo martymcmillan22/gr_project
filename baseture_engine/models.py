@@ -126,6 +126,95 @@ class GeneratedTier(models.Model):
         ]
 
 
+class SVEMTier(models.Model):
+    """SVEM (4 branches per MLAS) tier in the hierarchy."""
+    
+    STATUS_CHOICES = [
+        ('generated', 'Generated'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('archived', 'Archived'),
+    ]
+    
+    parent_tier = models.ForeignKey(GeneratedTier, on_delete=models.CASCADE, related_name='svem_branches')
+    branch_number = models.IntegerField(choices=[(i, f'Branch {i}') for i in range(1, 5)], help_text='Branch 1-4 under parent tier')
+    
+    # Inherited context
+    seed_input = models.CharField(max_length=500, help_text='Seed from parent + branch specialization')
+    mlas_color = models.CharField(max_length=20, help_text='Inherited MLAS color from parent')
+    industry = models.CharField(max_length=50, help_text='Inherited industry from parent')
+    
+    # Generated content
+    output = models.JSONField(help_text='Generated SVEM branch structure')
+    rationale = models.TextField(blank=True, help_text='Explanation of branch generation')
+    
+    # Validation
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
+    constraints_validated = models.BooleanField(default=False)
+    validation_errors = models.JSONField(default=list, blank=True)
+    
+    # Tracking
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"SVEM Branch {self.branch_number}: {self.seed_input[:40]}"
+    
+    class Meta:
+        unique_together = ('parent_tier', 'branch_number')
+        ordering = ['parent_tier', 'branch_number']
+        indexes = [
+            models.Index(fields=['parent_tier', 'branch_number']),
+            models.Index(fields=['-created_at']),
+        ]
+
+
+class CCCPTier(models.Model):
+    """CCCP (4 compartments per SVEM branch) tier in the hierarchy."""
+    
+    STATUS_CHOICES = [
+        ('generated', 'Generated'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('archived', 'Archived'),
+    ]
+    
+    parent_svem_tier = models.ForeignKey(SVEMTier, on_delete=models.CASCADE, related_name='cccp_compartments')
+    compartment_number = models.IntegerField(choices=[(i, f'Compartment {i}') for i in range(1, 5)], help_text='Compartment 1-4 under parent SVEM branch')
+    
+    # Inherited context
+    seed_input = models.CharField(max_length=500, help_text='Seed from parent SVEM + compartment specialization')
+    mlas_color = models.CharField(max_length=20, help_text='Inherited MLAS color from root tier')
+    industry = models.CharField(max_length=50, help_text='Inherited industry from root tier')
+    
+    # Generated content
+    output = models.JSONField(help_text='Generated CCCP compartment structure')
+    rationale = models.TextField(blank=True, help_text='Explanation of compartment generation')
+    
+    # Validation
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
+    constraints_validated = models.BooleanField(default=False)
+    validation_errors = models.JSONField(default=list, blank=True)
+    
+    # Tracking
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        branch_num = self.parent_svem_tier.branch_number
+        return f"CCCP Comp {self.compartment_number} (B{branch_num}): {self.seed_input[:30]}"
+    
+    class Meta:
+        unique_together = ('parent_svem_tier', 'compartment_number')
+        ordering = ['parent_svem_tier', 'compartment_number']
+        indexes = [
+            models.Index(fields=['parent_svem_tier', 'compartment_number']),
+            models.Index(fields=['-created_at']),
+        ]
+
+
 class PatternTemplate(models.Model):
     """Reusable pattern template."""
     

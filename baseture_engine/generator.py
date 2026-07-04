@@ -470,8 +470,169 @@ class PatternGenerator:
         self.generation_log.append(message)
 
 
+class HierarchyGenerator:
+    """
+    Deterministic hierarchy expansion generator for SVEM and CCCP tiers.
+    
+    SVEM: Expands 1 parent tier into 4 semantic branches
+    CCCP: Expands 1 SVEM branch into 4 compartments (16 total per parent)
+    """
+    
+    def __init__(self):
+        self.generator_log = []
+        self._load_rules()
+    
+    def _load_rules(self) -> None:
+        """Load pattern rules for hierarchy generation."""
+        from .pattern_rules import GLOBAL_RULES, WORKED_EXAMPLES
+        self.global_rules = GLOBAL_RULES
+        self.worked_examples = WORKED_EXAMPLES
+    
+    def generate_svem(self, parent_tier_output: dict, seed_input: str, mlas_color: str, industry: str) -> dict:
+        """
+        Generate 4 SVEM branches from parent tier.
+        
+        Args:
+            parent_tier_output: The output JSON from parent GeneratedTier
+            seed_input: Original seed input
+            mlas_color: Inherited MLAS color
+            industry: Inherited industry
+        
+        Returns:
+            Dictionary with 4 branches, each with expansion logic
+        """
+        self.generator_log.clear()
+        self._log("Starting SVEM branch generation")
+        self._log(f"Parent seed: {seed_input}, Color: {mlas_color}, Industry: {industry}")
+        
+        branches = {}
+        branch_names = ["Semantic", "Variation", "Expansion", "Model"]
+        
+        # Extract key elements from parent output for contextual branch generation
+        parent_structure = parent_tier_output if isinstance(parent_tier_output, dict) else {}
+        parent_key = next(iter(parent_structure.keys())) if parent_structure else "structure"
+        
+        for branch_num in range(1, 5):
+            branch_name = branch_names[branch_num - 1]
+            branch_key = f"SVEM_Branch_{branch_num}_{branch_name}"
+            
+            branches[branch_key] = {
+                "branch_number": branch_num,
+                "branch_name": branch_name,
+                "parent_seed": seed_input,
+                "specialization": self._generate_branch_specialization(branch_num, seed_input, mlas_color),
+                "derived_focus": self._derive_branch_focus(branch_num, mlas_color),
+                "compartment_count": 4,
+                "status": "awaiting_expansion",
+            }
+            self._log(f"Generated branch {branch_num}: {branch_key}")
+        
+        return {
+            "tier_type": "SVEM",
+            "parent_seed": seed_input,
+            "mlas_color": mlas_color,
+            "industry": industry,
+            "branch_count": 4,
+            "branches": branches,
+            "generated_at": str(__import__('datetime').datetime.now()),
+        }
+    
+    def generate_cccp(self, parent_svem_output: dict, svem_branch_number: int, seed_input: str, mlas_color: str, industry: str) -> dict:
+        """
+        Generate 4 CCCP compartments from SVEM branch.
+        
+        Args:
+            parent_svem_output: The output JSON from parent SVEMTier
+            svem_branch_number: Which branch (1-4) this CCCP belongs to
+            seed_input: Specialized seed from SVEM branch
+            mlas_color: Inherited MLAS color
+            industry: Inherited industry
+        
+        Returns:
+            Dictionary with 4 compartments
+        """
+        self.generator_log.clear()
+        self._log("Starting CCCP compartment generation")
+        self._log(f"Parent SVEM Branch: {svem_branch_number}, Seed: {seed_input}")
+        
+        compartments = {}
+        compartment_names = ["Conceptual", "Compartmental", "Configuration", "Pattern"]
+        
+        for comp_num in range(1, 5):
+            comp_name = compartment_names[comp_num - 1]
+            comp_key = f"CCCP_Comp_{comp_num}_{comp_name}_B{svem_branch_number}"
+            
+            compartments[comp_key] = {
+                "compartment_number": comp_num,
+                "compartment_name": comp_name,
+                "parent_branch": svem_branch_number,
+                "parent_seed": seed_input,
+                "specialization": self._generate_compartment_specialization(comp_num, seed_input, mlas_color),
+                "derived_focus": self._derive_compartment_focus(comp_num, mlas_color),
+                "subcell_count": 4,
+                "status": "awaiting_expansion",
+            }
+            self._log(f"Generated compartment {comp_num}: {comp_key}")
+        
+        return {
+            "tier_type": "CCCP",
+            "parent_svem_branch": svem_branch_number,
+            "parent_seed": seed_input,
+            "mlas_color": mlas_color,
+            "industry": industry,
+            "compartment_count": 4,
+            "compartments": compartments,
+            "generated_at": str(__import__('datetime').datetime.now()),
+        }
+    
+    def _generate_branch_specialization(self, branch_num: int, seed: str, color: str) -> str:
+        """Generate specialization text for SVEM branch."""
+        specializations = {
+            1: f"Semantic foundation of {seed} through {color} pattern lens",
+            2: f"Variation analysis of {seed} across {color} constraints",
+            3: f"Expansion vectors for {seed} within {color} scope",
+            4: f"Meta-model of {seed} under {color} dynamics",
+        }
+        return specializations.get(branch_num, "Specialization TBD")
+    
+    def _derive_branch_focus(self, branch_num: int, color: str) -> str:
+        """Derive focus area for SVEM branch."""
+        focus_areas = {
+            1: f"Core semantics of {color}",
+            2: f"Variation management in {color}",
+            3: f"Expansion rules for {color}",
+            4: f"Metamodel of {color}",
+        }
+        return focus_areas.get(branch_num, "Focus TBD")
+    
+    def _generate_compartment_specialization(self, comp_num: int, seed: str, color: str) -> str:
+        """Generate specialization text for CCCP compartment."""
+        specializations = {
+            1: f"Conceptual boundary of {seed} in {color} space",
+            2: f"Compartmental organization of {seed} by {color}",
+            3: f"Configuration mapping of {seed} under {color}",
+            4: f"Pattern instance of {seed} via {color}",
+        }
+        return specializations.get(comp_num, "Specialization TBD")
+    
+    def _derive_compartment_focus(self, comp_num: int, color: str) -> str:
+        """Derive focus area for CCCP compartment."""
+        focus_areas = {
+            1: f"Boundary definition in {color}",
+            2: f"Organization in {color}",
+            3: f"Configuration in {color}",
+            4: f"Pattern instantiation in {color}",
+        }
+        return focus_areas.get(comp_num, "Focus TBD")
+    
+    def _log(self, message: str) -> None:
+        """Add message to generation log."""
+        self.generator_log.append(message)
+
+
 # Module-level singleton
 _generator_instance = None
+_hierarchy_generator_instance = None
 
 
 def get_generator() -> PatternGenerator:
@@ -480,3 +641,11 @@ def get_generator() -> PatternGenerator:
     if _generator_instance is None:
         _generator_instance = PatternGenerator()
     return _generator_instance
+
+
+def get_hierarchy_generator() -> HierarchyGenerator:
+    """Get or create singleton hierarchy generator."""
+    global _hierarchy_generator_instance
+    if _hierarchy_generator_instance is None:
+        _hierarchy_generator_instance = HierarchyGenerator()
+    return _hierarchy_generator_instance
