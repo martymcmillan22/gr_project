@@ -240,4 +240,4 @@ export DEFAULT_FROM_EMAIL="BaseTrue Monthly <your-email@example.com>"
 
 1. In Django admin, create an `Issue` for the target month/year.
 2. Add `Story` entries to that issue and set `status=published` and `publish_at`.
-3. Select the issue in admin and run action: `Email selected issues to active subscribers`.
+3. Select the issue in admin and run action: `Email selected issues to active subscribers`.# gr_project
