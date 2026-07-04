@@ -20,5 +20,6 @@ urlpatterns = [
     # API Endpoints - Hierarchy Generation
     path('api/hierarchy/generate-svem/', views.api_generate_svem_branches, name='api_generate_svem'),
     path('api/hierarchy/generate-cccp/', views.api_generate_cccp_compartments, name='api_generate_cccp'),
+    path('api/hierarchy/generate-dchd/', views.api_generate_dchd_subcells, name='api_generate_dchd'),
     path('api/hierarchy/tree/<int:root_id>/', views.api_get_hierarchy_tree, name='api_hierarchy_tree'),
 ]

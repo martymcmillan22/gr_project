@@ -364,17 +364,23 @@
                         </div>
                         
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <button type="button" class="btn btn-warning btn-block" id="generateSvemBtn" onclick="generateSvemBranches()" disabled>
-                                    🌿 Generate 4 SVEM Branches
+                                    🌿 Generate SVEM
                                 </button>
-                                <small class="form-text text-muted d-block mt-2">Expands parent tier into 4 semantic branches (Semantic, Variation, Expansion, Model)</small>
+                                <small class="form-text text-muted d-block mt-2">4 branches</small>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <button type="button" class="btn btn-info btn-block" id="generateCccpBtn" onclick="generateCccpCompartments()" disabled>
-                                    📦 Generate CCCP Compartments
+                                    📦 Generate CCCP
                                 </button>
-                                <small class="form-text text-muted d-block mt-2">Expands each SVEM branch into 4 compartments (16 total per branch)</small>
+                                <small class="form-text text-muted d-block mt-2">4 compartments</small>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-primary btn-block" id="generateDchdBtn" onclick="generateDchdSubcells()" disabled>
+                                    🔹 Generate DCHD
+                                </button>
+                                <small class="form-text text-muted d-block mt-2">4 subcells</small>
                             </div>
                         </div>
                         
@@ -1242,6 +1248,11 @@ function generateCccpCompartments() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Store CCCP tier IDs for DCHD generation
+            window.cccpTierIds = data.cccp_tier_ids;
+            // Enable DCHD button
+            document.getElementById('generateDchdBtn').disabled = false;
+            
             // Fetch and display updated hierarchy tree
             fetchHierarchyTree(lastGeneratedTierId);
             
@@ -1258,6 +1269,55 @@ function generateCccpCompartments() {
     .finally(() => {
         document.getElementById('generateCccpBtn').disabled = false;
         document.getElementById('generateCccpBtn').textContent = '📦 Generate CCCP Compartments';
+    });
+}
+
+function generateDchdSubcells() {
+    if (!window.cccpTierIds || window.cccpTierIds.length === 0) {
+        showHierarchyError('Please generate CCCP compartments first.');
+        return;
+    }
+    
+    document.getElementById('hierarchyLoading').style.display = 'block';
+    document.getElementById('hierarchyError').style.display = 'none';
+    document.getElementById('generateDchdBtn').disabled = true;
+    document.getElementById('generateDchdBtn').textContent = '🔄 Generating DCHD...';
+    
+    // Generate DCHD for first CCCP compartment (user can expand individually later)
+    const cccpTierId = window.cccpTierIds[0];
+    
+    fetch(`/baseture-engine/api/hierarchy/generate-dchd/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({
+            cccp_tier_id: cccpTierId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Store DCHD tier IDs
+            window.dchdTierIds = data.dchd_tier_ids;
+            
+            // Fetch and display updated hierarchy tree
+            fetchHierarchyTree(lastGeneratedTierId);
+            
+            showStatus(true, `✅ <strong>DCHD Subcells Generated!</strong> Generated 4 subcells for Compartment 1.`);
+        } else {
+            showHierarchyError(data.error || 'Failed to generate DCHD subcells.');
+            document.getElementById('hierarchyLoading').style.display = 'none';
+        }
+    })
+    .catch(error => {
+        showHierarchyError(`Error: ${error.message}`);
+        document.getElementById('hierarchyLoading').style.display = 'none';
+    })
+    .finally(() => {
+        document.getElementById('generateDchdBtn').disabled = false;
+        document.getElementById('generateDchdBtn').textContent = '🔹 Generate DCHD Subcells';
     });
 }
 
@@ -1308,8 +1368,23 @@ function displayHierarchyTree(tree) {
                 svem.cccp_compartments.forEach((cccp) => {
                     htmlOutput += `<div style="margin-top: 0.5rem; padding: 0.5rem; background-color: #e1f5fe; border-left: 2px solid #0288d1; border-radius: 2px; font-size: 0.85rem;">
                         <strong>Comp ${cccp.compartment_number}</strong> (ID: ${cccp.id})<br>
-                        Seed: ${cccp.seed_input}
-                    </div>`;
+                        <small>Seed: ${cccp.seed_input}</small>`;
+                    
+                    // DCHD subcells
+                    if (cccp.dchd_subcells && cccp.dchd_subcells.length > 0) {
+                        htmlOutput += `<div style="margin-left: 0.75rem; margin-top: 0.5rem;">
+                            <strong style="color: #7b1fa2; font-size: 0.8rem;">🔹 DCHD (${cccp.dchd_subcells.length} Subcells)</strong>`;
+                        
+                        cccp.dchd_subcells.forEach((dchd) => {
+                            htmlOutput += `<div style="margin-top: 0.3rem; padding: 0.3rem; background-color: #f3e5f5; border-left: 1px solid #7b1fa2; border-radius: 2px; font-size: 0.75rem;">
+                                Subcell ${dchd.subcell_number} (ID: ${dchd.id})
+                            </div>`;
+                        });
+                        
+                        htmlOutput += `</div>`;
+                    }
+                    
+                    htmlOutput += `</div>`;
                 });
                 
                 htmlOutput += `</div>`;

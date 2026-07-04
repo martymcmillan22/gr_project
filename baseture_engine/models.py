@@ -215,6 +215,52 @@ class CCCPTier(models.Model):
         ]
 
 
+class DCHDTier(models.Model):
+    """DCHD (4 subcells per CCCP compartment) tier in the hierarchy."""
+    
+    STATUS_CHOICES = [
+        ('generated', 'Generated'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('archived', 'Archived'),
+    ]
+    
+    parent_cccp_tier = models.ForeignKey(CCCPTier, on_delete=models.CASCADE, related_name='dchd_subcells')
+    subcell_number = models.IntegerField(choices=[(i, f'Subcell {i}') for i in range(1, 5)], help_text='Subcell 1-4 under parent CCCP compartment')
+    
+    # Inherited context
+    seed_input = models.CharField(max_length=500, help_text='Seed from parent CCCP + subcell specialization')
+    mlas_color = models.CharField(max_length=20, help_text='Inherited MLAS color from root tier')
+    industry = models.CharField(max_length=50, help_text='Inherited industry from root tier')
+    
+    # Generated content
+    output = models.JSONField(help_text='Generated DCHD subcell structure')
+    rationale = models.TextField(blank=True, help_text='Explanation of subcell generation')
+    
+    # Validation
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
+    constraints_validated = models.BooleanField(default=False)
+    validation_errors = models.JSONField(default=list, blank=True)
+    
+    # Tracking
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        cccp_num = self.parent_cccp_tier.compartment_number
+        svem_num = self.parent_cccp_tier.parent_svem_tier.branch_number
+        return f"DCHD Subcell {self.subcell_number} (C{cccp_num}B{svem_num}): {self.seed_input[:25]}"
+    
+    class Meta:
+        unique_together = ('parent_cccp_tier', 'subcell_number')
+        ordering = ['parent_cccp_tier', 'subcell_number']
+        indexes = [
+            models.Index(fields=['parent_cccp_tier', 'subcell_number']),
+            models.Index(fields=['-created_at']),
+        ]
+
+
 class PatternTemplate(models.Model):
     """Reusable pattern template."""
     

@@ -585,6 +585,54 @@ class HierarchyGenerator:
             "generated_at": str(__import__('datetime').datetime.now()),
         }
     
+    def generate_dchd(self, parent_cccp_output: dict, cccp_compartment_number: int, seed_input: str, mlas_color: str, industry: str) -> dict:
+        """
+        Generate 4 DCHD subcells from CCCP compartment.
+        
+        Args:
+            parent_cccp_output: The output JSON from parent CCCPTier
+            cccp_compartment_number: Which compartment (1-4) this DCHD belongs to
+            seed_input: Specialized seed from CCCP compartment
+            mlas_color: Inherited MLAS color
+            industry: Inherited industry
+        
+        Returns:
+            Dictionary with 4 subcells
+        """
+        self.generator_log.clear()
+        self._log("Starting DCHD subcell generation")
+        self._log(f"Parent CCCP Compartment: {cccp_compartment_number}, Seed: {seed_input}")
+        
+        subcells = {}
+        subcell_names = ["Depth", "Composition", "Hierarchy", "Definition"]
+        
+        for subcell_num in range(1, 5):
+            subcell_name = subcell_names[subcell_num - 1]
+            subcell_key = f"DCHD_Subcell_{subcell_num}_{subcell_name}_C{cccp_compartment_number}"
+            
+            subcells[subcell_key] = {
+                "subcell_number": subcell_num,
+                "subcell_name": subcell_name,
+                "parent_compartment": cccp_compartment_number,
+                "parent_seed": seed_input,
+                "specialization": self._generate_subcell_specialization(subcell_num, seed_input, mlas_color),
+                "derived_focus": self._derive_subcell_focus(subcell_num, mlas_color),
+                "next_tier_count": 4,
+                "status": "awaiting_expansion",
+            }
+            self._log(f"Generated subcell {subcell_num}: {subcell_key}")
+        
+        return {
+            "tier_type": "DCHD",
+            "parent_cccp_compartment": cccp_compartment_number,
+            "parent_seed": seed_input,
+            "mlas_color": mlas_color,
+            "industry": industry,
+            "subcell_count": 4,
+            "subcells": subcells,
+            "generated_at": str(__import__('datetime').datetime.now()),
+        }
+    
     def _generate_branch_specialization(self, branch_num: int, seed: str, color: str) -> str:
         """Generate specialization text for SVEM branch."""
         specializations = {
@@ -624,6 +672,26 @@ class HierarchyGenerator:
             4: f"Pattern instantiation in {color}",
         }
         return focus_areas.get(comp_num, "Focus TBD")
+    
+    def _generate_subcell_specialization(self, subcell_num: int, seed: str, color: str) -> str:
+        """Generate specialization text for DCHD subcell."""
+        specializations = {
+            1: f"Depth analysis of {seed} within {color} hierarchy",
+            2: f"Compositional elements of {seed} by {color}",
+            3: f"Hierarchical organization of {seed} via {color}",
+            4: f"Definitional clarity of {seed} under {color}",
+        }
+        return specializations.get(subcell_num, "Specialization TBD")
+    
+    def _derive_subcell_focus(self, subcell_num: int, color: str) -> str:
+        """Derive focus area for DCHD subcell."""
+        focus_areas = {
+            1: f"Depth layers in {color}",
+            2: f"Composition in {color}",
+            3: f"Hierarchy in {color}",
+            4: f"Definition in {color}",
+        }
+        return focus_areas.get(subcell_num, "Focus TBD")
     
     def _log(self, message: str) -> None:
         """Add message to generation log."""

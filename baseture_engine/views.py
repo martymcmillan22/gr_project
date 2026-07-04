@@ -14,7 +14,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 
 from .generator import get_generator, get_hierarchy_generator
-from .models import GeneratedTier, TierDefinition, IndustryProfile, SVEMTier, CCCPTier
+from .models import GeneratedTier, TierDefinition, IndustryProfile, SVEMTier, CCCPTier, DCHDTier
 
 
 @require_http_methods(["POST"])
@@ -315,6 +315,67 @@ def api_generate_cccp_compartments(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
+@require_http_methods(["POST"])
+@login_required
+def api_generate_dchd_subcells(request):
+    """
+    API endpoint to generate DCHD subcells from a CCCP compartment.
+    
+    POST /api/baseture/hierarchy/generate-dchd/
+    {
+        "cccp_tier_id": 1
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        cccp_tier_id = data.get('cccp_tier_id')
+        
+        try:
+            cccp_tier = CCCPTier.objects.get(pk=cccp_tier_id)
+        except CCCPTier.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'CCCPTier {cccp_tier_id} not found',
+            }, status=404)
+        
+        # Generate DCHD subcells
+        hierarchy_gen = get_hierarchy_generator()
+        dchd_output = hierarchy_gen.generate_dchd(
+            parent_cccp_output=cccp_tier.output,
+            cccp_compartment_number=cccp_tier.compartment_number,
+            seed_input=cccp_tier.seed_input,
+            mlas_color=cccp_tier.mlas_color,
+            industry=cccp_tier.industry,
+        )
+        
+        # Save DCHD tiers to database
+        dchd_tiers = []
+        for subcell_num in range(1, 5):
+            dchd_tier = DCHDTier.objects.create(
+                parent_cccp_tier=cccp_tier,
+                subcell_number=subcell_num,
+                seed_input=cccp_tier.seed_input,
+                mlas_color=cccp_tier.mlas_color,
+                industry=cccp_tier.industry,
+                output=dchd_output,
+                rationale=f"DCHD subcell {subcell_num} generated from CCCP compartment {cccp_tier_id}",
+                created_by=request.user,
+            )
+            dchd_tiers.append(dchd_tier)
+        
+        return JsonResponse({
+            'success': True,
+            'dchd_tier_ids': [t.id for t in dchd_tiers],
+            'output': dchd_output,
+            'message': f'Generated 4 DCHD subcells (IDs: {[t.id for t in dchd_tiers]})',
+        })
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @require_http_methods(["GET"])
 @login_required
 def api_get_hierarchy_tree(request, root_id):
@@ -365,7 +426,21 @@ def api_get_hierarchy_tree(request, root_id):
                     'compartment_number': cccp.compartment_number,
                     'seed_input': cccp.seed_input,
                     'created_at': cccp.created_at.isoformat(),
+                    'dchd_subcells': [],
                 }
+                
+                # Get all DCHD subcells for this CCCP compartment
+                dchd_tiers = DCHDTier.objects.filter(parent_cccp_tier=cccp).order_by('subcell_number')
+                
+                for dchd in dchd_tiers:
+                    dchd_data = {
+                        'id': dchd.id,
+                        'subcell_number': dchd.subcell_number,
+                        'seed_input': dchd.seed_input,
+                        'created_at': dchd.created_at.isoformat(),
+                    }
+                    cccp_data['dchd_subcells'].append(dchd_data)
+                
                 svem_data['cccp_compartments'].append(cccp_data)
             
             tree['svem_branches'].append(svem_data)

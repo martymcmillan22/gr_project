@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import IndustryProfile, TierDefinition, GeneratedTier, SVEMTier, CCCPTier, PatternTemplate
+from .models import IndustryProfile, TierDefinition, GeneratedTier, SVEMTier, CCCPTier, DCHDTier, PatternTemplate
 
 
 @admin.register(IndustryProfile)
@@ -97,6 +97,32 @@ class CCCPTierAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Hierarchy', {
             'fields': ('parent_svem_tier', 'compartment_number'),
+        }),
+        ('Context', {
+            'fields': ('seed_input', 'mlas_color', 'industry'),
+        }),
+        ('Generated Output', {
+            'fields': ('output', 'rationale'),
+            'classes': ('wide',),
+        }),
+        ('Validation', {
+            'fields': ('status', 'constraints_validated', 'validation_errors'),
+        }),
+        ('Tracking', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+        }),
+    )
+
+
+@admin.register(DCHDTier)
+class DCHDTierAdmin(admin.ModelAdmin):
+    list_display = ('subcell_number', 'seed_input', 'parent_cccp_tier', 'status', 'constraints_validated', 'created_at')
+    list_filter = ('status', 'constraints_validated', 'subcell_number', 'created_at')
+    search_fields = ('seed_input', 'parent_cccp_tier__seed_input')
+    readonly_fields = ('created_at', 'updated_at', 'validation_errors')
+    fieldsets = (
+        ('Hierarchy', {
+            'fields': ('parent_cccp_tier', 'subcell_number'),
         }),
         ('Context', {
             'fields': ('seed_input', 'mlas_color', 'industry'),
