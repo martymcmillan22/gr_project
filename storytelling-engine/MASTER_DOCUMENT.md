@@ -160,6 +160,9 @@ Each placeholder includes the standard Story‑Telling Engine structure, ready f
 
 
 
+
+
+
 ## **ENTRY 8 — Dear Darwin**
 
 **Status:** pending
@@ -175,6 +178,10 @@ A naturalist must reconcile family history with evolutionary theory. Themes: Leg
 
 ### Synopsis
 Darwin arrives at his family estate to settle affairs after his father's death. While cataloging the family collection of specimens, he discovers a hidden journal revealing his father's controversial pre-Darwinian research. As Darwin pieces together the truth, he realizes his father may have anticipated evolutionary theory decades earlier—but hid it. Now Darwin must decide whether to reveal this legacy or protect his father's reputation.
+
+[TESTING GIT INTEGRATION]
+[GIT INTEGRATION TEST 2]
+[GIT TEST 3 - Path Fixed]
 
 ### Chapter Structure (movie)
 - Chapter 1: Test Chapter - Test description
@@ -231,6 +238,9 @@ Post-story: Darwin publishes modified theory incorporating father's insights
 ### Anti‑Plagiarism Section
 Original work inspired by Darwin's actual life and scientific development. No direct copying from published sources.
 
+---
+---
+---
 ---
 ---
 ---
