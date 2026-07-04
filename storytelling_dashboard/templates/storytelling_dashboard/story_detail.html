@@ -260,6 +260,95 @@
             </div>
         </div>
 
+        <!-- BTPE Narrative Scaffold Panel -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="cursor: pointer;" onclick="toggleBTPEPanel()">
+                        <h6 style="margin: 0;" id="btpeHeader">🎯 AI Narrative Scaffold (BTPE) <span id="btpePanelToggle">▼</span></h6>
+                    </div>
+                    <div class="card-body" id="btpePanelContent" style="display: none;">
+                        <p class="text-muted small">Generate a narrative scaffold using BaseTrue Pattern Engine to structure your story.</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="btpeMlasColor" class="form-label"><strong>MLAS Color</strong></label>
+                                <select class="form-control" id="btpeMlasColor">
+                                    <option value="">-- Select MLAS Color --</option>
+                                    <option value="RED">🔴 RED (Detection)</option>
+                                    <option value="BLUE">🔵 BLUE (Communication)</option>
+                                    <option value="YELLOW">🟡 YELLOW (Distribution)</option>
+                                    <option value="GREEN">🟢 GREEN (Repair)</option>
+                                    <option value="PURPLE">🟣 PURPLE (Branching)</option>
+                                    <option value="TEAL">🟦 TEAL (Replication)</option>
+                                    <option value="ORANGE">🟠 ORANGE (Formation)</option>
+                                    <option value="LIME">🟩 LIME (Publication)</option>
+                                    <option value="PINK">🌸 PINK (Structure)</option>
+                                    <option value="CYAN">🔷 CYAN (Function)</option>
+                                    <option value="AMBER">🟨 AMBER (Genetics)</option>
+                                    <option value="GREEN_LIME">💚 GREEN-LIME (Evolution)</option>
+                                </select>
+                                <small class="form-text text-muted">Pattern color determines narrative type</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="btpeIndustry" class="form-label"><strong>Industry</strong></label>
+                                <select class="form-control" id="btpeIndustry">
+                                    <option value="">-- Select Industry --</option>
+                                    <option value="FINANCIALS">💼 Financials</option>
+                                    <option value="COMMUNICATIONS">📢 Communications</option>
+                                    <option value="CONSUMER">🛍️ Consumer</option>
+                                    <option value="INDUSTRIALS">🏭 Industrials</option>
+                                </select>
+                                <small class="form-text text-muted">Industry context for patterns</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="btpeTierLevel" class="form-label"><strong>Tier Level</strong></label>
+                                <select class="form-control" id="btpeTierLevel">
+                                    <option value="">-- Select Tier --</option>
+                                    <option value="1" selected>Tier 1 (Foundational)</option>
+                                    <option value="2">Tier 2 (Complex)</option>
+                                    <option value="3">Tier 3 (Advanced)</option>
+                                </select>
+                                <small class="form-text text-muted">Complexity level</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-success" id="generateBtpeBtn" onclick="generateNarrativeScaffold()">🚀 Generate Scaffold</button>
+                            <button type="button" class="btn btn-outline-secondary" id="clearBtpeBtn" onclick="clearBtpeResult()" style="display: none;">Clear</button>
+                        </div>
+                        
+                        <div id="btpeResult" style="display: none;">
+                            <div class="card mt-3" style="background-color: #f0f7ff; border: 2px solid #2196F3;">
+                                <div class="card-header" style="background-color: #2196F3; color: white;">
+                                    <h6 style="margin: 0;">📋 Generated Narrative Structure</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="btpeOutputContent" style="font-family: monospace; background-color: white; padding: 1rem; border-radius: 4px; max-height: 400px; overflow-y: auto;">
+                                        <!-- JS will populate this -->
+                                    </div>
+                                    <div class="mt-3">
+                                        <small class="text-muted d-block mb-2">Rationale:</small>
+                                        <div id="btpeRationale" style="background-color: white; padding: 0.75rem; border-radius: 4px; border-left: 4px solid #2196F3; font-size: 0.875rem; max-height: 250px; overflow-y: auto;">
+                                            <!-- JS will populate this -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="btpeError" style="display: none;" class="alert alert-warning mt-3">
+                            <!-- JS will populate this -->
+                        </div>
+                        
+                        <div id="btpeLoading" style="display: none;" class="alert alert-info mt-3">
+                            ⏳ Generating narrative scaffold... Please wait.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="row mb-4">
             <div class="col-12">
@@ -888,6 +977,102 @@ function pushToGitHub() {
         pushBtn.disabled = false;
         pushBtn.textContent = '📤 Push to GitHub';
     });
+}
+
+// BTPE Integration Functions
+function toggleBTPEPanel() {
+    const panel = document.getElementById('btpePanelContent');
+    const toggle = document.getElementById('btpePanelToggle');
+    
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        toggle.textContent = '▲';
+    } else {
+        panel.style.display = 'none';
+        toggle.textContent = '▼';
+    }
+}
+
+function generateNarrativeScaffold() {
+    const mlasColor = document.getElementById('btpeMlasColor').value;
+    const industry = document.getElementById('btpeIndustry').value;
+    const tierLevel = document.getElementById('btpeTierLevel').value;
+    const seedInput = document.getElementById('title').value || 'Story Narrative';
+    
+    // Validation
+    if (!mlasColor || !industry || !tierLevel) {
+        showBtpeError('Please select MLAS Color, Industry, and Tier Level.');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('btpeLoading').style.display = 'block';
+    document.getElementById('btpeError').style.display = 'none';
+    document.getElementById('btpeResult').style.display = 'none';
+    document.getElementById('generateBtpeBtn').disabled = true;
+    document.getElementById('generateBtpeBtn').textContent = '🔄 Generating...';
+    
+    // Call BTPE API
+    fetch(`/baseture-engine/api/generate/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            seed_input: seedInput,
+            mlas_color: mlasColor,
+            industry: industry,
+            tier_level: parseInt(tierLevel)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.output) {
+            // Display output
+            const outputJson = JSON.stringify(data.output, null, 2);
+            document.getElementById('btpeOutputContent').innerHTML = `<pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${outputJson}</pre>`;
+            
+            // Display rationale (convert markdown links and formatting)
+            const rationale = data.rationale.replace(/\n/g, '<br>');
+            document.getElementById('btpeRationale').innerHTML = rationale;
+            
+            // Show result
+            document.getElementById('btpeResult').style.display = 'block';
+            document.getElementById('btpeLoading').style.display = 'none';
+            document.getElementById('btpeError').style.display = 'none';
+            document.getElementById('clearBtpeBtn').style.display = 'inline-block';
+            
+            showStatus(true, `✅ <strong>Narrative Scaffold Generated!</strong> Pattern: ${data.output.pattern_type || 'Unknown'}`);
+        } else {
+            showBtpeError(data.error || data.message || 'Failed to generate scaffold.');
+            document.getElementById('btpeLoading').style.display = 'none';
+        }
+    })
+    .catch(error => {
+        showBtpeError(`Error: ${error.message}`);
+        document.getElementById('btpeLoading').style.display = 'none';
+    })
+    .finally(() => {
+        document.getElementById('generateBtpeBtn').disabled = false;
+        document.getElementById('generateBtpeBtn').textContent = '🚀 Generate Scaffold';
+    });
+}
+
+function clearBtpeResult() {
+    document.getElementById('btpeResult').style.display = 'none';
+    document.getElementById('btpeError').style.display = 'none';
+    document.getElementById('btpeLoading').style.display = 'none';
+    document.getElementById('btpeMlasColor').value = '';
+    document.getElementById('btpeIndustry').value = '';
+    document.getElementById('btpeTierLevel').value = '1';
+    document.getElementById('clearBtpeBtn').style.display = 'none';
+}
+
+function showBtpeError(message) {
+    document.getElementById('btpeError').innerHTML = `❌ ${message}`;
+    document.getElementById('btpeError').style.display = 'block';
+    document.getElementById('btpeLoading').style.display = 'none';
+    document.getElementById('btpeResult').style.display = 'none';
 }
 
 // Initialize
