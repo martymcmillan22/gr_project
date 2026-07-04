@@ -22,4 +22,7 @@ urlpatterns = [
     path('api/hierarchy/generate-cccp/', views.api_generate_cccp_compartments, name='api_generate_cccp'),
     path('api/hierarchy/generate-dchd/', views.api_generate_dchd_subcells, name='api_generate_dchd'),
     path('api/hierarchy/tree/<int:root_id>/', views.api_get_hierarchy_tree, name='api_hierarchy_tree'),
+    path('api/hierarchy/status/<int:root_id>/', views.api_get_expansion_status, name='api_expansion_status'),
+    path('api/hierarchy/expand-all-branches/<int:root_id>/', views.api_expand_all_branches, name='api_expand_all_branches'),
+    path('api/hierarchy/expand-all-compartments/<int:root_id>/', views.api_expand_all_compartments, name='api_expand_all_compartments'),
 ]

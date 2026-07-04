@@ -456,6 +456,241 @@ def api_get_hierarchy_tree(request, root_id):
 
 @require_http_methods(["GET"])
 @login_required
+def api_get_expansion_status(request, root_id):
+    """
+    API endpoint to get expansion status for all tiers.
+    
+    GET /api/hierarchy/status/<generated_tier_id>/
+    
+    Returns:
+    {
+        "success": true,
+        "root_id": 1,
+        "status": {
+            "svem_count": 4,
+            "svem_generated": 1,
+            "cccp_count": 16,
+            "cccp_generated": 4,
+            "dchd_count": 64,
+            "dchd_generated": 4,
+            "branches": [
+                {
+                    "branch_number": 1,
+                    "generated": true,
+                    "compartments": [
+                        {
+                            "compartment_number": 1,
+                            "generated": true,
+                            "dchd_count": 4
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+    }
+    """
+    try:
+        try:
+            root_tier = GeneratedTier.objects.get(pk=root_id)
+        except GeneratedTier.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'GeneratedTier {root_id} not found',
+            }, status=404)
+        
+        # Calculate expansion counts
+        all_svem = SVEMTier.objects.filter(parent_tier=root_tier).count()
+        all_cccp = CCCPTier.objects.filter(parent_svem_tier__parent_tier=root_tier).count()
+        all_dchd = DCHDTier.objects.filter(parent_cccp_tier__parent_svem_tier__parent_tier=root_tier).count()
+        
+        # Build branch status
+        branches = []
+        for branch_num in range(1, 5):
+            svem = SVEMTier.objects.filter(parent_tier=root_tier, branch_number=branch_num).first()
+            branch_data = {
+                'branch_number': branch_num,
+                'generated': svem is not None,
+                'compartments': [],
+            }
+            
+            if svem:
+                for comp_num in range(1, 5):
+                    cccp = CCCPTier.objects.filter(parent_svem_tier=svem, compartment_number=comp_num).first()
+                    dchd_count = 0
+                    if cccp:
+                        dchd_count = DCHDTier.objects.filter(parent_cccp_tier=cccp).count()
+                    
+                    branch_data['compartments'].append({
+                        'compartment_number': comp_num,
+                        'generated': cccp is not None,
+                        'dchd_count': dchd_count,
+                    })
+            
+            branches.append(branch_data)
+        
+        return JsonResponse({
+            'success': True,
+            'root_id': root_id,
+            'status': {
+                'svem_count': 4,
+                'svem_generated': all_svem,
+                'cccp_count': 16,
+                'cccp_generated': all_cccp,
+                'dchd_count': 64,
+                'dchd_generated': all_dchd,
+                'branches': branches,
+            }
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def api_expand_all_branches(request, root_id):
+    """
+    Batch endpoint to expand all remaining SVEM branches.
+    Calls generate_cccp for each SVEM branch that doesn't have compartments yet.
+    
+    POST /api/hierarchy/expand-all-branches/<generated_tier_id>/
+    """
+    try:
+        try:
+            root_tier = GeneratedTier.objects.get(pk=root_id)
+        except GeneratedTier.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'GeneratedTier {root_id} not found',
+            }, status=404)
+        
+        data = json.loads(request.body) if request.body else {}
+        gen = get_hierarchy_generator()
+        expanded_count = 0
+        errors = []
+        
+        # Get all SVEM branches
+        all_svem = SVEMTier.objects.filter(parent_tier=root_tier).order_by('branch_number')
+        
+        for svem in all_svem:
+            # Check if this branch already has compartments
+            existing_cccp = CCCPTier.objects.filter(parent_svem_tier=svem).count()
+            if existing_cccp > 0:
+                continue
+            
+            # Generate CCCP for this branch
+            try:
+                # Fetch parent SVEM output to get the structure
+                cccp_output = gen.generate_cccp(
+                    parent_svem_output={'tier_type': 'SVEM'},
+                    svem_branch_number=svem.branch_number,
+                    seed_input=svem.seed_input,
+                    mlas_color=svem.mlas_color,
+                    industry=svem.industry,
+                )
+                
+                # Create CCCP tier records
+                if 'compartments' in cccp_output:
+                    for comp_num, comp_data in cccp_output['compartments'].items():
+                        CCCPTier.objects.create(
+                            parent_svem_tier=svem,
+                            compartment_number=comp_num,
+                            seed_input=svem.seed_input,
+                            mlas_color=svem.mlas_color,
+                            industry=svem.industry,
+                            output=json.dumps(comp_data),
+                            status='generated',
+                            constraints_validated=True,
+                        )
+                    expanded_count += 1
+            except Exception as e:
+                errors.append(f"Branch {svem.branch_number}: {str(e)}")
+        
+        return JsonResponse({
+            'success': True,
+            'expanded_count': expanded_count,
+            'total_branches': len(all_svem),
+            'errors': errors if errors else None,
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def api_expand_all_compartments(request, root_id):
+    """
+    Batch endpoint to expand all remaining CCCP compartments with DCHD subcells.
+    Calls generate_dchd for each compartment that doesn't have subcells yet.
+    
+    POST /api/hierarchy/expand-all-compartments/<generated_tier_id>/
+    """
+    try:
+        try:
+            root_tier = GeneratedTier.objects.get(pk=root_id)
+        except GeneratedTier.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'GeneratedTier {root_id} not found',
+            }, status=404)
+        
+        data = json.loads(request.body) if request.body else {}
+        gen = get_hierarchy_generator()
+        expanded_count = 0
+        errors = []
+        
+        # Get all CCCP compartments
+        all_cccp = CCCPTier.objects.filter(parent_svem_tier__parent_tier=root_tier).order_by('parent_svem_tier', 'compartment_number')
+        
+        for cccp in all_cccp:
+            # Check if this compartment already has subcells
+            existing_dchd = DCHDTier.objects.filter(parent_cccp_tier=cccp).count()
+            if existing_dchd > 0:
+                continue
+            
+            # Generate DCHD for this compartment
+            try:
+                dchd_output = gen.generate_dchd(
+                    parent_cccp_output={'tier_type': 'CCCP'},
+                    cccp_compartment_number=cccp.compartment_number,
+                    seed_input=cccp.seed_input,
+                    mlas_color=cccp.mlas_color,
+                    industry=cccp.industry,
+                )
+                
+                # Create DCHD tier records
+                if 'subcells' in dchd_output:
+                    for subcell_num, subcell_data in dchd_output['subcells'].items():
+                        DCHDTier.objects.create(
+                            parent_cccp_tier=cccp,
+                            subcell_number=subcell_num,
+                            seed_input=cccp.seed_input,
+                            mlas_color=cccp.mlas_color,
+                            industry=cccp.industry,
+                            output=json.dumps(subcell_data),
+                            status='generated',
+                            constraints_validated=True,
+                        )
+                    expanded_count += 1
+            except Exception as e:
+                errors.append(f"Compartment {cccp.id}: {str(e)}")
+        
+        return JsonResponse({
+            'success': True,
+            'expanded_count': expanded_count,
+            'total_compartments': len(list(all_cccp)),
+            'errors': errors if errors else None,
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
 def tier_dashboard(request):
     """
     Dashboard view for BTPE.

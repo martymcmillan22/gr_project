@@ -384,6 +384,19 @@
                             </div>
                         </div>
                         
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-warning btn-block btn-sm" id="expandAllBranchesBtn" onclick="expandAllBranches()" disabled>
+                                    ⚡ Expand All SVEM Branches
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-info btn-block btn-sm" id="expandAllCompartmentsBtn" onclick="expandAllCompartments()" disabled>
+                                    ⚡ Expand All CCCP Compartments
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div id="hierarchyResult" style="display: none;" class="mt-4">
                             <div class="card" style="background-color: #f5f5f5; border: 1px solid #ddd;">
                                 <div class="card-header">
@@ -1196,8 +1209,9 @@ function generateSvemBranches() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Enable CCCP generation
+            // Enable CCCP and expansion buttons
             document.getElementById('generateCccpBtn').disabled = false;
+            document.getElementById('expandAllBranchesBtn').disabled = false;
             
             // Store SVEM tier IDs
             window.svemTierIds = data.svem_tier_ids;
@@ -1250,8 +1264,9 @@ function generateCccpCompartments() {
         if (data.success) {
             // Store CCCP tier IDs for DCHD generation
             window.cccpTierIds = data.cccp_tier_ids;
-            // Enable DCHD button
+            // Enable DCHD button and expand compartments button
             document.getElementById('generateDchdBtn').disabled = false;
+            document.getElementById('expandAllCompartmentsBtn').disabled = false;
             
             // Fetch and display updated hierarchy tree
             fetchHierarchyTree(lastGeneratedTierId);
@@ -1318,6 +1333,85 @@ function generateDchdSubcells() {
     .finally(() => {
         document.getElementById('generateDchdBtn').disabled = false;
         document.getElementById('generateDchdBtn').textContent = '🔹 Generate DCHD Subcells';
+    });
+}
+
+function expandAllBranches() {
+    if (!lastGeneratedTierId) {
+        showHierarchyError('No generated tier. Please generate BTPE scaffold first.');
+        return;
+    }
+    
+    document.getElementById('hierarchyLoading').style.display = 'block';
+    document.getElementById('hierarchyError').style.display = 'none';
+    document.getElementById('expandAllBranchesBtn').disabled = true;
+    document.getElementById('expandAllBranchesBtn').textContent = '⏳ Expanding branches...';
+    
+    fetch(`/baseture-engine/api/hierarchy/expand-all-branches/${lastGeneratedTierId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchHierarchyTree(lastGeneratedTierId);
+            showStatus(true, `✅ <strong>All Branches Expanded!</strong> Generated compartments for ${data.expanded_count} remaining branches.`);
+            document.getElementById('expandAllCompartmentsBtn').disabled = false;
+        } else {
+            showHierarchyError(data.error || 'Failed to expand all branches.');
+            document.getElementById('hierarchyLoading').style.display = 'none';
+        }
+    })
+    .catch(error => {
+        showHierarchyError(`Error: ${error.message}`);
+        document.getElementById('hierarchyLoading').style.display = 'none';
+    })
+    .finally(() => {
+        document.getElementById('expandAllBranchesBtn').disabled = false;
+        document.getElementById('expandAllBranchesBtn').textContent = '⚡ Expand All SVEM Branches';
+    });
+}
+
+function expandAllCompartments() {
+    if (!lastGeneratedTierId) {
+        showHierarchyError('No generated tier. Please generate BTPE scaffold first.');
+        return;
+    }
+    
+    document.getElementById('hierarchyLoading').style.display = 'block';
+    document.getElementById('hierarchyError').style.display = 'none';
+    document.getElementById('expandAllCompartmentsBtn').disabled = true;
+    document.getElementById('expandAllCompartmentsBtn').textContent = '⏳ Expanding compartments...';
+    
+    fetch(`/baseture-engine/api/hierarchy/expand-all-compartments/${lastGeneratedTierId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchHierarchyTree(lastGeneratedTierId);
+            showStatus(true, `✅ <strong>All Compartments Expanded!</strong> Generated subcells for ${data.expanded_count} remaining compartments.`);
+        } else {
+            showHierarchyError(data.error || 'Failed to expand all compartments.');
+            document.getElementById('hierarchyLoading').style.display = 'none';
+        }
+    })
+    .catch(error => {
+        showHierarchyError(`Error: ${error.message}`);
+        document.getElementById('hierarchyLoading').style.display = 'none';
+    })
+    .finally(() => {
+        document.getElementById('expandAllCompartmentsBtn').disabled = false;
+        document.getElementById('expandAllCompartmentsBtn').textContent = '⚡ Expand All CCCP Compartments';
     });
 }
 
