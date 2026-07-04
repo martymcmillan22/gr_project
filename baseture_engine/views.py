@@ -59,14 +59,23 @@ def api_generate_tier(request):
         # Save the generated tier to the database
         if result['valid']:
             try:
-                generated_tier = GeneratedTier.objects.create(
-                    seed_input=seed_input,
-                    output=result['output'],
-                    status='generated',
-                    tier_level=tier_level,
-                    rationale=result.get('rationale', ''),
-                )
-                tier_id = generated_tier.id
+                # Find a matching TierDefinition for this MLAS color
+                tier_def = TierDefinition.objects.filter(
+                    mlas_color=mlas_color,
+                    tier_level=tier_level
+                ).first()
+                
+                if tier_def:
+                    generated_tier = GeneratedTier.objects.create(
+                        seed_input=seed_input,
+                        tier_definition=tier_def,
+                        output=result['output'],
+                        status='generated',
+                        rationale=result.get('rationale', ''),
+                    )
+                    tier_id = generated_tier.id
+                else:
+                    tier_id = None
             except Exception as e:
                 tier_id = None
         else:
