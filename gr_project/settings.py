@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'ontology.apps.OntologyConfig',
     'support.apps.SupportConfig',
     'storytelling_dashboard.apps.StorytellingDashboardConfig',
+    'baseture_engine.apps.BasetureEngineConfig',
 
     #Third Party Apps
     'bulma',

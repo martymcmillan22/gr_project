@@ -49,6 +49,7 @@ urlpatterns = [
     path('seeds/', include('seeds.urls')),
     path('contracts/', include('platform_core.urls')),
     path('storytelling-dashboard/', include('storytelling_dashboard.urls')),
+    path('baseture-engine/', include('baseture_engine.urls')),
     path('btif/api/', include(('ontology.urls', 'ontology'), namespace='btif')),
     path('', include('twist.urls')),
     path('', include('povs.urls')),
