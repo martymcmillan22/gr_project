@@ -56,12 +56,29 @@ def api_generate_tier(request):
             tier_level=tier_level,
         )
         
+        # Save the generated tier to the database
+        if result['valid']:
+            try:
+                generated_tier = GeneratedTier.objects.create(
+                    seed_input=seed_input,
+                    output=result['output'],
+                    status='generated',
+                    tier_level=tier_level,
+                    rationale=result.get('rationale', ''),
+                )
+                tier_id = generated_tier.id
+            except Exception as e:
+                tier_id = None
+        else:
+            tier_id = None
+        
         return JsonResponse({
             'success': result['valid'],
             'output': result['output'],
             'rationale': result['rationale'],
             'errors': result['errors'],
             'log': result.get('log', []),
+            'tier_id': tier_id,
         })
     
     except json.JSONDecodeError:
@@ -596,7 +613,7 @@ def api_expand_all_branches(request, root_id):
                     for comp_num, comp_data in cccp_output['compartments'].items():
                         CCCPTier.objects.create(
                             parent_svem_tier=svem,
-                            compartment_number=comp_num,
+                            compartment_number=comp_data.get('compartment_number'),
                             seed_input=svem.seed_input,
                             mlas_color=svem.mlas_color,
                             industry=svem.industry,
@@ -666,7 +683,7 @@ def api_expand_all_compartments(request, root_id):
                     for subcell_num, subcell_data in dchd_output['subcells'].items():
                         DCHDTier.objects.create(
                             parent_cccp_tier=cccp,
-                            subcell_number=subcell_num,
+                            subcell_number=subcell_data.get('subcell_number'),
                             seed_input=cccp.seed_input,
                             mlas_color=cccp.mlas_color,
                             industry=cccp.industry,
