@@ -33,18 +33,37 @@ class GitIntegration:
         
         if story_data.get('title'):
             changes.append(f"title: {story_data['title']}")
-        if story_data.get('talking_points'):
-            changes.append(f"talking points: {len(story_data['talking_points'])} items")
-        if story_data.get('core_concept'):
-            changes.append(f"core concept: {len(story_data['core_concept'])} chars")
-        if story_data.get('synopsis'):
-            changes.append(f"synopsis: {len(story_data['synopsis'])} chars")
-        if story_data.get('chapters'):
-            changes.append(f"chapters: {len(story_data['chapters'])} total")
-        if story_data.get('character_profiles'):
-            changes.append(f"characters: {len(story_data['character_profiles'])} total")
-        if story_data.get('soundtrack_timeline'):
-            changes.append(f"soundtracks: {len(story_data['soundtrack_timeline'])} entries")
+        
+        talking_points = story_data.get('talking_points')
+        if talking_points:
+            count = len(talking_points) if isinstance(talking_points, (list, tuple)) else 1
+            changes.append(f"talking points: {count} items")
+        
+        core_concept = story_data.get('core_concept')
+        if core_concept:
+            length = len(core_concept) if isinstance(core_concept, str) else len(str(core_concept))
+            changes.append(f"core concept: {length} chars")
+        
+        synopsis = story_data.get('synopsis')
+        if synopsis:
+            length = len(synopsis) if isinstance(synopsis, str) else len(str(synopsis))
+            changes.append(f"synopsis: {length} chars")
+        
+        chapters = story_data.get('chapters')
+        if chapters is not None:
+            count = len(chapters) if isinstance(chapters, (list, tuple)) else chapters
+            changes.append(f"chapters: {count} total")
+        
+        characters = story_data.get('character_profiles')
+        if characters:
+            count = len(characters) if isinstance(characters, (list, tuple)) else 1
+            changes.append(f"characters: {count} total")
+        
+        soundtracks = story_data.get('soundtrack_timeline')
+        if soundtracks:
+            count = len(soundtracks) if isinstance(soundtracks, (list, tuple)) else 1
+            changes.append(f"soundtracks: {count} entries")
+        
         if story_data.get('research_file'):
             changes.append(f"research: documented")
         if story_data.get('dynamic_navigation'):
@@ -79,8 +98,8 @@ class GitIntegration:
             # Generate commit message
             message = self.generate_commit_message(entry_id, story_title, story_data)
             
-            # Get the MASTER_DOCUMENT.md file path
-            master_doc_path = Path(self.repo_path) / "storytelling_dashboard" / "MASTER_DOCUMENT.md"
+            # Get the MASTER_DOCUMENT.md file path (correct location with hyphen)
+            master_doc_path = Path(self.repo_path) / "storytelling-engine" / "MASTER_DOCUMENT.md"
             
             if not master_doc_path.exists():
                 return False
@@ -145,12 +164,17 @@ class GitIntegration:
             return {'available': False}
         
         try:
+            # Get modified files
+            modified_files = []
+            for item in self.repo.index.diff(None):
+                modified_files.append(item.a_path)
+            
             return {
                 'available': True,
                 'branch': self.repo.active_branch.name,
                 'dirty': self.repo.is_dirty(),
                 'untracked_files': len(self.repo.untracked_files),
-                'modified_files': [item[0] for item in self.repo.index.diff(None)],
+                'modified_files': modified_files,
             }
         except Exception as e:
             return {'available': True, 'error': str(e)}
