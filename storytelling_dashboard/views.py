@@ -239,9 +239,9 @@ def api_git_history(request, entry_id: int):
             'available': False
         })
     
-    # Get commit history for MASTER_DOCUMENT.md
+    # Get commit history for MASTER_DOCUMENT.md (correct path with hyphen)
     history = git.get_commit_history(
-        file_path='storytelling_dashboard/MASTER_DOCUMENT.md',
+        file_path='storytelling-engine/MASTER_DOCUMENT.md',
         max_count=10
     )
     
