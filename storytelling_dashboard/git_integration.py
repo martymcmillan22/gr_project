@@ -120,12 +120,16 @@ class GitIntegration:
             print(f"Git commit error: {e}")
             return False
     
-    def push_to_remote(self, remote_name: str = "origin", branch_name: str = "main") -> bool:
+    def push_to_remote(self, remote_name: str = "origin", branch_name: Optional[str] = None) -> bool:
         """Push commits to remote repository."""
         if not self.is_available():
             return False
         
         try:
+            # Use current branch if not specified
+            if branch_name is None:
+                branch_name = self.repo.active_branch.name
+            
             remote = self.repo.remote(remote_name)
             remote.push(branch_name)
             return True
