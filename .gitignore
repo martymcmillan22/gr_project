@@ -26,3 +26,8 @@ staticfiles/
 # Generated frontend build artifacts
 static/homepage_app/index.css
 static/homepage_app/main.js
+
+# Sandbox/practice image outputs
+static/homepage_app/images/Twist-clean.png
+static/homepage_app/images/Twist.png
+static/homepage_app/images/bt_slides/
