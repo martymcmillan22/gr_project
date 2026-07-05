@@ -19,3 +19,10 @@ dj_test/
 # Trivia site
 .env
 staticfiles/
+
+# macOS metadata
+.DS_Store
+
+# Generated frontend build artifacts
+static/homepage_app/index.css
+static/homepage_app/main.js
