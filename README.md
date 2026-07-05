@@ -9,6 +9,19 @@ This repository uses a deterministic AI workflow for UI and semantic work.
 
 See [GRASSROOTS_AI_WORKFLOW.md](GRASSROOTS_AI_WORKFLOW.md) for the Penpot to MDX to React to MLAS BTIF directive that all AI assistants should follow.
 
+## AWS Deployment Docs
+
+AWS planning and execution docs are organized under [docs/operations/aws](docs/operations/aws).
+
+Primary entry point:
+- [docs/operations/aws/README.md](docs/operations/aws/README.md)
+
+Suggested reading order:
+1. [AWS Deployment Recommendation](docs/operations/aws/aws_deployment_recommendation.md)
+2. [AWS Implementation Plan](docs/operations/aws/aws_implementation_plan.md)
+3. [AWS Staging Resource Checklist](docs/operations/aws/aws_staging_resource_checklist.md)
+4. [AWS Staging Deployment Checklist](docs/operations/aws/aws_staging_deployment_checklist.md)
+
 ## Diagram Library
 
 All Grassroots architecture and workflow diagrams are stored in [grassroots_diagrams](grassroots_diagrams).
