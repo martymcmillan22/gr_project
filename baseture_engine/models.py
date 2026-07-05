@@ -261,6 +261,57 @@ class DCHDTier(models.Model):
         ]
 
 
+class StoryScaffold(models.Model):
+    """Persisted story scaffolding sections mapped to hierarchy nodes."""
+
+    NODE_TYPE_CHOICES = [
+        ('root', 'Root'),
+        ('svem', 'SVEM'),
+        ('cccp', 'CCCP'),
+        ('dchd', 'DCHD'),
+    ]
+
+    DECISION_CHOICES = [
+        ('draft', 'Draft'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    root_tier = models.ForeignKey(GeneratedTier, on_delete=models.CASCADE, related_name='story_scaffolds')
+    node_key = models.CharField(max_length=80, help_text='Unique key within root hierarchy, e.g. svem:12')
+    node_type = models.CharField(max_length=10, choices=NODE_TYPE_CHOICES)
+    node_id = models.PositiveIntegerField(null=True, blank=True)
+
+    timeline_lattice_index = models.IntegerField(null=True, blank=True)
+    timeline_label = models.CharField(max_length=120, blank=True)
+    semantic_intent_id = models.CharField(max_length=120, blank=True)
+
+    talking_points = models.TextField(blank=True)
+    core_concept = models.TextField(blank=True)
+    synopsis = models.TextField(blank=True)
+    chapter_structure = models.TextField(blank=True)
+    dchd_atoms = models.JSONField(default=list, blank=True)
+    scaffold_version = models.PositiveIntegerField(default=1)
+
+    decision = models.CharField(max_length=20, choices=DECISION_CHOICES, default='draft')
+
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_story_scaffolds')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Scaffold {self.node_key} on root {self.root_tier_id}"
+
+    class Meta:
+        unique_together = ('root_tier', 'node_key')
+        ordering = ['root_tier', 'node_key']
+        indexes = [
+            models.Index(fields=['root_tier', 'node_key']),
+            models.Index(fields=['root_tier', '-updated_at']),
+        ]
+
+
 class PatternTemplate(models.Model):
     """Reusable pattern template."""
     

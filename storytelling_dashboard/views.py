@@ -4,10 +4,100 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
+import re
+from collections import defaultdict
 
 from .markdown_parser import StoryMarkdownParser, StoryEntry, FORMAT_CHOICES
-from .models import StorySession
+from .models import StorySession, SemanticPreset
 from .git_integration import get_git_integration
+
+
+def _parse_metadata_map(block: str) -> dict:
+    """Parse markdown bullet metadata like '- Key: Value' into a normalized dict."""
+    parsed = {}
+    for line in str(block or "").split("\n"):
+        match = re.match(r"^\s*-\s*([^:]+):\s*(.+?)\s*$", line.strip())
+        if not match:
+            continue
+        key = match.group(1).strip().lower()
+        value = match.group(2).strip()
+        if key:
+            parsed[key] = value
+    return parsed
+
+
+def _infer_timeline_phase(timeline_cell: str) -> str:
+    token = str(timeline_cell or "").strip().lower().replace("_", "-")
+
+    if token in {"present-past", "present to past", "present/past"}:
+        return "present-past"
+    if token in {"present-future", "present to future", "present/future"}:
+        return "present-future"
+
+    if token == "past":
+        return "past"
+    if token == "future":
+        return "future"
+
+    # Backward compatibility for legacy values that only encoded "present".
+    if token == "present":
+        return "present-past"
+
+    if "present" in token and "past" in token:
+        return "present-past"
+    if "present" in token and "future" in token:
+        return "present-future"
+    if "past" in token:
+        return "past"
+    if "future" in token:
+        return "future"
+    return "unknown"
+
+
+def _parse_dchd_atoms(summary: str) -> list:
+    text = str(summary or "").strip()
+    if not text or text == "none":
+        return []
+    atoms = [part.strip() for part in re.split(r"\||,", text) if part.strip()]
+    return atoms
+
+
+def _semantic_anchor_for_story(story: StoryEntry) -> dict:
+    semantic_map = _parse_metadata_map(story.semantic_metadata)
+    version_map = _parse_metadata_map(story.version_metadata)
+
+    semantic_intent = (
+        semantic_map.get("semantic intent")
+        or semantic_map.get("semantic intent id")
+        or ""
+    )
+
+    dchd_summary = semantic_map.get("dchd atom summary", "")
+    scaffold_version_text = version_map.get("scaffold version", "")
+    try:
+        scaffold_version = int(scaffold_version_text)
+    except (TypeError, ValueError):
+        scaffold_version = None
+
+    timeline_cell = semantic_map.get("timeline cell", "")
+
+    return {
+        "entry_id": story.entry_id,
+        "title": story.title,
+        "status": story.status,
+        "mlas_color": semantic_map.get("mlas color", ""),
+        "timeline_cell": timeline_cell,
+        "timeline_phase": _infer_timeline_phase(timeline_cell),
+        "semantic_path": semantic_map.get("semantic path", ""),
+        "semantic_intent": semantic_intent,
+        "hierarchy_node_key": semantic_map.get("hierarchy node key", "") or version_map.get("node key", ""),
+        "scaffold_version": scaffold_version,
+        "dchd_atom_summary": dchd_summary,
+        "dchd_atoms": _parse_dchd_atoms(dchd_summary),
+        "root_tier_id": version_map.get("root tier id", ""),
+        "export_timestamp": version_map.get("export timestamp", ""),
+        "chapter_count": len(story.chapters or []),
+    }
 
 
 @login_required
@@ -122,6 +212,10 @@ def api_story_save(request, entry_id):
         story.soundtrack_timeline = data.get('soundtrack_timeline', [])
     if 'dynamic_navigation' in data:
         story.dynamic_navigation = data['dynamic_navigation']
+    if 'semantic_metadata' in data:
+        story.semantic_metadata = data['semantic_metadata']
+    if 'version_metadata' in data:
+        story.version_metadata = data['version_metadata']
     if 'character_profiles' in data:
         story.character_profiles = data.get('character_profiles', [])
     if 'research_file' in data:
@@ -308,4 +402,307 @@ def api_git_status(request):
         'success': True,
         'available': True,
         'status': status
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def api_semantic_search(request):
+    """Semantic search across story anchors extracted from MASTER_DOCUMENT metadata."""
+    stories = StoryMarkdownParser.load_all_stories()
+    anchors = [_semantic_anchor_for_story(story) for story in stories]
+
+    filters = {
+        "mlas_color": request.GET.get("mlas_color", "").strip().lower(),
+        "timeline_cell": request.GET.get("timeline_cell", "").strip().lower(),
+        "semantic_intent": request.GET.get("semantic_intent", "").strip().lower(),
+        "scaffold_version": request.GET.get("scaffold_version", "").strip(),
+        "dchd_atom": request.GET.get("dchd_atom", "").strip().lower(),
+        "status": request.GET.get("status", "").strip().lower(),
+        "semantic_path": request.GET.get("semantic_path", "").strip().lower(),
+    }
+
+    results = anchors
+
+    if filters["mlas_color"]:
+        results = [item for item in results if filters["mlas_color"] in str(item.get("mlas_color", "")).lower()]
+    if filters["timeline_cell"]:
+        results = [item for item in results if filters["timeline_cell"] in str(item.get("timeline_cell", "")).lower()]
+    if filters["semantic_intent"]:
+        results = [item for item in results if filters["semantic_intent"] in str(item.get("semantic_intent", "")).lower()]
+    if filters["semantic_path"]:
+        results = [item for item in results if filters["semantic_path"] in str(item.get("semantic_path", "")).lower()]
+    if filters["status"]:
+        results = [item for item in results if filters["status"] == str(item.get("status", "")).lower()]
+    if filters["dchd_atom"]:
+        results = [
+            item for item in results
+            if any(filters["dchd_atom"] in atom.lower() for atom in item.get("dchd_atoms", []))
+        ]
+
+    if filters["scaffold_version"]:
+        try:
+            target_version = int(filters["scaffold_version"])
+            results = [item for item in results if item.get("scaffold_version") == target_version]
+        except ValueError:
+            return JsonResponse({
+                "success": False,
+                "error": "scaffold_version must be an integer",
+            }, status=400)
+
+    return JsonResponse({
+        "success": True,
+        "count": len(results),
+        "filters": filters,
+        "results": results,
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def api_semantic_clusters(request):
+    """Cluster stories into semantic constellations across the story universe."""
+    cluster_by = request.GET.get("by", "mlas").strip().lower()
+    allowed = {"mlas", "timeline_phase", "semantic_path", "scaffold_version", "dchd_cluster"}
+    if cluster_by not in allowed:
+        return JsonResponse({
+            "success": False,
+            "error": f"Invalid cluster mode '{cluster_by}'. Allowed: {', '.join(sorted(allowed))}",
+        }, status=400)
+
+    stories = StoryMarkdownParser.load_all_stories()
+    anchors = [_semantic_anchor_for_story(story) for story in stories]
+
+    buckets = defaultdict(list)
+    for item in anchors:
+        if cluster_by == "mlas":
+            key = item.get("mlas_color") or "unknown"
+        elif cluster_by == "timeline_phase":
+            key = item.get("timeline_phase") or "unknown"
+        elif cluster_by == "semantic_path":
+            key = item.get("semantic_path") or "unknown"
+        elif cluster_by == "scaffold_version":
+            key = str(item.get("scaffold_version") if item.get("scaffold_version") is not None else "unknown")
+        else:
+            atoms = item.get("dchd_atoms") or []
+            key = " | ".join(sorted(atoms[:3])) if atoms else "none"
+        buckets[key].append(item)
+
+    clusters = []
+    for key, items in sorted(buckets.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        clusters.append({
+            "cluster_key": key,
+            "count": len(items),
+            "entries": [
+                {
+                    "entry_id": item["entry_id"],
+                    "title": item["title"],
+                    "status": item["status"],
+                    "semantic_path": item.get("semantic_path", ""),
+                    "scaffold_version": item.get("scaffold_version"),
+                }
+                for item in items
+            ],
+        })
+
+    return JsonResponse({
+        "success": True,
+        "cluster_by": cluster_by,
+        "cluster_count": len(clusters),
+        "clusters": clusters,
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def api_semantic_diff(request):
+    """Cross-story semantic diffing for consistency checks."""
+    source_id = request.GET.get("source_id")
+    target_id = request.GET.get("target_id")
+    if not source_id or not target_id:
+        return JsonResponse({
+            "success": False,
+            "error": "source_id and target_id are required",
+        }, status=400)
+
+    try:
+        source_id_int = int(source_id)
+        target_id_int = int(target_id)
+    except ValueError:
+        return JsonResponse({
+            "success": False,
+            "error": "source_id and target_id must be integers",
+        }, status=400)
+
+    source_story = StoryMarkdownParser.get_story_by_id(source_id_int)
+    target_story = StoryMarkdownParser.get_story_by_id(target_id_int)
+
+    if not source_story or not target_story:
+        return JsonResponse({
+            "success": False,
+            "error": "One or both stories not found",
+        }, status=404)
+
+    source_anchor = _semantic_anchor_for_story(source_story)
+    target_anchor = _semantic_anchor_for_story(target_story)
+
+    source_semantic_map = _parse_metadata_map(source_story.semantic_metadata)
+    target_semantic_map = _parse_metadata_map(target_story.semantic_metadata)
+    semantic_keys = sorted(set(source_semantic_map.keys()) | set(target_semantic_map.keys()))
+    semantic_changes = []
+    for key in semantic_keys:
+        source_value = source_semantic_map.get(key, "")
+        target_value = target_semantic_map.get(key, "")
+        if source_value != target_value:
+            semantic_changes.append({
+                "key": key,
+                "source": source_value,
+                "target": target_value,
+            })
+
+    source_chapters = source_story.chapters or []
+    target_chapters = target_story.chapters or []
+    source_titles = [str(ch.get("title", "")).strip() for ch in source_chapters]
+    target_titles = [str(ch.get("title", "")).strip() for ch in target_chapters]
+
+    source_atoms = set(source_anchor.get("dchd_atoms", []))
+    target_atoms = set(target_anchor.get("dchd_atoms", []))
+
+    return JsonResponse({
+        "success": True,
+        "source": {
+            "entry_id": source_story.entry_id,
+            "title": source_story.title,
+            "scaffold_version": source_anchor.get("scaffold_version"),
+            "chapter_count": len(source_chapters),
+        },
+        "target": {
+            "entry_id": target_story.entry_id,
+            "title": target_story.title,
+            "scaffold_version": target_anchor.get("scaffold_version"),
+            "chapter_count": len(target_chapters),
+        },
+        "diff": {
+            "scaffold_version_delta": {
+                "source": source_anchor.get("scaffold_version"),
+                "target": target_anchor.get("scaffold_version"),
+            },
+            "semantic_metadata_changes": semantic_changes,
+            "chapter_structure_changes": {
+                "chapter_count_delta": len(target_chapters) - len(source_chapters),
+                "added_titles": sorted(set(target_titles) - set(source_titles)),
+                "removed_titles": sorted(set(source_titles) - set(target_titles)),
+            },
+            "rationale_changes": {
+                "note": "Rationale is not currently persisted per story entry; dynamic_navigation is used as the closest authored narrative rationale signal.",
+                "source_dynamic_navigation": source_story.dynamic_navigation,
+                "target_dynamic_navigation": target_story.dynamic_navigation,
+                "changed": source_story.dynamic_navigation != target_story.dynamic_navigation,
+            },
+            "dchd_atom_shifts": {
+                "added": sorted(target_atoms - source_atoms),
+                "removed": sorted(source_atoms - target_atoms),
+                "unchanged": sorted(source_atoms & target_atoms),
+            },
+        },
+    })
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+@csrf_exempt
+def api_semantic_presets(request):
+    """List or create semantic operation presets for the authenticated user."""
+    if request.method == "GET":
+        presets = SemanticPreset.objects.filter(owner=request.user).order_by('preset_type', 'name')
+        results = [
+            {
+                "id": preset.id,
+                "name": preset.name,
+                "preset_type": preset.preset_type,
+                "payload": preset.payload,
+                "updated_at": preset.updated_at.isoformat(),
+            }
+            for preset in presets
+        ]
+        return JsonResponse({
+            "success": True,
+            "count": len(results),
+            "results": results,
+        })
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    name = str(data.get("name") or "").strip()
+    preset_type = str(data.get("preset_type") or "").strip().lower()
+    payload = data.get("payload") if isinstance(data.get("payload"), dict) else {}
+
+    if not name:
+        return JsonResponse({"success": False, "error": "name is required"}, status=400)
+    if preset_type not in {"search", "cluster"}:
+        return JsonResponse({"success": False, "error": "preset_type must be search or cluster"}, status=400)
+
+    preset, created = SemanticPreset.objects.update_or_create(
+        owner=request.user,
+        name=name,
+        preset_type=preset_type,
+        defaults={"payload": payload},
+    )
+
+    return JsonResponse({
+        "success": True,
+        "created": created,
+        "preset": {
+            "id": preset.id,
+            "name": preset.name,
+            "preset_type": preset.preset_type,
+            "payload": preset.payload,
+            "updated_at": preset.updated_at.isoformat(),
+        },
+    })
+
+
+@require_http_methods(["POST", "DELETE"])
+@login_required
+@csrf_exempt
+def api_semantic_preset_detail(request, preset_id: int):
+    """Update or delete an existing semantic preset."""
+    try:
+        preset = SemanticPreset.objects.get(pk=preset_id, owner=request.user)
+    except SemanticPreset.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Preset not found"}, status=404)
+
+    if request.method == "DELETE":
+        preset.delete()
+        return JsonResponse({"success": True})
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    name = data.get("name")
+    payload = data.get("payload")
+
+    if name is not None:
+        normalized_name = str(name).strip()
+        if not normalized_name:
+            return JsonResponse({"success": False, "error": "name cannot be empty"}, status=400)
+        preset.name = normalized_name
+    if isinstance(payload, dict):
+        preset.payload = payload
+
+    preset.save()
+    return JsonResponse({
+        "success": True,
+        "preset": {
+            "id": preset.id,
+            "name": preset.name,
+            "preset_type": preset.preset_type,
+            "payload": preset.payload,
+            "updated_at": preset.updated_at.isoformat(),
+        },
     })

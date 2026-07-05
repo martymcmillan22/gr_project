@@ -184,7 +184,7 @@ export default function QuadrantSandbox({ goToQuadrantFn = goToQuadrant } = {}) 
 
       {overlayData.inversion?.is_active ? (
         <p className="quadrant-inversion-banner" role="status" aria-live="polite">
-          Inversion hinge active: {overlayData.inversion.source.mode.toUpperCase()} {overlayData.inversion.source.hour} -> {overlayData.inversion.target.mode.toUpperCase()} {overlayData.inversion.target.hour}
+          Inversion hinge active: {overlayData.inversion.source.mode.toUpperCase()} {overlayData.inversion.source.hour} {"->"} {overlayData.inversion.target.mode.toUpperCase()} {overlayData.inversion.target.hour}
         </p>
       ) : null}
     </section>

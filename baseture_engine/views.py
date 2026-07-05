@@ -14,7 +14,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 
 from .generator import get_generator, get_hierarchy_generator
-from .models import GeneratedTier, TierDefinition, IndustryProfile, SVEMTier, CCCPTier, DCHDTier
+from .models import GeneratedTier, TierDefinition, IndustryProfile, SVEMTier, CCCPTier, DCHDTier, StoryScaffold
 
 
 @require_http_methods(["POST"])
@@ -711,6 +711,145 @@ def api_expand_all_compartments(request, root_id):
             'errors': errors if errors else None,
         })
     
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def api_get_story_scaffolds(request, root_id):
+    """Return all saved scaffolds for a root hierarchy tier."""
+    try:
+        try:
+            root_tier = GeneratedTier.objects.get(pk=root_id)
+        except GeneratedTier.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'GeneratedTier {root_id} not found',
+            }, status=404)
+
+        scaffolds = StoryScaffold.objects.filter(root_tier=root_tier).order_by('node_key')
+        results = [
+            {
+                'id': scaffold.id,
+                'root_tier_id': scaffold.root_tier_id,
+                'node_key': scaffold.node_key,
+                'node_type': scaffold.node_type,
+                'node_id': scaffold.node_id,
+                'timeline_lattice_index': scaffold.timeline_lattice_index,
+                'timeline_label': scaffold.timeline_label,
+                'semantic_intent_id': scaffold.semantic_intent_id,
+                'talking_points': scaffold.talking_points,
+                'core_concept': scaffold.core_concept,
+                'synopsis': scaffold.synopsis,
+                'chapter_structure': scaffold.chapter_structure,
+                'dchd_atoms': scaffold.dchd_atoms,
+                'scaffold_version': scaffold.scaffold_version,
+                'decision': scaffold.decision,
+                'updated_at': scaffold.updated_at.isoformat(),
+            }
+            for scaffold in scaffolds
+        ]
+
+        return JsonResponse({
+            'success': True,
+            'root_id': root_id,
+            'results': results,
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def api_upsert_story_scaffold(request):
+    """Create or update a story scaffold mapped to a hierarchy node."""
+    try:
+        data = json.loads(request.body)
+        root_tier_id = data.get('root_tier_id')
+        node_key = str(data.get('node_key') or '').strip()
+        node_type = str(data.get('node_type') or '').strip().lower()
+        node_id = data.get('node_id')
+
+        if not root_tier_id:
+            return JsonResponse({'success': False, 'error': 'root_tier_id is required'}, status=400)
+        if not node_key:
+            return JsonResponse({'success': False, 'error': 'node_key is required'}, status=400)
+
+        if node_type not in {'root', 'svem', 'cccp', 'dchd'}:
+            node_type = node_key.split(':', 1)[0].strip().lower() if ':' in node_key else 'root'
+        if node_type not in {'root', 'svem', 'cccp', 'dchd'}:
+            return JsonResponse({'success': False, 'error': 'node_type must be one of root, svem, cccp, dchd'}, status=400)
+
+        try:
+            root_tier = GeneratedTier.objects.get(pk=int(root_tier_id))
+        except (ValueError, TypeError, GeneratedTier.DoesNotExist):
+            return JsonResponse({'success': False, 'error': f'GeneratedTier {root_tier_id} not found'}, status=404)
+
+        try:
+            normalized_node_id = int(node_id) if node_id is not None else None
+        except (TypeError, ValueError):
+            normalized_node_id = None
+
+        defaults = {
+            'node_type': node_type,
+            'node_id': normalized_node_id,
+            'timeline_lattice_index': data.get('timeline_lattice_index'),
+            'timeline_label': str(data.get('timeline_label') or ''),
+            'semantic_intent_id': str(data.get('semantic_intent_id') or ''),
+            'talking_points': str(data.get('talking_points') or ''),
+            'core_concept': str(data.get('core_concept') or ''),
+            'synopsis': str(data.get('synopsis') or ''),
+            'chapter_structure': str(data.get('chapter_structure') or ''),
+            'dchd_atoms': data.get('dchd_atoms') if isinstance(data.get('dchd_atoms'), list) else [],
+            'decision': str(data.get('decision') or 'draft').lower(),
+            'updated_by': request.user,
+        }
+
+        if defaults['decision'] not in {'draft', 'approved', 'rejected'}:
+            defaults['decision'] = 'draft'
+
+        scaffold = StoryScaffold.objects.filter(root_tier=root_tier, node_key=node_key).first()
+        created = scaffold is None
+        if created:
+            scaffold = StoryScaffold(
+                root_tier=root_tier,
+                node_key=node_key,
+                created_by=request.user,
+                scaffold_version=1,
+                **defaults,
+            )
+        else:
+            for field, value in defaults.items():
+                setattr(scaffold, field, value)
+            scaffold.scaffold_version = int(scaffold.scaffold_version or 1) + 1
+
+        scaffold.save()
+
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'scaffold': {
+                'id': scaffold.id,
+                'root_tier_id': scaffold.root_tier_id,
+                'node_key': scaffold.node_key,
+                'node_type': scaffold.node_type,
+                'node_id': scaffold.node_id,
+                'timeline_lattice_index': scaffold.timeline_lattice_index,
+                'timeline_label': scaffold.timeline_label,
+                'semantic_intent_id': scaffold.semantic_intent_id,
+                'talking_points': scaffold.talking_points,
+                'core_concept': scaffold.core_concept,
+                'synopsis': scaffold.synopsis,
+                'chapter_structure': scaffold.chapter_structure,
+                'dchd_atoms': scaffold.dchd_atoms,
+                'scaffold_version': scaffold.scaffold_version,
+                'decision': scaffold.decision,
+                'updated_at': scaffold.updated_at.isoformat(),
+            },
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

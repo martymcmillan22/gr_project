@@ -41,3 +41,26 @@ class StorySession(models.Model):
     
     def __str__(self):
         return f"{self.entry_id}. {self.title} ({self.get_status_display()})"
+
+
+class SemanticPreset(models.Model):
+    """Persisted semantic operations presets per user."""
+
+    PRESET_TYPE_CHOICES = [
+        ('search', 'Search Preset'),
+        ('cluster', 'Cluster Preset'),
+    ]
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='semantic_presets')
+    name = models.CharField(max_length=120)
+    preset_type = models.CharField(max_length=20, choices=PRESET_TYPE_CHOICES)
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['preset_type', 'name']
+        unique_together = ('owner', 'preset_type', 'name')
+
+    def __str__(self):
+        return f"{self.owner_id}:{self.preset_type}:{self.name}"

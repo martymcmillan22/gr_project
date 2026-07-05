@@ -100,12 +100,16 @@ class GitIntegration:
             
             # Get the MASTER_DOCUMENT.md file path (correct location with hyphen)
             master_doc_path = Path(self.repo_path) / "storytelling-engine" / "MASTER_DOCUMENT.md"
+            story_index_path = Path(self.repo_path) / "storytelling-engine" / "STORY_INDEX.md"
             
             if not master_doc_path.exists():
                 return False
             
             # Stage the changes
-            self.repo.index.add([str(master_doc_path)])
+            files_to_stage = [str(master_doc_path)]
+            if story_index_path.exists():
+                files_to_stage.append(str(story_index_path))
+            self.repo.index.add(files_to_stage)
             
             # Check if there are actual changes to commit
             if not self.repo.index.diff("HEAD"):

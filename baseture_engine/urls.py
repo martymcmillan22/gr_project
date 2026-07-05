@@ -25,4 +25,8 @@ urlpatterns = [
     path('api/hierarchy/status/<int:root_id>/', views.api_get_expansion_status, name='api_expansion_status'),
     path('api/hierarchy/expand-all-branches/<int:root_id>/', views.api_expand_all_branches, name='api_expand_all_branches'),
     path('api/hierarchy/expand-all-compartments/<int:root_id>/', views.api_expand_all_compartments, name='api_expand_all_compartments'),
+
+    # API Endpoints - Story Scaffolding Persistence
+    path('api/scaffolds/<int:root_id>/', views.api_get_story_scaffolds, name='api_get_story_scaffolds'),
+    path('api/scaffolds/upsert/', views.api_upsert_story_scaffold, name='api_upsert_story_scaffold'),
 ]

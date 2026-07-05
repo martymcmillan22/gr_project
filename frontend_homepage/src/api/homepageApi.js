@@ -369,3 +369,283 @@ export async function generateSlideBundle(slideId, payload) {
 
   return data;
 }
+
+export async function btpeGenerateTier(payload) {
+  const response = await fetch("/baseture-engine/api/generate/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to generate BTPE tier");
+  }
+
+  return data;
+}
+
+export async function btpeGenerateSvem(generatedTierId) {
+  const response = await fetch("/baseture-engine/api/hierarchy/generate-svem/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({ generated_tier_id: generatedTierId }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to generate SVEM branches");
+  }
+  return data;
+}
+
+export async function btpeGenerateCccp(svemTierId) {
+  const response = await fetch("/baseture-engine/api/hierarchy/generate-cccp/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({ svem_tier_id: svemTierId }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to generate CCCP compartments");
+  }
+  return data;
+}
+
+export async function btpeGenerateDchd(cccpTierId) {
+  const response = await fetch("/baseture-engine/api/hierarchy/generate-dchd/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({ cccp_tier_id: cccpTierId }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to generate DCHD subcells");
+  }
+  return data;
+}
+
+export async function btpeGetHierarchyTree(rootId) {
+  const response = await fetch(`/baseture-engine/api/hierarchy/tree/${rootId}/`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load hierarchy tree");
+  }
+  return data;
+}
+
+export async function btpeGetExpansionStatus(rootId) {
+  const response = await fetch(`/baseture-engine/api/hierarchy/status/${rootId}/`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load hierarchy status");
+  }
+  return data;
+}
+
+export async function btpeApproveGeneratedTier(rootId) {
+  const response = await fetch(`/baseture-engine/api/approve/${rootId}/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({}),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to approve generated tier");
+  }
+  return data;
+}
+
+export async function btpeGetStoryScaffolds(rootId) {
+  const response = await fetch(`/baseture-engine/api/scaffolds/${rootId}/`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load story scaffolds");
+  }
+  return data;
+}
+
+export async function btpeUpsertStoryScaffold(payload) {
+  const response = await fetch("/baseture-engine/api/scaffolds/upsert/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to save story scaffold");
+  }
+  return data;
+}
+
+export async function fetchStorytellingStories() {
+  const response = await fetch("/storytelling-dashboard/api/stories/", {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load storytelling entries");
+  }
+  return data;
+}
+
+export async function saveStorytellingEntry(entryId, payload) {
+  const response = await fetch(`/storytelling-dashboard/api/story/${entryId}/save/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to save storytelling entry");
+  }
+  return data;
+}
+
+export async function fetchSemanticStorySearch(filters = {}) {
+  const params = new URLSearchParams();
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      params.set(key, String(value));
+    }
+  });
+
+  const url = params.toString()
+    ? `/storytelling-dashboard/api/semantic/search/?${params.toString()}`
+    : "/storytelling-dashboard/api/semantic/search/";
+
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to run semantic search");
+  }
+  return data;
+}
+
+export async function fetchSemanticStoryClusters(clusterBy = "mlas") {
+  const params = new URLSearchParams({ by: String(clusterBy || "mlas") });
+  const response = await fetch(`/storytelling-dashboard/api/semantic/clusters/?${params.toString()}`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load semantic clusters");
+  }
+  return data;
+}
+
+export async function fetchSemanticStoryDiff(sourceId, targetId) {
+  const params = new URLSearchParams({
+    source_id: String(sourceId || ""),
+    target_id: String(targetId || ""),
+  });
+
+  const response = await fetch(`/storytelling-dashboard/api/semantic/diff/?${params.toString()}`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to compute semantic diff");
+  }
+  return data;
+}
+
+export async function fetchSemanticPresetsStore() {
+  const response = await fetch("/storytelling-dashboard/api/semantic/presets/", {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to load semantic presets");
+  }
+  return data;
+}
+
+export async function saveSemanticPresetStore(payload) {
+  const response = await fetch("/storytelling-dashboard/api/semantic/presets/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to save semantic preset");
+  }
+  return data;
+}
+
+export async function deleteSemanticPresetStore(presetId) {
+  const response = await fetch(`/storytelling-dashboard/api/semantic/presets/${presetId}/`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Unable to delete semantic preset");
+  }
+  return data;
+}

@@ -25,6 +25,10 @@ import BasetrueCoverSlide from "./presentation/BasetrueCoverSlide";
 import RepositoryRelayBlueprint from "./presentation/RepositoryRelayBlueprint";
 import StatisticsRelayDiagram from "./presentation/StatisticsRelayDiagram";
 import RoutingLayoutPreview from "./presentation/RoutingLayoutPreview";
+import SquareRootTimelineGrid from "./presentation/SquareRootTimelineGrid";
+import StoryHierarchyExplorer from "./presentation/StoryHierarchyExplorer";
+import SemanticOperationsPanel from "./presentation/SemanticOperationsPanel";
+import { SQUARE_ROOT_TIMELINE_CELLS } from "./presentation/squareRootTimelineModel";
 import DashboardCard from "./ui/DashboardCard";
 import FlowPanel from "./ui/FlowPanel";
 import QuickActions from "./ui/QuickActions";
@@ -42,6 +46,7 @@ const fallbackTasks = [
 ];
 const fallbackSettings = { notifications: true, dark_mode: false };
 const PRESET_STORAGE_KEY = "mdx_registry_custom_presets_v1";
+const TIMELINE_SELECTION_STORAGE_KEY = "btpe_timeline_selection_v1";
 const QUICK_PRESET_IDS = ["operations_view", "customer_view", "delivery_view", "executive_view"];
 const ROUTE_PHASES = ["create", "post", "work"];
 const QPC_COUNT_PRESETS = [
@@ -113,6 +118,10 @@ function detectQpcPresetLabel(profile = []) {
     }
   }
   return "custom";
+}
+
+function resolveTimelineCellByIndex(index) {
+  return SQUARE_ROOT_TIMELINE_CELLS.find((cell) => Number(cell.latticeIndex || 0) === Number(index || 0)) || null;
 }
 
 export default function App() {
@@ -196,6 +205,22 @@ export default function App() {
   const [relayMetaTermCount, setRelayMetaTermCount] = useState(64);
   const [relayTier4Count, setRelayTier4Count] = useState(0);
   const [relaySelectedNode, setRelaySelectedNode] = useState(null);
+  const [timelineSelection, setTimelineSelection] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    try {
+      const raw = window.localStorage.getItem(TIMELINE_SELECTION_STORAGE_KEY);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      return resolveTimelineCellByIndex(parsed?.latticeIndex || 0);
+    } catch (_error) {
+      return null;
+    }
+  });
+  const [storyEnginePanelTab, setStoryEnginePanelTab] = useState("timeline");
   const [qpcLabel, setQpcLabel] = useState("Quantum Processor Circuit (QPC)");
   const [qpcRelayNames, setQpcRelayNames] = useState(["Relay A", "Relay B", "Relay C", "Relay D"]);
   const [qpcRelaySubjects, setQpcRelaySubjects] = useState(["Subject 1", "Subject 2", "Subject 3", "Subject 4"]);
@@ -289,6 +314,20 @@ export default function App() {
     const darkModeEnabled = Boolean(overview.settings?.dark_mode);
     document.body.classList.toggle("dark-mode", darkModeEnabled);
   }, [overview.settings?.dark_mode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (!timelineSelection) {
+      window.localStorage.removeItem(TIMELINE_SELECTION_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(
+      TIMELINE_SELECTION_STORAGE_KEY,
+      JSON.stringify({ latticeIndex: timelineSelection.latticeIndex }),
+    );
+  }, [timelineSelection]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -1574,6 +1613,26 @@ export default function App() {
     showNotice("success", `Loaded ${relay.name} into Repository Relay panel`);
   }, [qpcCompareAllowed, qpcCompareMode, showNotice]);
 
+  const handleTimelineCellSelect = useCallback((cell) => {
+    if (!cell) {
+      return;
+    }
+
+    setTimelineSelection(cell);
+    setPresetInput(cell.presetId || "");
+    setRelaySubjectLabel(String(cell.mlasSubject || "Subject"));
+    setRelayBranchCount(4);
+    setRelayTermCount(16);
+    setRelayMetaTermCount(64);
+    setRelayTier4Count(0);
+    setRelaySelectedNode({
+      tier: "SVEM -> CCCP -> DCHD",
+      label: `${cell.links?.svemId || "svem"} / ${cell.links?.cccpId || "cccp"} / ${cell.links?.dchdId || "dchd"}`,
+      index: Number(cell.latticeIndex || 0),
+    });
+    setStoryEnginePanelTab("timeline");
+  }, []);
+
   if (isAstrologyWheelRoute) {
     return (
       <main className="homepage-wrap astrology-route">
@@ -1617,6 +1676,10 @@ export default function App() {
       <AstrologyWheelDemo />
       <QuickActions actions={actions} />
       <FlowPanel flow={overview.flow || fallbackFlow} />
+      <SquareRootTimelineGrid
+        onCellSelect={handleTimelineCellSelect}
+        initialLatticeIndex={timelineSelection?.latticeIndex || 1}
+      />
       <Taskboard tasks={tasks} />
       <SettingsPanel settings={overview.settings || fallbackSettings} onChange={onSettingChange} />
 
@@ -1641,6 +1704,81 @@ export default function App() {
             Load Route
           </button>
         </div>
+
+        {timelineSelection ? (
+          <div className="timeline-handoff panel story-engine-panel">
+            <p className="eyebrow">Timeline Handoff</p>
+            <p className="status-line">
+              Lattice {timelineSelection.latticeIndex} {"->"} {timelineSelection.timelineLabel} / {timelineSelection.cpwState} / preset {timelineSelection.presetId}
+            </p>
+
+            <div className="story-engine-tabs" role="tablist" aria-label="Story Engine timeline tabs">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={storyEnginePanelTab === "timeline"}
+                className={`story-engine-tab${storyEnginePanelTab === "timeline" ? " is-active" : ""}`}
+                onClick={() => setStoryEnginePanelTab("timeline")}
+              >
+                Timeline Context
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={storyEnginePanelTab === "hierarchy"}
+                className={`story-engine-tab${storyEnginePanelTab === "hierarchy" ? " is-active" : ""}`}
+                onClick={() => setStoryEnginePanelTab("hierarchy")}
+              >
+                Hierarchy Links
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={storyEnginePanelTab === "semantic"}
+                className={`story-engine-tab${storyEnginePanelTab === "semantic" ? " is-active" : ""}`}
+                onClick={() => setStoryEnginePanelTab("semantic")}
+              >
+                Semantic Ops
+              </button>
+            </div>
+
+            {storyEnginePanelTab === "timeline" ? (
+              <div className="story-engine-content" role="tabpanel" aria-label="Timeline context panel">
+                <ul>
+                  <li>Preset: {timelineSelection.presetId}</li>
+                  <li>MLAS Subject: {timelineSelection.mlasSubject}</li>
+                  <li>Color Token: {timelineSelection.mlasColorToken}</li>
+                  <li>Semantic Intent: {timelineSelection.semanticIntentId}</li>
+                </ul>
+                <div className="action-grid">
+                  <button type="button" onClick={() => applyPresetForRoute(timelineSelection.presetId)} disabled={isPresetApplying}>
+                    {isPresetApplying ? "Applying..." : "Apply Timeline Preset"}
+                  </button>
+                  <button type="button" onClick={() => loadResolvedRoute(routeSlideId)} disabled={isRouteLoading}>
+                    {isRouteLoading ? "Loading..." : "Refresh Route Preview"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {storyEnginePanelTab === "hierarchy" ? (
+              <div className="story-engine-content" role="tabpanel" aria-label="Hierarchy links panel">
+                <ul>
+                  <li>SVEM: {timelineSelection.links?.svemId}</li>
+                  <li>CCCP: {timelineSelection.links?.cccpId}</li>
+                  <li>DCHD: {timelineSelection.links?.dchdId}</li>
+                </ul>
+                <StoryHierarchyExplorer timelineSelection={timelineSelection} />
+              </div>
+            ) : null}
+
+            {storyEnginePanelTab === "semantic" ? (
+              <div className="story-engine-content" role="tabpanel" aria-label="Semantic operations panel">
+                <SemanticOperationsPanel timelineSelection={timelineSelection} />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="routing-presets">
           <label>

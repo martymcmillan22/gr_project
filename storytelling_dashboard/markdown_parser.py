@@ -8,10 +8,12 @@ while preserving the document structure and all non-story sections.
 import re
 import os
 from pathlib import Path
+from datetime import datetime
 from typing import Dict, List, Optional
 
 
 MASTER_DOCUMENT_PATH = Path('/Users/martymcmillan/Desktop/GrassRoots/storytelling-engine/MASTER_DOCUMENT.md')
+STORY_INDEX_PATH = Path('/Users/martymcmillan/Desktop/GrassRoots/storytelling-engine/STORY_INDEX.md')
 
 # Story format levels
 FORMAT_CHOICES = {
@@ -37,6 +39,8 @@ class StoryEntry:
         self.synopsis = ""
         self.chapters = []  # List of chapter dicts: {number, title, description}
         self.dynamic_navigation = ""
+        self.semantic_metadata = ""
+        self.version_metadata = ""
         self.soundtrack_timeline = []
         self.character_profiles = []
         self.research_file = ""
@@ -57,6 +61,8 @@ class StoryEntry:
             'synopsis': self.synopsis,
             'chapters': self.chapters,
             'character_profiles': self.character_profiles,
+            'semantic_metadata': self.semantic_metadata,
+            'version_metadata': self.version_metadata,
             'chapter_count': len(self.chapters),
             'character_count': len(self.character_profiles),
             'chapters_preview': self.chapters[:3] if self.chapters else [],
@@ -195,6 +201,8 @@ class StoryMarkdownParser:
         story.chapters = StoryMarkdownParser._extract_chapters(entry_content)
         story.character_profiles = StoryMarkdownParser._extract_characters(entry_content)
         story.dynamic_navigation = StoryMarkdownParser._extract_text_section(entry_content, 'Dynamic Navigation')
+        story.semantic_metadata = StoryMarkdownParser._extract_text_section(entry_content, 'Semantic Metadata')
+        story.version_metadata = StoryMarkdownParser._extract_text_section(entry_content, 'Version Metadata')
         story.soundtrack_timeline = StoryMarkdownParser._extract_soundtracks(entry_content)
         story.research_file = StoryMarkdownParser._extract_text_section(entry_content, 'Research File')
         story.future_timeline = StoryMarkdownParser._extract_text_section(entry_content, 'Future Timeline')
@@ -364,10 +372,185 @@ class StoryMarkdownParser:
             
             # Write back to file
             MASTER_DOCUMENT_PATH.write_text(new_content, encoding='utf-8')
+
+            # Keep STORY_INDEX in sync with entry title/status/link metadata.
+            StoryMarkdownParser._sync_story_index(story)
             return True
         except Exception as e:
             print(f"Error saving entry: {e}")
             return False
+
+    @staticmethod
+    def _status_symbol(status: str) -> str:
+        normalized = str(status or '').strip().lower()
+        if normalized == 'complete':
+            return '✅ Complete'
+        if normalized == 'in_progress':
+            return '🔄 In Progress'
+        return '⏳ Pending'
+
+    @staticmethod
+    def _compact_core_concept(core_concept: str, max_len: int = 56) -> str:
+        text = str(core_concept or '').strip().replace('\n', ' ')
+        if not text:
+            return '—'
+        if len(text) <= max_len:
+            return text
+        return text[: max_len - 1].rstrip() + '…'
+
+    @staticmethod
+    def _compact_value(value: str, max_len: int = 96) -> str:
+        text = str(value or '').strip().replace('\n', ' ')
+        if not text:
+            return '—'
+        if len(text) <= max_len:
+            return text
+        return text[: max_len - 1].rstrip() + '…'
+
+    @staticmethod
+    def _extract_metadata_map(block: str) -> Dict[str, str]:
+        result: Dict[str, str] = {}
+        for line in str(block or '').split('\n'):
+            match = re.match(r'^\s*-\s*([^:]+):\s*(.+?)\s*$', line.strip())
+            if not match:
+                continue
+            key = match.group(1).strip().lower()
+            value = match.group(2).strip()
+            if key:
+                result[key] = value
+        return result
+
+    @staticmethod
+    def _first_non_empty(values: List[str]) -> str:
+        for value in values:
+            if str(value or '').strip():
+                return str(value).strip()
+        return '—'
+
+    @staticmethod
+    def _sync_story_index(story: StoryEntry) -> None:
+        """Update STORY_INDEX row for this entry with latest link/title/status metadata."""
+        if not STORY_INDEX_PATH.exists():
+            return
+
+        content = STORY_INDEX_PATH.read_text(encoding='utf-8')
+        lines = content.split('\n')
+
+        today = str(os.getenv('STORY_INDEX_DATE_OVERRIDE') or '') or datetime.now().strftime('%Y-%m-%d')
+        entry_link = f'[MASTER_DOCUMENT.md#entry-{story.entry_id}](MASTER_DOCUMENT.md#entry-{story.entry_id})'
+        status_symbol = StoryMarkdownParser._status_symbol(story.status)
+        core_concept_preview = StoryMarkdownParser._compact_core_concept(story.core_concept)
+
+        semantic_map = StoryMarkdownParser._extract_metadata_map(story.semantic_metadata)
+        version_map = StoryMarkdownParser._extract_metadata_map(story.version_metadata)
+
+        mlas_color = StoryMarkdownParser._first_non_empty([
+            semantic_map.get('mlas color', ''),
+        ])
+        timeline_cell = StoryMarkdownParser._first_non_empty([
+            semantic_map.get('timeline cell', ''),
+        ])
+        semantic_path = StoryMarkdownParser._first_non_empty([
+            semantic_map.get('semantic path', ''),
+            story.dynamic_navigation,
+        ])
+        hierarchy_node_key = StoryMarkdownParser._first_non_empty([
+            semantic_map.get('hierarchy node key', ''),
+            version_map.get('node key', ''),
+        ])
+        scaffold_version = StoryMarkdownParser._first_non_empty([
+            version_map.get('scaffold version', ''),
+        ])
+        dchd_atom_summary = StoryMarkdownParser._first_non_empty([
+            semantic_map.get('dchd atom summary', ''),
+        ])
+
+        in_completed = False
+        in_placeholder = False
+        in_semantic_atlas = False
+        updated_main_row = False
+        updated_semantic_row = False
+
+        for idx, raw_line in enumerate(lines):
+            line = raw_line.strip()
+
+            if line.startswith('## **COMPLETED ENTRIES'):
+                in_completed = True
+                in_placeholder = False
+                continue
+            if line.startswith('## **PLACEHOLDER ENTRIES'):
+                in_completed = False
+                in_placeholder = True
+                in_semantic_atlas = False
+                continue
+            if line.startswith('## **SEMANTIC ANCHOR ATLAS'):
+                in_completed = False
+                in_placeholder = False
+                in_semantic_atlas = True
+                continue
+            if line.startswith('## **') and not line.startswith('## **COMPLETED ENTRIES') and not line.startswith('## **PLACEHOLDER ENTRIES') and not line.startswith('## **SEMANTIC ANCHOR ATLAS'):
+                in_completed = False
+                in_placeholder = False
+                in_semantic_atlas = False
+
+            if not line.startswith('|'):
+                continue
+            if re.match(r'^\|\s*#\s*\|', line) or re.match(r'^\|\s*-+\s*\|', line):
+                continue
+
+            row_match = re.match(r'^\|\s*(\d+)\s*\|', line)
+            if not row_match:
+                continue
+
+            if int(row_match.group(1)) != int(story.entry_id):
+                continue
+
+            cells = [cell.strip() for cell in raw_line.split('|')[1:-1]]
+            if in_semantic_atlas:
+                if len(cells) < 8:
+                    continue
+                cells[1] = story.title
+                cells[2] = StoryMarkdownParser._compact_value(mlas_color, max_len=24)
+                cells[3] = StoryMarkdownParser._compact_value(timeline_cell, max_len=30)
+                cells[4] = StoryMarkdownParser._compact_value(semantic_path, max_len=90)
+                cells[5] = StoryMarkdownParser._compact_value(hierarchy_node_key, max_len=30)
+                cells[6] = StoryMarkdownParser._compact_value(scaffold_version, max_len=12)
+                cells[7] = StoryMarkdownParser._compact_value(dchd_atom_summary, max_len=96)
+
+                lines[idx] = '| ' + ' | '.join(cells) + ' |'
+                updated_semantic_row = True
+                continue
+
+            if len(cells) < 6:
+                continue
+
+            cells[1] = story.title
+            cells[2] = status_symbol
+
+            if in_completed:
+                cells[3] = today
+                cells[4] = entry_link
+            elif in_placeholder:
+                cells[3] = core_concept_preview
+                if story.status == 'in_progress':
+                    cells[5] = 'Continue authoring'
+                elif story.status == 'complete':
+                    cells[5] = 'Review complete entry'
+                else:
+                    cells[5] = 'Fill Talking Points'
+
+            lines[idx] = '| ' + ' | '.join(cells) + ' |'
+            updated_main_row = True
+            continue
+
+        if updated_main_row or updated_semantic_row:
+            for idx, raw_line in enumerate(lines):
+                if raw_line.startswith('**Last Synced:**'):
+                    suffix = raw_line.split('|', 1)[1] if '|' in raw_line else ' **Next Review:** [To be set]'
+                    lines[idx] = f'**Last Synced:** {today} |{suffix}'
+                    break
+
+            STORY_INDEX_PATH.write_text('\n'.join(lines), encoding='utf-8')
     
     @staticmethod
     def _build_entry_markdown(story: StoryEntry) -> str:
@@ -418,6 +601,22 @@ class StoryMarkdownParser:
         lines.append('### Dynamic Navigation')
         if story.dynamic_navigation:
             lines.append(story.dynamic_navigation)
+        else:
+            lines.append('*Pending*')
+        lines.append('')
+
+        # Semantic Metadata
+        lines.append('### Semantic Metadata')
+        if story.semantic_metadata:
+            lines.append(story.semantic_metadata)
+        else:
+            lines.append('*Pending*')
+        lines.append('')
+
+        # Version Metadata
+        lines.append('### Version Metadata')
+        if story.version_metadata:
+            lines.append(story.version_metadata)
         else:
             lines.append('*Pending*')
         lines.append('')
