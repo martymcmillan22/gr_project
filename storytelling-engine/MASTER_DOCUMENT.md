@@ -166,6 +166,7 @@ Each placeholder includes the standard Story‑Telling Engine structure, ready f
 
 
 
+
 ## **ENTRY 8 — Dear Darwin**
 
 **Status:** pending
@@ -247,6 +248,7 @@ Post-story: Darwin publishes modified theory incorporating father's insights
 ### Anti‑Plagiarism Section
 Original work inspired by Darwin's actual life and scientific development. No direct copying from published sources.
 
+---
 ---
 ---
 ---
