@@ -24,7 +24,7 @@
 
 | # | Title | Status | Core Concept | Priority | Next Action |
 |---|-------|--------|--------------|----------|------------|
-| 8 | Dear Darwin | ⏳ Pending | — | High | Fill Talking Points |
+| 8 | Dear Darwin | ⏳ Pending | [PHASE 3C TEST: Push to GitHub verified] | High | Fill Talking Points |
 | 9 | Me and My Friends | ⏳ Pending | — | High | Fill Talking Points |
 | 10 | Live Fast Die Old | ⏳ Pending | — | Medium | Fill Talking Points |
 | 11 | 435 — Gerrymander | ⏳ Pending | — | Medium | Fill Talking Points |
@@ -48,7 +48,7 @@
 | 5 | Reclaiming Clarity | — | — | — | — | — | — |
 | 6 | Sergon General (Instinctive Behavior) | — | — | — | — | — | — |
 | 7 | Vicarious | — | — | — | — | — | — |
-| 8 | Dear Darwin | — | — | — | — | — | — |
+| 8 | Dear Darwin | — | — | - Internal: Links between chapters 2-3 (fate) - External: Darwin's actual writings - Refe… | — | — | — |
 | 9 | Me and My Friends | — | — | — | — | — | — |
 | 10 | Live Fast Die Old | — | — | — | — | — | — |
 | 11 | 435 — Gerrymander | — | — | — | — | — | — |
@@ -146,4 +146,4 @@
 
 ---
 
-**Last Synced:** 2026-07-04 | **Next Review:** [To be set]
+**Last Synced:** 2026-07-06 | **Next Review:** [To be set]
