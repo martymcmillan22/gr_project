@@ -1,4 +1,7 @@
-from project_middle_layer.compiler import compile_project_middle_layer_payload
+from project_middle_layer.compiler import (
+    compile_project_middle_layer_payload,
+    compile_specialized_path,
+)
 from project_middle_layer.schemas import (
     build_project_schema,
     get_projects_json_schema,
@@ -32,13 +35,22 @@ def build_project_creation_payload(
     )
     schema_validation_errors = validate_project_schema_dict(schema)
     drift_forecast = build_project_drift_forecast(schema)
+    tier_profile = build_tier_aware_project(schema)
+    identity_payload = compile_project_middle_layer_payload(schema, drift_forecast=drift_forecast)
+    specialized_path = compile_specialized_path(
+        schema,
+        tier_profile=tier_profile,
+        identity_payload=identity_payload,
+        drift_forecast=drift_forecast,
+    )
 
     return {
         "projects_json_schema": projects_json_schema,
         "schema": schema,
         "schema_validation_errors": schema_validation_errors,
-        "tier_profile": build_tier_aware_project(schema),
-        "identity_payload": compile_project_middle_layer_payload(schema, drift_forecast=drift_forecast),
+        "tier_profile": tier_profile,
+        "identity_payload": identity_payload,
+        "specialized_path": specialized_path,
         "semantic_tree": build_semantic_tree_mermaid(schema),
         "drift_forecast": drift_forecast,
     }
