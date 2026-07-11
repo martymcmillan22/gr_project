@@ -1,0 +1,108 @@
+[
+  {
+    "model": "project_middle_layer.marketplaceitem",
+    "pk": 910001,
+    "fields": {
+      "slug": "semantic-starter-plugin-pack",
+      "name": "Semantic Starter Plugin Pack",
+      "item_type": "plugin",
+      "current_version": "1.1.0",
+      "metadata": {
+        "description": "Starter marketplace package for Phase 10 smoke testing.",
+        "seeded": true
+      },
+      "is_active": true
+    }
+  },
+  {
+    "model": "project_middle_layer.marketplaceversion",
+    "pk": 910011,
+    "fields": {
+      "item": 910001,
+      "version": "1.0.0",
+      "changelog": "Initial public release",
+      "compatibility": {
+        "min_project_middle_layer": "0.0.1"
+      },
+      "dependency_slugs": [],
+      "download_url": "https://example.com/marketplace/semantic-starter-plugin-pack/1.0.0"
+    }
+  },
+  {
+    "model": "project_middle_layer.marketplaceversion",
+    "pk": 910012,
+    "fields": {
+      "item": 910001,
+      "version": "1.1.0",
+      "changelog": "Adds gateway and cross-sync utility hooks",
+      "compatibility": {
+        "min_project_middle_layer": "0.0.1",
+        "notes": "Validated against strict-permission mode"
+      },
+      "dependency_slugs": [],
+      "download_url": "https://example.com/marketplace/semantic-starter-plugin-pack/1.1.0"
+    }
+  },
+  {
+    "model": "project_middle_layer.semanticplugin",
+    "pk": 910021,
+    "fields": {
+      "slug": "semantic-observability-plugin",
+      "name": "Semantic Observability Plugin",
+      "plugin_type": "agent",
+      "entrypoint": "project_middle_layer.plugins.semantic_observability",
+      "capabilities": [
+        "gateway.inspect",
+        "sync.cross_platform"
+      ],
+      "version": "0.1.0",
+      "enabled": false,
+      "last_status": "idle",
+      "last_error": "",
+      "metadata": {
+        "seeded": true
+      }
+    }
+  },
+  {
+    "model": "project_middle_layer.semanticextension",
+    "pk": 910031,
+    "fields": {
+      "name": "Semantic Core Patch",
+      "slug": "semantic-core-patch",
+      "schema_patch": {
+        "add_fields": [
+          "phase10_marker"
+        ]
+      },
+      "rules_patch": {
+        "enforce": [
+          "deterministic_inputs"
+        ]
+      },
+      "version": "0.1.0",
+      "is_applied": false,
+      "rollback_payload": {},
+      "validation_report": {}
+    }
+  },
+  {
+    "model": "project_middle_layer.externalagent",
+    "pk": 910041,
+    "fields": {
+      "name": "Partner Sandbox Agent",
+      "slug": "partner-sandbox-agent",
+      "endpoint": "https://example.com/agents/partner-sandbox",
+      "capabilities": [
+        "analyze",
+        "summarize"
+      ],
+      "auth_token": "",
+      "status": "active",
+      "metadata": {
+        "seeded": true,
+        "sandbox": true
+      }
+    }
+  }
+]

@@ -37,6 +37,15 @@
     <p>Average risk: {{ semantic_health.average_drift_risk }}</p>
     <p>Schema issue projects: {{ semantic_health.projects_with_schema_issues }}</p>
   </section>
+  <section class="bt-overview-card bt-q-red" style="padding:14px;">
+    <h3 style="margin-top:0;">Confidence</h3>
+    <p>Average score: {{ semantic_health.average_confidence_score }}</p>
+    {% for label, count in semantic_health.confidence_distribution.items %}
+      <p>{{ label }}: {{ count }}</p>
+    {% empty %}
+      <p>No confidence data yet.</p>
+    {% endfor %}
+  </section>
   <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
     <h3 style="margin-top:0;">Branch Mix</h3>
     {% for branch, count in semantic_health.branch_distribution.items %}
@@ -50,9 +59,203 @@
 <h2 class="bt-section bt-q-green" id="pm-quick-actions">Quick Actions</h2>
 <div class="bt-actions">
   <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Refresh</a>
+  <a class="bt-action bt-q-green" href="{{ compile_project_url }}">Compile Project</a>
+  <a class="bt-action bt-q-green" href="{{ batch_compile_url }}">Batch Compile</a>
+  <a class="bt-action bt-q-green" href="{{ export_url }}">Semantic Export</a>
+  <a class="bt-action bt-q-green" href="{{ pipelines_url }}">Semantic Pipelines</a>
+  <a class="bt-action bt-q-green" href="{{ schedules_url }}">Semantic Schedules</a>
+  <a class="bt-action bt-q-green" href="{{ webhooks_url }}">Semantic Webhooks</a>
+  <a class="bt-action bt-q-green" href="{{ integrations_url }}">Semantic Integrations</a>
+  <a class="bt-action bt-q-blue" href="{{ timeline_url }}">Evolution Timeline</a>
+  <a class="bt-action bt-q-blue" href="{{ analytics_url }}">Semantic Analytics</a>
+  <a class="bt-action bt-q-blue" href="{{ dashboard_url }}">System Dashboard</a>
+  <a class="bt-action bt-q-blue" href="{{ search_url }}">Semantic Search</a>
+  <a class="bt-action bt-q-yellow" href="{{ insights_url }}">Semantic Insights</a>
+  <a class="bt-action bt-q-green" href="{{ agents_url }}">Semantic Agents</a>
+  <a class="bt-action bt-q-green" href="{{ roles_url }}">Semantic Roles</a>
+  <a class="bt-action bt-q-green" href="{{ collaboration_url }}">Collaboration</a>
+  <a class="bt-action bt-q-yellow" href="{{ change_requests_url }}">Change Requests</a>
+  <a class="bt-action bt-q-blue" href="{{ audit_url }}">Audit Logs</a>
+  <a class="bt-action bt-q-blue" href="{{ versions_url }}">Semantic Versions</a>
+  <a class="bt-action bt-q-red" href="{{ merge_url }}">Merge Resolution</a>
+  <a class="bt-action bt-q-green" href="{{ replication_url }}">Replication</a>
+  <a class="bt-action bt-q-green" href="{{ federation_url }}">Federation</a>
+  <a class="bt-action bt-q-green" href="{{ shards_url }}">Shards</a>
+  <a class="bt-action bt-q-green" href="{{ cache_url }}">Cache</a>
+  <a class="bt-action bt-q-green" href="{{ sync_url }}">Sync</a>
+  <a class="bt-action bt-q-green" href="{{ distributed_agents_url }}">Distributed Agents</a>
+  <a class="bt-action bt-q-green" href="{{ marketplace_url }}">Marketplace</a>
+  <a class="bt-action bt-q-green" href="{{ plugins_url }}">Plugins</a>
+  <a class="bt-action bt-q-green" href="{{ extensions_url }}">Extensions</a>
+  <a class="bt-action bt-q-green" href="{{ gateway_url }}">API Gateway</a>
+  <a class="bt-action bt-q-green" href="{{ btif_plus_url }}">BTIF+</a>
+  <a class="bt-action bt-q-green" href="{{ external_agents_url }}">External Agents</a>
+  <a class="bt-action bt-q-green" href="{{ cross_sync_url }}">Cross-Platform Sync</a>
+  <a class="bt-action bt-q-blue" href="{{ lineage_explorer_url }}">Lineage Explorer</a>
+  <a class="bt-action bt-q-red" href="{{ alerts_url }}">Semantic Alerts</a>
+  <a class="bt-action bt-q-yellow" href="{{ recommendations_url }}">Recommendations</a>
+  <a class="bt-action bt-q-blue" href="{{ diff_url }}">Diff Viewer</a>
   <a class="bt-action bt-q-blue" href="{% url 'admin:dashboard' %}">Platform Dashboard</a>
   <a class="bt-action bt-q-red" href="{% url 'admin:basetrue-insights' %}">BaseTrue Insights</a>
   <a class="bt-action bt-q-yellow" href="{% url 'task-manager-admin:index' %}">Task Manager Admin</a>
+</div>
+
+<h2 class="bt-section bt-q-yellow">Semantic Recommendations</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:18px;">
+  <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+    <h3 style="margin-top:0;">Recommendation Mix</h3>
+    {% for label, count in semantic_health.recommendation_counts.items %}
+      <p>{{ label }}: {{ count }}</p>
+    {% empty %}
+      <p>No recommendations yet.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      {% for action in card.recommendation_actions %}
+        <p><strong>{{ action.label }}:</strong> {{ action.rationale }}</p>
+        <a class="bt-action bt-q-yellow" href="{{ action.apply_url }}">Apply Recommendation</a>
+      {% empty %}
+        <p>No recommendations generated yet.</p>
+      {% endfor %}
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No recommendation data has been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-red">Semantic Alerts</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px;">
+  <section class="bt-overview-card bt-q-red" style="padding:14px;">
+    <h3 style="margin-top:0;">Alert Summary</h3>
+    <p>Total alerts: {{ semantic_health.total_alert_count }}</p>
+    <p>Severity buckets: {{ semantic_health.alert_severity_counts|length }}</p>
+    {% for severity, count in semantic_health.alert_severity_counts.items %}
+      <p>{{ severity }}: {{ count }}</p>
+    {% empty %}
+      <p>No alerts yet.</p>
+    {% endfor %}
+  </section>
+  <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+    <h3 style="margin-top:0;">Alert Types</h3>
+    {% for alert_type, count in semantic_health.alert_counts.items %}
+      <p>{{ alert_type }}: {{ count }}</p>
+    {% empty %}
+      <p>No alert types yet.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for alert in recent_alerts %}
+    <section class="bt-overview-card bt-q-red" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ alert.project.name }}</h3>
+      <p><strong>Type:</strong> {{ alert.alert_type }}</p>
+      <p><strong>Severity:</strong> {{ alert.severity }}</p>
+      <p><strong>Message:</strong> {{ alert.message }}</p>
+      <p><strong>Created:</strong> {{ alert.created_at }}</p>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No semantic alerts have been raised yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-green">Lineage Explorer</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-green" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      <p><strong>Parent Concepts:</strong> {{ card.lineage_explorer.parent_concepts|join:", " }}</p>
+      <p><strong>Sibling Concepts:</strong> {{ card.lineage_explorer.sibling_concepts|join:", " }}</p>
+      <p><strong>Clusters:</strong> {{ card.lineage_explorer.semantic_clusters|length }}</p>
+      <details>
+        <summary>Lineage Tree</summary>
+        <pre style="white-space:pre-wrap;">{{ card.lineage_explorer.lineage_tree }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No lineage data has been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-blue">Drift Heatmap</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      <p><strong>Top Drifting Tags:</strong></p>
+      <ul>
+        {% for tag in card.drift_heatmap_data.top_drifting_tags %}
+          <li>{{ tag.label }}: {{ tag.intensity }}</li>
+        {% empty %}
+          <li>No drift data yet.</li>
+        {% endfor %}
+      </ul>
+      <p><strong>Stable Tags:</strong> {{ card.drift_heatmap_data.stable_tags|join:", " }}</p>
+      <details>
+        <summary>Heatmap Grid</summary>
+        <pre style="white-space:pre-wrap;">{{ card.drift_heatmap_data.heatmap_grid }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No heatmap data has been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-red">Stability Analyzer</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-red" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      <p><strong>Score:</strong> {{ card.stability_analysis.stability_score }}</p>
+      <p><strong>Label:</strong> {{ card.stability_analysis.stability_label }}</p>
+      <details>
+        <summary>Recommended Actions</summary>
+        <ul>
+          {% for action in card.stability_analysis.recommended_actions %}
+            <li>{{ action }}</li>
+          {% empty %}
+            <li>No recommendations yet.</li>
+          {% endfor %}
+        </ul>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No stability analysis data has been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-blue">Recent Evolution Snapshots</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+  {% for snapshot in recent_snapshots %}
+    <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ snapshot.project.name }}</h3>
+      <p><strong>Captured:</strong> {{ snapshot.created_at }}</p>
+      <p><strong>Identity URI:</strong> {{ snapshot.identity_uri }}</p>
+      <p><strong>Branch:</strong> {{ snapshot.branch_name }}</p>
+      <p><strong>Drift Risk:</strong> {{ snapshot.drift_risk }}</p>
+      <p><strong>Tags:</strong> {{ snapshot.semantic_tags|join:", " }}</p>
+      <a class="bt-action bt-q-blue" href="{{ diff_url }}?snapshot_b={{ snapshot.id }}">Compare in Diff Viewer</a>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No evolution snapshots have been captured yet.</div>
+    </article>
+  {% endfor %}
 </div>
 
 <h2 class="bt-section bt-q-blue">Project Nodes</h2>
@@ -63,6 +266,7 @@
       <p><strong>Slug:</strong> {{ card.node.slug }}</p>
       <p><strong>Selected Branch:</strong> {{ card.branch.selected_branch }}</p>
       <p><strong>Confidence:</strong> {{ card.branch.confidence }}</p>
+      <p><strong>Identity Confidence:</strong> {{ card.confidence.confidence_score }} / {{ card.confidence.confidence_label }}</p>
       <p><strong>Risk:</strong> {{ card.drift_forecast.risk.risk_level }}</p>
       <p><strong>Final URI:</strong> {{ card.specialized_path.forms.0.final_identity_uri }}</p>
       <details>
