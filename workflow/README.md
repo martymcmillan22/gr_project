@@ -52,6 +52,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py sync-all
 - python workflow/cli.py visualize --feature <slug>
 - python workflow/cli.py visualize-all
+- python workflow/cli.py semantic-drift
+- python workflow/cli.py semantic-infer
+- python workflow/cli.py semantic-resolve [--apply]
 
 ### Generated Outputs for new-feature
 
@@ -119,3 +122,22 @@ Generated visual outputs:
 - workflow/visualizations/feature-dependency-graph.mmd
 - workflow/visualizations/mlas-tier-map.mmd
 - workflow/visualizations/btif-routing-map.mmd
+
+## Phase-4 Slice 3: Semantic Engine Deep Integration
+
+Semantic intelligence modules:
+
+- workflow/_engine/semantic_drift.py
+- workflow/_engine/semantic_infer.py
+- workflow/_engine/semantic_conflicts.py
+
+New semantic commands:
+
+- python workflow/cli.py semantic-drift
+- python workflow/cli.py semantic-infer
+- python workflow/cli.py semantic-resolve [--apply]
+
+Additional docs:
+
+- workflow/SEMANTIC_DRIFT_OVERVIEW.md
+- workflow/SEMANTIC_INFERENCE_OVERVIEW.md

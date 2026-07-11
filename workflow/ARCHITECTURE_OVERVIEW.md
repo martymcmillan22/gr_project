@@ -32,6 +32,10 @@ Engine package: workflow/_engine/
 - sync_ui_template.py: UI template to React page stub sync
 - sync_ui_component.py: UI component spec to generated design-system component sync
 - semantic_propagation.py: semantic metadata propagation back into registry
+- semantic_drift.py: artifact and metadata drift detection
+- semantic_infer.py: deterministic metadata inference and recommendations
+- semantic_conflicts.py: semantic conflict detection and autofix support
+- visualize.py: workflow visualization generation
 
 ## CLI Surface
 
@@ -46,6 +50,11 @@ Supported commands:
 - semantic-check
 - sync --feature <slug>
 - sync-all
+- visualize --feature <slug>
+- visualize-all
+- semantic-drift
+- semantic-infer
+- semantic-resolve
 
 ## Registry
 

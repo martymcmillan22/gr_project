@@ -6,6 +6,9 @@ import sys
 
 from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
+from _engine.semantic_conflicts import apply_conflict_autofix, build_conflict_report
+from _engine.semantic_drift import build_drift_report
+from _engine.semantic_infer import build_inference_report
 from _engine.semantic_propagation import propagate_feature_semantics, propagate_registry_semantics
 from _engine.mlas_integration import build_mlas_report
 from _engine.registry import add_feature, feature_exists, load_registry, save_registry
@@ -62,8 +65,22 @@ def cmd_validate(_: argparse.Namespace) -> int:
 def cmd_validate_suite(_: argparse.Namespace) -> int:
     registry = load_registry(REGISTRY_PATH)
     shape_errors = validate_registry_shape(registry)
+    repo_root = WORKFLOW_ROOT.parent
     suite_errors = run_workflow_validation(WORKFLOW_ROOT, registry)
-    errors = shape_errors + suite_errors
+    drift_report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    conflict_report = build_conflict_report(registry, repo_root)
+
+    drift_errors = []
+    for slug, payload in drift_report.get("features", {}).items():
+        if payload.get("drift_count", 0) > 0:
+            drift_errors.append(f"drift detected for {slug}: {payload.get('drift_count')}")
+
+    conflict_errors = []
+    for slug, payload in conflict_report.get("features", {}).items():
+        if payload.get("conflict_count", 0) > 0:
+            conflict_errors.append(f"conflicts detected for {slug}: {payload.get('conflict_count')}")
+
+    errors = shape_errors + suite_errors + drift_errors + conflict_errors
     if errors:
         print("ERROR: workflow validation suite failed")
         for error in errors:
@@ -84,8 +101,22 @@ def cmd_classify(_: argparse.Namespace) -> int:
 def cmd_semantic_check(_: argparse.Namespace) -> int:
     registry = load_registry(REGISTRY_PATH)
     shape_errors = validate_registry_shape(registry)
+    repo_root = WORKFLOW_ROOT.parent
     suite_errors = run_workflow_validation(WORKFLOW_ROOT, registry)
-    errors = shape_errors + suite_errors
+    drift_report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    conflict_report = build_conflict_report(registry, repo_root)
+
+    drift_errors = []
+    for slug, payload in drift_report.get("features", {}).items():
+        if payload.get("drift_count", 0) > 0:
+            drift_errors.append(f"drift detected for {slug}: {payload.get('drift_count')}")
+
+    conflict_errors = []
+    for slug, payload in conflict_report.get("features", {}).items():
+        if payload.get("conflict_count", 0) > 0:
+            conflict_errors.append(f"conflicts detected for {slug}: {payload.get('conflict_count')}")
+
+    errors = shape_errors + suite_errors + drift_errors + conflict_errors
     if errors:
         print("ERROR: semantic-check failed")
         for error in errors:
@@ -199,6 +230,35 @@ def cmd_visualize_all(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_semantic_drift(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+    report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def cmd_semantic_infer(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    report = build_inference_report(registry, WORKFLOW_ROOT)
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def cmd_semantic_resolve(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+    report = build_conflict_report(registry, repo_root)
+
+    if args.apply:
+        for feature in registry.get("features", []):
+            apply_conflict_autofix(feature)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"conflicts": report, "autofix_applied": bool(args.apply)}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -262,6 +322,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate Mermaid visualizations for all features and global maps",
     )
     visualize_all.set_defaults(func=cmd_visualize_all)
+
+    semantic_drift = sub.add_parser(
+        "semantic-drift",
+        help="Detect semantic drift across registry, artifacts, and propagation",
+    )
+    semantic_drift.set_defaults(func=cmd_semantic_drift)
+
+    semantic_infer = sub.add_parser(
+        "semantic-infer",
+        help="Infer semantic metadata recommendations",
+    )
+    semantic_infer.set_defaults(func=cmd_semantic_infer)
+
+    semantic_resolve = sub.add_parser(
+        "semantic-resolve",
+        help="Detect semantic conflicts and optionally apply deterministic autofix",
+    )
+    semantic_resolve.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply deterministic conflict autofix updates to registry",
+    )
+    semantic_resolve.set_defaults(func=cmd_semantic_resolve)
 
     return parser
 

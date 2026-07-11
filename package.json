@@ -17,7 +17,10 @@
     "workflow:sync": "python3 workflow/cli.py sync",
     "workflow:sync-all": "python3 workflow/cli.py sync-all",
     "workflow:visualize": "python3 workflow/cli.py visualize",
-    "workflow:visualize-all": "python3 workflow/cli.py visualize-all"
+    "workflow:visualize-all": "python3 workflow/cli.py visualize-all",
+    "workflow:semantic-drift": "python3 workflow/cli.py semantic-drift",
+    "workflow:semantic-infer": "python3 workflow/cli.py semantic-infer",
+    "workflow:semantic-resolve": "python3 workflow/cli.py semantic-resolve"
   },
   "dependencies": {
     "react": "^18.2.0",

@@ -79,6 +79,17 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py semantic-check
 - python3 workflow/cli.py sync --feature <slug>
 - python3 workflow/cli.py sync-all
+- python3 workflow/cli.py semantic-drift
+- python3 workflow/cli.py semantic-infer
+- python3 workflow/cli.py semantic-resolve
+
+## Semantic Intelligence Modules
+
+- workflow/_engine/semantic_drift.py
+- workflow/_engine/semantic_infer.py
+- workflow/_engine/semantic_conflicts.py
+
+These modules add drift detection, metadata inference, and deterministic conflict resolution.
 
 ## Deterministic Rule
 
