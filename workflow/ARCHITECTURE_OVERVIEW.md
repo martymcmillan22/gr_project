@@ -35,6 +35,7 @@ Engine package: workflow/_engine/
 - semantic_drift.py: artifact and metadata drift detection
 - semantic_infer.py: deterministic metadata inference and recommendations
 - semantic_conflicts.py: semantic conflict detection and autofix support
+- ai_native.py: AI hints, navigation metadata, semantic context exports
 - visualize.py: workflow visualization generation
 
 ## CLI Surface
@@ -55,6 +56,22 @@ Supported commands:
 - semantic-drift
 - semantic-infer
 - semantic-resolve
+- ai-context
+- ai-export
+- ai-new-feature
+
+## AI-Native Artifacts
+
+AI-facing deterministic metadata files:
+
+- workflow/ai_hints.json
+- workflow/ai_navigation.json
+- workflow/semantic_context.json
+
+AI prompt and template resources:
+
+- workflow/ai_prompts/
+- workflow/ai_templates/feature.json
 
 ## Registry
 

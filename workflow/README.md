@@ -57,6 +57,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-resolve [--apply]
 - python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python workflow/cli.py semantic-resolve --apply [--force-unsafe]
+- python workflow/cli.py ai-context
+- python workflow/cli.py ai-export
+- python workflow/cli.py ai-new-feature --name "Feature Name" [--sync]
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -158,3 +161,29 @@ Test suite:
 
 - workflow/tests/test_semantic_infer.py
 - workflow/tests/test_semantic_conflicts.py
+
+## Phase-4 Slice 5: AI-Native Integration
+
+AI onboarding and command files:
+
+- workflow/ai_hints.json
+- workflow/ai_navigation.json
+- workflow/semantic_context.json
+
+AI prompt surface:
+
+- workflow/ai_prompts/new_feature_prompt.txt
+- workflow/ai_prompts/semantic_inference_prompt.txt
+- workflow/ai_prompts/drift_analysis_prompt.txt
+- workflow/ai_prompts/conflict_resolution_prompt.txt
+- workflow/ai_prompts/visualization_prompt.txt
+
+AI template surface:
+
+- workflow/ai_templates/feature.json
+
+AI-native CLI commands:
+
+- python workflow/cli.py ai-context
+- python workflow/cli.py ai-export
+- python workflow/cli.py ai-new-feature --name "Feature Name" [--sync]

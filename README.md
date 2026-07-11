@@ -31,6 +31,9 @@ Workflow docs:
 - [workflow/SEMANTIC_OVERVIEW.md](workflow/SEMANTIC_OVERVIEW.md)
 - [workflow/SEMANTIC_DRIFT_OVERVIEW.md](workflow/SEMANTIC_DRIFT_OVERVIEW.md)
 - [workflow/SEMANTIC_INFERENCE_OVERVIEW.md](workflow/SEMANTIC_INFERENCE_OVERVIEW.md)
+- [workflow/ai_hints.json](workflow/ai_hints.json)
+- [workflow/ai_navigation.json](workflow/ai_navigation.json)
+- [workflow/semantic_context.json](workflow/semantic_context.json)
 
 Common commands:
 - python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
@@ -42,6 +45,9 @@ Common commands:
 - python3 workflow/cli.py semantic-drift
 - python3 workflow/cli.py semantic-infer
 - python3 workflow/cli.py semantic-resolve
+- python3 workflow/cli.py ai-context
+- python3 workflow/cli.py ai-export
+- python3 workflow/cli.py ai-new-feature --name "Feature Name"
 
 ## AWS Deployment Docs
 

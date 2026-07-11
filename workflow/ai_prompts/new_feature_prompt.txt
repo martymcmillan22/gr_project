@@ -1,0 +1,28 @@
+You are generating a new feature for the Grassroots workflow engine.
+
+Use deterministic output only.
+Respect registry schema and category paths.
+
+Required output JSON:
+{
+  "name": "Feature Name",
+  "slug": "feature-name",
+  "mlas_tier": "Semantic Utility",
+  "btif_classification": "GeneralFlow",
+  "semantic_intent": "CaptureAndRoute",
+  "semantic_tags": ["tag-a", "tag-b"],
+  "paths": {
+    "erd": "database_design/mermaid_erds/feature-name.erd.mmd",
+    "sequence": "logic_design/mermaid_sequences/feature-name.sequence.mmd",
+    "ui_template": "ui_templates/penpot_templates/features/feature-name/template.md",
+    "ui_component": "ui_components/penpot_components/features/feature-name/component.md"
+  },
+  "status": "scaffolded"
+}
+
+Rules:
+1. Keep slug kebab-case.
+2. Keep semantic tags lowercase kebab-case.
+3. Do not invent categories outside workflow canonical paths.
+4. Ensure MLAS and BTIF fields are non-empty.
+5. Ensure semantic intent is explicit and deterministic.

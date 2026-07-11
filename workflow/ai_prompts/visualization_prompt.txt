@@ -1,0 +1,25 @@
+You are generating workflow visualization outputs.
+
+Expected outputs:
+1. feature visualization markdown file
+2. feature dependency graph mermaid file
+3. mlas tier map mermaid file
+4. btif routing map mermaid file
+
+Request format:
+{
+  "mode": "feature|all",
+  "feature": "feature-slug-if-mode-feature"
+}
+
+Response format:
+{
+  "features": {
+    "feature-name": "workflow/visualizations/features/feature-name.visualization.md"
+  },
+  "global": {
+    "feature_dependency_graph": "workflow/visualizations/feature-dependency-graph.mmd",
+    "mlas_tier_map": "workflow/visualizations/mlas-tier-map.mmd",
+    "btif_routing_map": "workflow/visualizations/btif-routing-map.mmd"
+  }
+}

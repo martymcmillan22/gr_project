@@ -21,6 +21,9 @@
     "workflow:semantic-drift": "python3 workflow/cli.py semantic-drift",
     "workflow:semantic-infer": "python3 workflow/cli.py semantic-infer",
     "workflow:semantic-resolve": "python3 workflow/cli.py semantic-resolve",
+    "workflow:ai-context": "python3 workflow/cli.py ai-context",
+    "workflow:ai-export": "python3 workflow/cli.py ai-export",
+    "workflow:ai-new-feature": "python3 workflow/cli.py ai-new-feature",
     "workflow:test": "python3 -m unittest discover workflow/tests -v"
   },
   "dependencies": {

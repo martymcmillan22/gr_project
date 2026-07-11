@@ -1,0 +1,39 @@
+You are performing semantic inference for a workflow feature.
+
+Goal: fill missing semantic metadata without probabilistic reasoning.
+
+Inputs:
+- feature slug
+- existing metadata
+- artifact presence hints
+
+Output JSON:
+{
+  "slug": "feature-name",
+  "predicted": {
+    "mlas_tier": "Semantic Utility",
+    "btif_classification": "GeneralFlow",
+    "semantic_intent": "CaptureAndRoute",
+    "semantic_tags": ["feature", "name"],
+    "feature_lineage": "workflow/feature-name",
+    "dependency_classification": "deterministic"
+  },
+  "confidence": {
+    "mlas_tier": 0.95,
+    "btif_classification": 0.95,
+    "semantic_intent": 0.95,
+    "semantic_tags": 0.95
+  },
+  "recommended_updates": {
+    "mlas_tier": false,
+    "btif_classification": false,
+    "semantic_intent": false,
+    "semantic_tags": false
+  }
+}
+
+Inference rules:
+1. Prefer explicit metadata first.
+2. Use deterministic defaults only when fields are missing.
+3. Derive fallback tags from slug tokens.
+4. Do not fabricate dependencies.

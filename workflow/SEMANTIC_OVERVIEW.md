@@ -84,6 +84,8 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py semantic-resolve
 - python3 workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python3 workflow/cli.py semantic-resolve --apply [--force-unsafe]
+- python3 workflow/cli.py ai-context
+- python3 workflow/cli.py ai-export
 
 ## Semantic Intelligence Modules
 
@@ -97,6 +99,23 @@ These modules add drift detection, metadata inference, and deterministic conflic
 
 - Inference confidence can be enforced with a minimum threshold.
 - Resolve autofix is blocked when unsafe conflict types are present unless explicitly overridden.
+
+## AI Semantic Export
+
+AI semantic context file:
+
+- workflow/semantic_context.json
+
+This export provides:
+
+- MLAS tier definitions
+- BTIF routing definitions
+- semantic intent definitions
+- tag ontology
+- semantic lineage
+- drift, inference, and conflict rules
+- confidence thresholds
+- autofix safety gates
 
 ## Deterministic Rule
 

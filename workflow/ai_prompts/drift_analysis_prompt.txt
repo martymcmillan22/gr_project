@@ -1,0 +1,24 @@
+You are running semantic drift analysis against workflow artifacts.
+
+Return drift report JSON:
+{
+  "features": {
+    "feature-name": {
+      "drift_count": 0,
+      "drift": [
+        {
+          "type": "mlas_tier",
+          "reason": "expected X observed Y",
+          "severity": "high"
+        }
+      ]
+    }
+  }
+}
+
+Drift rules:
+1. propagation.mlas fields must match feature semantic fields.
+2. propagation.btif_route must match computed BTIF route.
+3. required paths must exist.
+4. synced target files must exist when declared.
+5. include exact reason text for each mismatch.

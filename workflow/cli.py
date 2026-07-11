@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 
+from _engine.ai_native import build_ai_context_bundle, write_json_file
 from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
 from _engine.semantic_conflicts import apply_conflict_autofix, build_autofix_plan, build_conflict_report
@@ -20,6 +21,12 @@ from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
 from _engine.visualize import write_feature_visualization, write_global_visualizations
 from validation.suite import run_workflow_validation
+
+
+AI_HINTS_PATH = WORKFLOW_ROOT / "ai_hints.json"
+AI_NAVIGATION_PATH = WORKFLOW_ROOT / "ai_navigation.json"
+AI_SEMANTIC_CONTEXT_PATH = WORKFLOW_ROOT / "semantic_context.json"
+AI_FEATURE_TEMPLATE_PATH = WORKFLOW_ROOT / "ai_templates" / "feature.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -293,6 +300,151 @@ def cmd_semantic_resolve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ai_context(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    bundle = build_ai_context_bundle(registry, WORKFLOW_ROOT)
+    if args.write:
+        hints_out = write_json_file(AI_HINTS_PATH, bundle["ai_hints"])
+        nav_out = write_json_file(AI_NAVIGATION_PATH, bundle["ai_navigation"])
+        semantic_out = write_json_file(AI_SEMANTIC_CONTEXT_PATH, bundle["semantic_context"])
+        print(
+            json.dumps(
+                {
+                    "context": bundle,
+                    "written": {
+                        "ai_hints": hints_out,
+                        "ai_navigation": nav_out,
+                        "semantic_context": semantic_out,
+                    },
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+    print(json.dumps(bundle, indent=2))
+    return 0
+
+
+def cmd_ai_export(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    bundle = build_ai_context_bundle(registry, WORKFLOW_ROOT)
+    hints_out = write_json_file(AI_HINTS_PATH, bundle["ai_hints"])
+    nav_out = write_json_file(AI_NAVIGATION_PATH, bundle["ai_navigation"])
+    semantic_out = write_json_file(AI_SEMANTIC_CONTEXT_PATH, bundle["semantic_context"])
+    print(
+        json.dumps(
+            {
+                "exported": {
+                    "ai_hints": hints_out,
+                    "ai_navigation": nav_out,
+                    "semantic_context": semantic_out,
+                }
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def _load_ai_feature_template(path: Path) -> dict:
+    if not path.exists():
+        print(f"ERROR: AI feature template not found: {path.as_posix()}")
+        raise FileNotFoundError(path.as_posix())
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _planned_feature_paths(slug: str) -> dict[str, str]:
+    return {
+        "erd": f"database_design/mermaid_erds/{slug}.erd.mmd",
+        "sequence": f"logic_design/mermaid_sequences/{slug}.sequence.mmd",
+        "ui_template": f"ui_templates/penpot_templates/features/{slug}/template.md",
+        "ui_component": f"ui_components/penpot_components/features/{slug}/component.md",
+    }
+
+
+def cmd_ai_new_feature(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    template_path = Path(args.template_path)
+    template = _load_ai_feature_template(template_path)
+
+    name = args.name.strip()
+    slug = slugify(name)
+    if not slug:
+        print("ERROR: generated slug is empty")
+        return 1
+    if feature_exists(registry, slug):
+        print(f"ERROR: feature already exists: {slug}")
+        return 1
+
+    mlas_tier = str(args.mlas_tier or template.get("mlas_tier", "Semantic Utility")).strip()
+    btif_classification = str(args.btif_classification or template.get("btif_classification", "GeneralFlow")).strip()
+    semantic_intent = str(args.semantic_intent or template.get("semantic_intent", "CaptureAndRoute")).strip()
+
+    template_tags = template.get("semantic_tags", [])
+    provided_tags = args.semantic_tags if args.semantic_tags else template_tags
+    semantic_tags = sorted(set(str(tag).strip() for tag in provided_tags if str(tag).strip()))
+
+    if args.dry_run:
+        preview = {
+            "name": name,
+            "slug": slug,
+            "mlas_tier": mlas_tier,
+            "btif_classification": btif_classification,
+            "semantic_intent": semantic_intent,
+            "semantic_tags": semantic_tags,
+            "paths": _planned_feature_paths(slug),
+            "status": "scaffolded",
+            "dry_run": True,
+        }
+        print(json.dumps({"preview": preview}, indent=2))
+        return 0
+
+    paths = create_feature_scaffold(name, slug, mlas_tier, btif_classification)
+    feature = {
+        "name": name,
+        "slug": slug,
+        "mlas_tier": mlas_tier,
+        "btif_classification": btif_classification,
+        "semantic_intent": semantic_intent,
+        "semantic_tags": semantic_tags,
+        "paths": paths,
+        "status": "scaffolded",
+    }
+    add_feature(registry, feature)
+    save_registry(REGISTRY_PATH, registry)
+
+    repo_root = WORKFLOW_ROOT.parent
+    if args.sync:
+        synced_targets = _sync_feature(feature, repo_root)
+        propagate_feature_semantics(feature, synced_targets)
+        save_registry(REGISTRY_PATH, registry)
+
+    validation_errors = []
+    if args.validate:
+        validation_errors = validate_registry_shape(registry) + run_workflow_validation(WORKFLOW_ROOT, registry)
+
+    visualization_path = ""
+    if args.visualize:
+        visualization_path = write_feature_visualization(feature, WORKFLOW_ROOT)
+
+    result = {
+        "feature": feature,
+        "validated": args.validate,
+        "validation_errors": validation_errors,
+        "visualized": args.visualize,
+        "visualization_path": visualization_path,
+        "synced": args.sync,
+    }
+    if validation_errors:
+        print(json.dumps(result, indent=2))
+        print("ERROR: ai-new-feature generated invalid artifacts")
+        return 1
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -395,6 +547,59 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override safety gate and apply autofix even when unsafe conflict types are present",
     )
     semantic_resolve.set_defaults(func=cmd_semantic_resolve)
+
+    ai_context = sub.add_parser(
+        "ai-context",
+        help="Print AI-native context bundle for assistants",
+    )
+    ai_context.add_argument(
+        "--write",
+        action="store_true",
+        help="Also write AI context files to workflow root",
+    )
+    ai_context.set_defaults(func=cmd_ai_context)
+
+    ai_export = sub.add_parser(
+        "ai-export",
+        help="Write AI-native context files to workflow root",
+    )
+    ai_export.set_defaults(func=cmd_ai_export)
+
+    ai_new_feature = sub.add_parser(
+        "ai-new-feature",
+        help="Create workflow feature using AI template defaults and deterministic scaffolding",
+    )
+    ai_new_feature.add_argument("--name", required=True, help="Human-readable feature name")
+    ai_new_feature.add_argument(
+        "--template-path",
+        default=AI_FEATURE_TEMPLATE_PATH.as_posix(),
+        help="Path to AI feature template JSON",
+    )
+    ai_new_feature.add_argument("--mlas-tier", help="Override MLAS tier")
+    ai_new_feature.add_argument("--btif-classification", help="Override BTIF classification")
+    ai_new_feature.add_argument("--semantic-intent", help="Override semantic intent")
+    ai_new_feature.add_argument("--semantic-tags", nargs="+", default=[], help="Override semantic tags")
+    ai_new_feature.add_argument("--dry-run", action="store_true", help="Preview feature without writing files")
+    ai_new_feature.add_argument(
+        "--no-validate",
+        action="store_false",
+        dest="validate",
+        default=True,
+        help="Skip validation for generated feature",
+    )
+    ai_new_feature.add_argument(
+        "--no-visualize",
+        action="store_false",
+        dest="visualize",
+        default=True,
+        help="Skip visualization generation for feature",
+    )
+    ai_new_feature.add_argument(
+        "--sync",
+        action="store_true",
+        help="Run sync layer for generated feature",
+    )
+    ai_new_feature.set_defaults(func=cmd_ai_new_feature)
 
     return parser
 

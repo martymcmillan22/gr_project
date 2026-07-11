@@ -1,0 +1,133 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-07-11T11:22:38.520807+00:00",
+  "workflow_root": "workflow",
+  "canonical_categories": {
+    "database_design": "database_design/mermaid_erds",
+    "logic_design": "logic_design/mermaid_sequences",
+    "ui_templates": "ui_templates/penpot_templates/features",
+    "ui_components": "ui_components/penpot_components/features"
+  },
+  "semantic_metadata_schema": {
+    "name": "string",
+    "slug": "string",
+    "mlas_tier": "string",
+    "btif_classification": "string",
+    "semantic_intent": "string",
+    "semantic_tags": "list[string]",
+    "paths": {
+      "erd": "string",
+      "sequence": "string",
+      "ui_template": "string",
+      "ui_component": "string"
+    },
+    "status": "string",
+    "propagation": {
+      "mlas": "object",
+      "btif_route": "string",
+      "synced_targets": "object"
+    }
+  },
+  "mlas_tiers": [
+    {
+      "name": "Semantic Utility",
+      "definition": "Observed MLAS tier from workflow registry"
+    }
+  ],
+  "btif_routing": {
+    "route_pattern": "btif://{btif_classification}/{semantic_intent}/{slug}",
+    "known_classes": [
+      "IntakeFlow"
+    ]
+  },
+  "cli_commands": [
+    {
+      "command": "new-feature",
+      "description": "Create deterministic feature artifacts and registry row"
+    },
+    {
+      "command": "validate",
+      "description": "Validate registry shape"
+    },
+    {
+      "command": "validate-suite",
+      "description": "Validate registry, artifacts, drift, and conflicts"
+    },
+    {
+      "command": "classify",
+      "description": "Export MLAS and BTIF classification reports"
+    },
+    {
+      "command": "semantic-check",
+      "description": "Run semantic validation checks"
+    },
+    {
+      "command": "sync",
+      "description": "Generate sync outputs for one feature"
+    },
+    {
+      "command": "sync-all",
+      "description": "Generate sync outputs for all features"
+    },
+    {
+      "command": "visualize",
+      "description": "Generate one feature visualization bundle"
+    },
+    {
+      "command": "visualize-all",
+      "description": "Generate full visualization bundle"
+    },
+    {
+      "command": "semantic-drift",
+      "description": "Detect semantic drift"
+    },
+    {
+      "command": "semantic-infer",
+      "description": "Infer semantic metadata with confidence policy"
+    },
+    {
+      "command": "semantic-resolve",
+      "description": "Resolve semantic conflicts with safety gate"
+    },
+    {
+      "command": "ai-context",
+      "description": "Print combined AI hints, navigation, and semantic context"
+    },
+    {
+      "command": "ai-export",
+      "description": "Write AI JSON context files for assistants"
+    },
+    {
+      "command": "ai-new-feature",
+      "description": "Generate feature from AI template with validation"
+    }
+  ],
+  "example_features": [
+    {
+      "name": "Pilot Intake",
+      "slug": "pilot-intake",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntakeFlow",
+      "semantic_intent": "CaptureAndRoute",
+      "semantic_tags": [
+        "intake",
+        "pilot",
+        "routing"
+      ],
+      "route": "btif://intakeflow/captureandroute/pilot-intake"
+    }
+  ],
+  "example_semantic_tags": [
+    "intake",
+    "pilot",
+    "routing"
+  ],
+  "example_mlas_btif_mappings": [
+    {
+      "slug": "pilot-intake",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntakeFlow",
+      "route": "btif://intakeflow/captureandroute/pilot-intake"
+    }
+  ]
+}

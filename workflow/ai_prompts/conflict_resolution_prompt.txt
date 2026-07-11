@@ -1,0 +1,30 @@
+You are resolving semantic conflicts for workflow features.
+
+Return JSON:
+{
+  "conflicts": {
+    "features": {
+      "feature-name": {
+        "conflict_count": 1,
+        "conflicts": [
+          {
+            "type": "mlas_conflict",
+            "reason": "...",
+            "resolution": "..."
+          }
+        ]
+      }
+    }
+  },
+  "autofix_plan": {
+    "safe_feature_slugs": ["feature-name"],
+    "unsafe_features": [],
+    "unsafe_count": 0,
+    "safe_count": 1
+  }
+}
+
+Safety rules:
+1. safe conflict types are mlas_conflict, btif_conflict, tag_conflict.
+2. sync_conflict is unsafe and requires force override.
+3. if unsafe conflicts exist, do not apply autofix unless explicitly forced.

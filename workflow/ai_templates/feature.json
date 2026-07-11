@@ -1,0 +1,23 @@
+{
+  "name": "Feature Name",
+  "slug": "feature-name",
+  "semantic_intent": "CaptureAndRoute",
+  "mlas_tier": "Semantic Utility",
+  "btif_classification": "GeneralFlow",
+  "semantic_tags": [
+    "feature",
+    "workflow"
+  ],
+  "paths": {
+    "erd": "database_design/mermaid_erds/feature-name.erd.mmd",
+    "sequence": "logic_design/mermaid_sequences/feature-name.sequence.mmd",
+    "ui_template": "ui_templates/penpot_templates/features/feature-name/template.md",
+    "ui_component": "ui_components/penpot_components/features/feature-name/component.md"
+  },
+  "artifact_templates": {
+    "erd_template": "erDiagram\n    %% feature: Feature Name\n    %% slug: feature-name",
+    "sequence_template": "sequenceDiagram\n    %% feature: Feature Name\n    %% slug: feature-name",
+    "ui_template": "# UI Template Scaffold: Feature Name",
+    "component_template": "# UI Component Scaffold: Feature Name"
+  }
+}
