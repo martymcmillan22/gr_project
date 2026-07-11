@@ -182,3 +182,58 @@ The scaffold workflow includes MDX parsing + React generation automatically thro
 ```bash
 ./a_gr_venv/bin/python manage.py scaffold_onepager <app_name>
 ```
+
+## Workflow Platform Architecture (Phase-4)
+
+The canonical workflow command center is now rooted at:
+
+- workflow/database_design/mermaid_erds
+- workflow/logic_design/mermaid_sequences
+- workflow/ui_templates/penpot_templates
+- workflow/ui_components/penpot_components
+
+The workflow engine lives in workflow/_engine and is orchestrated through workflow/cli.py.
+
+### Engine Layers
+
+1. Scaffold Layer
+- create deterministic feature artifacts and registry entries.
+
+2. Semantic Layer
+- MLAS classification mapping from registry metadata.
+- BTIF route assignment and consistency checks.
+
+3. Sync Layer
+- ERD to backend model stubs.
+- Sequence to backend logic stubs.
+- UI template to generated React page stubs.
+- UI component spec to generated design-system component stubs.
+
+4. Propagation Layer
+- propagates normalized semantic metadata into registry feature propagation blocks.
+
+### CLI Surface
+
+- python3 workflow/cli.py new-feature
+- python3 workflow/cli.py validate
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py classify
+- python3 workflow/cli.py semantic-check
+- python3 workflow/cli.py sync --feature <slug>
+- python3 workflow/cli.py sync-all
+
+### Registry Schema (Current)
+
+Feature entries in workflow/registry.json include:
+
+- name
+- slug
+- mlas_tier
+- btif_classification
+- semantic_intent
+- semantic_tags
+- paths
+- status
+- propagation
+
+This makes workflow the deterministic architecture spine for feature generation, semantic classification, and synchronized stub outputs.

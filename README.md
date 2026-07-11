@@ -12,6 +12,32 @@ This repository uses a deterministic AI workflow for UI and semantic work.
 
 See [GRASSROOTS_AI_WORKFLOW.md](GRASSROOTS_AI_WORKFLOW.md) for the Penpot to MDX to React to MLAS BTIF directive that all AI assistants should follow.
 
+## Workflow Platform (Canonical)
+
+The canonical workflow command center is under [workflow](workflow).
+
+Core categories:
+1. [workflow/database_design/mermaid_erds](workflow/database_design/mermaid_erds)
+2. [workflow/logic_design/mermaid_sequences](workflow/logic_design/mermaid_sequences)
+3. [workflow/ui_templates/penpot_templates](workflow/ui_templates/penpot_templates)
+4. [workflow/ui_components/penpot_components](workflow/ui_components/penpot_components)
+
+Workflow engine entrypoint:
+- [workflow/cli.py](workflow/cli.py)
+
+Workflow docs:
+- [workflow/README.md](workflow/README.md)
+- [workflow/ARCHITECTURE_OVERVIEW.md](workflow/ARCHITECTURE_OVERVIEW.md)
+- [workflow/SEMANTIC_OVERVIEW.md](workflow/SEMANTIC_OVERVIEW.md)
+
+Common commands:
+- python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py classify
+- python3 workflow/cli.py semantic-check
+- python3 workflow/cli.py sync --feature <slug>
+- python3 workflow/cli.py sync-all
+
 ## AWS Deployment Docs
 
 AWS planning and execution docs are organized under [docs/operations/aws](docs/operations/aws).

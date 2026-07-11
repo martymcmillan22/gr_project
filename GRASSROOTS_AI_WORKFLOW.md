@@ -47,9 +47,14 @@ Enforce this pipeline in order:
 3. UI shared components: frontend_homepage/src/ui
 4. MDX slide sources: frontend_homepage/src/presentation/slides
 5. Component documentation MDX: mdx/component-docs
-6. Reusable design system components: workflow/ui_components/penpot_components/grassroots
-7. Semantic and contract runtime: platform_core and BTIF
-8. Django project runtime: gr_project and manage.py
+6. Workflow canonical root: workflow/
+7. Reusable design system components: workflow/ui_components/penpot_components/grassroots
+8. Workflow UI templates: workflow/ui_templates/penpot_templates
+9. Workflow ERD and sequence artifacts: workflow/database_design/mermaid_erds and workflow/logic_design/mermaid_sequences
+10. Workflow registry: workflow/registry.json
+11. Workflow CLI: workflow/cli.py
+12. Semantic and contract runtime: platform_core and BTIF
+13. Django project runtime: gr_project and manage.py
 
 If destination is unclear, ask exactly one question:
 Which existing directory should this file extend?
@@ -131,5 +136,39 @@ A task is complete only if all are true:
 ### Goal
 Deliver a stable, repeatable deterministic pipeline:
 Penpot for design truth, MDX for semantic intent, React and TSX for implementation, MLAS BTIF for semantic routing and classification.
+
+## Workflow Engine Commands
+
+Use the workflow engine for deterministic feature operations:
+
+1. Scaffold new feature
+python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "TierName" --btif-classification "ClassName" --semantic-intent "IntentName" --semantic-tags tag1 tag2
+
+2. Validate registry and artifact shape
+python3 workflow/cli.py validate-suite
+
+3. Generate semantic classification and BTIF routing report
+python3 workflow/cli.py classify
+
+4. Run semantic checks
+python3 workflow/cli.py semantic-check
+
+5. Sync one feature or all features
+python3 workflow/cli.py sync --feature <slug>
+python3 workflow/cli.py sync-all
+
+## Workflow Registry Schema
+
+Each feature in workflow/registry.json includes:
+
+- name
+- slug
+- mlas_tier
+- btif_classification
+- semantic_intent
+- semantic_tags
+- paths
+- status
+- propagation
 
 End directive.
