@@ -56,6 +56,8 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-infer
 - python workflow/cli.py semantic-resolve [--apply]
 - python workflow/cli.py semantic-health
+- python workflow/cli.py semantic-scorecard
+- python workflow/cli.py semantic-strategy-report
 - python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python workflow/cli.py semantic-resolve --apply [--force-unsafe]
 - python workflow/cli.py ai-context
@@ -422,3 +424,89 @@ AI surfaces pick up refreshed outputs from ai-export, including:
 - workflow/ai_navigation.json
 - workflow/semantic_context.json
 - workflow/ai_cycle.json
+
+## Monthly Semantic Governance Ritual
+
+Run this strategic governance cycle once per month.
+
+### Week 1: Deep Semantic Health Scan
+
+- python3 workflow/cli.py semantic-health --profile monthly
+
+Output:
+
+- workflow/semantic_health_report.json
+
+### Week 1: Full Unified Improvement Cycle
+
+- python3 workflow/cli.py improve-all
+
+Output:
+
+- workflow/cycle_plan.json
+
+### Week 2: Semantic Scorecard Review
+
+- python3 workflow/cli.py semantic-scorecard
+
+Output:
+
+- workflow/semantic_scorecard.json
+
+Council review focus:
+
+- semantic consistency
+- structural consistency
+- ontology health
+- MLAS and BTIF alignment
+- intent coverage
+- tag ontology clarity
+- drift risk
+- AI context alignment
+
+### Week 2: Ontology and MLAS BTIF Evolution Review
+
+Council decisions are tracked as:
+
+- approve
+- reject
+- defer
+- request revision
+
+### Week 3: Governance Approval Gate
+
+Apply mode approvals remain explicit:
+
+- --approve-evolution
+- --approve-expansion
+- --approve-refactor
+- --approve-semantic
+- --approve-structural
+- --approve-sync
+
+### Week 3: Apply Governed Changes
+
+- python3 workflow/cli.py improve-all --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync
+
+### Week 4: Full Validation Chain
+
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py visualize-all
+- python3 workflow/cli.py sync-all
+- python3 workflow/cli.py ai-export
+- python3 -m unittest discover workflow/tests -v
+
+### Week 4: Publish Monthly Semantic Strategy Report
+
+- python3 workflow/cli.py semantic-strategy-report --period YYYY-MM
+
+Output:
+
+- workflow/monthly_semantic_strategy_report.json
+
+### Quarter End Alignment
+
+When the month closes a quarter:
+
+- python3 workflow/cli.py release --bump patch
+- python3 workflow/cli.py release-notes

@@ -34,3 +34,7 @@ static/homepage_app/images/bt_slides/
 
 # Workflow generated health report
 workflow/semantic_health_report.json
+
+# Workflow generated monthly governance artifacts
+workflow/semantic_scorecard.json
+workflow/monthly_semantic_strategy_report.json

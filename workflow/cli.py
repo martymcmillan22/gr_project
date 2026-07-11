@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+from collections import Counter
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -65,6 +67,8 @@ AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
 AI_CYCLE_PATH = WORKFLOW_ROOT / "ai_cycle.json"
 CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan.json"
 SEMANTIC_HEALTH_PATH = WORKFLOW_ROOT / "semantic_health_report.json"
+SEMANTIC_SCORECARD_PATH = WORKFLOW_ROOT / "semantic_scorecard.json"
+MONTHLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "monthly_semantic_strategy_report.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -369,6 +373,7 @@ def cmd_semantic_health(args: argparse.Namespace) -> int:
     report = {
         "generated_at": cycle_preview.get("generated_at"),
         "target": "all",
+        "profile": args.profile,
         "feature_count": feature_count,
         "health_dimensions": {
             "semantic_aging_and_drift": drift_report,
@@ -404,8 +409,239 @@ def cmd_semantic_health(args: argparse.Namespace) -> int:
         ),
     }
 
+    if args.profile == "monthly":
+        tags: list[str] = []
+        missing_intent: list[str] = []
+        mlas_btif_gaps: list[str] = []
+        for feature in registry.get("features", []):
+            if not isinstance(feature, dict):
+                continue
+            slug = str(feature.get("slug", "")).strip()
+            tags.extend(str(tag).strip().lower() for tag in feature.get("semantic_tags", []) if str(tag).strip())
+            if not str(feature.get("semantic_intent", "")).strip() and slug:
+                missing_intent.append(slug)
+            if (not str(feature.get("mlas_tier", "")).strip() or not str(feature.get("btif_classification", "")).strip()) and slug:
+                mlas_btif_gaps.append(slug)
+
+        tag_counter = Counter(tags)
+        low_reuse_tags = sorted([tag for tag, count in tag_counter.items() if count == 1])
+        total_tags = sum(tag_counter.values())
+        entropy = 0.0
+        if total_tags > 0:
+            for count in tag_counter.values():
+                p = count / total_tags
+                entropy -= p * math.log(p, 2)
+
+        features = [f for f in registry.get("features", []) if isinstance(f, dict)]
+        alignment_pairs = 0
+        compared_pairs = 0
+        for i, left in enumerate(features):
+            left_tags = set(str(t).strip().lower() for t in left.get("semantic_tags", []) if str(t).strip())
+            for right in features[i + 1 :]:
+                compared_pairs += 1
+                right_tags = set(str(t).strip().lower() for t in right.get("semantic_tags", []) if str(t).strip())
+                if left_tags.intersection(right_tags):
+                    alignment_pairs += 1
+
+        drift_risk_score = round(
+            min(
+                1.0,
+                (
+                    (drift_total * 0.35)
+                    + (conflict_total * 0.25)
+                    + (low_confidence_total * 0.2)
+                    + (int(cycle_preview.get("proposal_count", 0)) * 0.05)
+                )
+                / 10.0,
+            ),
+            3,
+        )
+
+        report["health_dimensions"]["monthly_deep_scan"] = {
+            "semantic_aging_analysis": {
+                "drift_total": drift_total,
+                "drift_by_feature": {
+                    slug: payload.get("drift_count", 0)
+                    for slug, payload in drift_report.get("features", {}).items()
+                },
+            },
+            "ontology_aging_analysis": {
+                "unique_tag_count": len(tag_counter),
+                "low_reuse_tag_count": len(low_reuse_tags),
+                "low_reuse_tags": low_reuse_tags,
+            },
+            "mlas_btif_tier_drift_analysis": {
+                "features_missing_mlas_or_btif": mlas_btif_gaps,
+                "missing_count": len(mlas_btif_gaps),
+            },
+            "intent_coverage_gaps": {
+                "features_missing_intent": missing_intent,
+                "missing_count": len(missing_intent),
+            },
+            "cross_feature_semantic_alignment": {
+                "aligned_pairs": alignment_pairs,
+                "compared_pairs": compared_pairs,
+                "alignment_ratio": round((alignment_pairs / compared_pairs), 3) if compared_pairs else 1.0,
+            },
+            "long_term_drift_risk_forecasting": {
+                "risk_score": drift_risk_score,
+                "horizon": "next_month",
+                "risk_level": "high" if drift_risk_score >= 0.67 else "medium" if drift_risk_score >= 0.34 else "low",
+            },
+            "ai_context_entropy_analysis": {
+                "semantic_tag_entropy_bits": round(entropy, 4),
+                "interpretation": "higher entropy indicates broader semantic spread",
+            },
+        }
+
     out = write_json_file(SEMANTIC_HEALTH_PATH, report)
     print(json.dumps({"semantic_health": report, "written": out}, indent=2))
+    return 0
+
+
+def cmd_semantic_scorecard(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+
+    cycle_policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    cycle_plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, cycle_policy)
+    drift_report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    conflict_report = build_conflict_report(registry, repo_root)
+    inference_report = build_inference_report(registry, WORKFLOW_ROOT)
+    inference_policy = evaluate_inference_policy(inference_report, args.min_confidence)
+
+    drift_total = sum(
+        int(payload.get("drift_count", 0))
+        for payload in drift_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+    conflict_total = sum(
+        int(payload.get("conflict_count", 0))
+        for payload in conflict_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+    low_confidence_total = len(inference_policy.get("below_threshold", []))
+
+    features = [f for f in registry.get("features", []) if isinstance(f, dict)]
+    total = len(features)
+    with_mlas_btif = 0
+    with_intent = 0
+    tags: list[str] = []
+    for feature in features:
+        if str(feature.get("mlas_tier", "")).strip() and str(feature.get("btif_classification", "")).strip():
+            with_mlas_btif += 1
+        if str(feature.get("semantic_intent", "")).strip():
+            with_intent += 1
+        tags.extend(str(tag).strip().lower() for tag in feature.get("semantic_tags", []) if str(tag).strip())
+
+    tag_counter = Counter(tags)
+    low_reuse_tags = [tag for tag, count in tag_counter.items() if count == 1]
+
+    scorecard = {
+        "generated_at": cycle_plan.get("generated_at"),
+        "scope": "monthly",
+        "metrics": {
+            "semantic_consistency": {
+                "drift_total": drift_total,
+                "conflict_total": conflict_total,
+                "score": max(0, 100 - ((drift_total * 10) + (conflict_total * 8))),
+            },
+            "ontology_health": {
+                "unique_tag_count": len(tag_counter),
+                "low_reuse_tag_count": len(low_reuse_tags),
+                "score": max(0, 100 - (len(low_reuse_tags) * 3)),
+            },
+            "mlas_btif_tier_alignment": {
+                "coverage_ratio": round(with_mlas_btif / total, 3) if total else 1.0,
+                "score": round((with_mlas_btif / total) * 100) if total else 100,
+            },
+            "intent_coverage": {
+                "coverage_ratio": round(with_intent / total, 3) if total else 1.0,
+                "score": round((with_intent / total) * 100) if total else 100,
+            },
+            "ai_context_alignment": {
+                "below_confidence_threshold": low_confidence_total,
+                "score": max(0, 100 - (low_confidence_total * 20)),
+                "min_confidence": args.min_confidence,
+            },
+        },
+        "cycle_summary": {
+            "proposal_count": cycle_plan.get("proposal_count", 0),
+            "engine_order": cycle_plan.get("engine_order", []),
+        },
+        "council_decision_template": {
+            "approve": [],
+            "reject": [],
+            "defer": [],
+            "request_revision": [],
+        },
+    }
+
+    out = write_json_file(SEMANTIC_SCORECARD_PATH, scorecard)
+    print(json.dumps({"semantic_scorecard": scorecard, "written": out}, indent=2))
+    return 0
+
+
+def cmd_semantic_strategy_report(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    cycle_policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    cycle_plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, cycle_policy)
+
+    scorecard = {
+        "generated_at": cycle_plan.get("generated_at"),
+        "scope": "monthly",
+        "note": "Run semantic-scorecard to generate full scorecard artifact before council publication.",
+    }
+    if SEMANTIC_SCORECARD_PATH.exists():
+        try:
+            scorecard = json.loads(SEMANTIC_SCORECARD_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+
+    top_proposals = []
+    for proposal in cycle_plan.get("aggregated_proposals", [])[:10]:
+        if not isinstance(proposal, dict):
+            continue
+        top_proposals.append(
+            {
+                "engine": proposal.get("engine"),
+                "category": proposal.get("category"),
+                "confidence": proposal.get("confidence"),
+                "governance_requirements": proposal.get("governance_requirements", []),
+            }
+        )
+
+    report = {
+        "generated_at": cycle_plan.get("generated_at"),
+        "period": args.period,
+        "quarterly_alignment": bool(args.quarterly_alignment),
+        "semantic_scorecard": scorecard,
+        "ontology_evolution_summary": {
+            "source": "cycle_plan aggregated proposals",
+            "proposal_count": cycle_plan.get("proposal_count", 0),
+            "top_proposals": top_proposals,
+        },
+        "mlas_btif_evolution_summary": {
+            "note": "Derived from approved evolution and expansion proposals in cycle governance review.",
+        },
+        "tag_ontology_evolution_summary": {
+            "note": "Use low-reuse tag and ontology normalization proposals during council decisions.",
+        },
+        "governance_decisions": {
+            "approved": args.approved,
+            "rejected": args.rejected,
+            "deferred": args.deferred,
+            "requested_revisions": args.request_revision,
+        },
+        "applied_changes": {
+            "requires_apply_mode": True,
+            "command": "python3 workflow/cli.py improve-all --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync",
+        },
+        "next_month_priorities": args.next_priority,
+    }
+
+    out = write_json_file(MONTHLY_STRATEGY_REPORT_PATH, report)
+    print(json.dumps({"monthly_semantic_strategy_report": report, "written": out}, indent=2))
     return 0
 
 
@@ -1052,7 +1288,71 @@ def build_parser() -> argparse.ArgumentParser:
         default=INFERENCE_CONFIDENCE_DEFAULT,
         help="Minimum confidence threshold for semantic health inference checks",
     )
+    semantic_health.add_argument(
+        "--profile",
+        choices=["weekly", "monthly"],
+        default="weekly",
+        help="Health scan depth profile",
+    )
     semantic_health.set_defaults(func=cmd_semantic_health)
+
+    semantic_scorecard = sub.add_parser(
+        "semantic-scorecard",
+        help="Generate monthly semantic scorecard artifact for governance review",
+    )
+    semantic_scorecard.add_argument(
+        "--min-confidence",
+        type=float,
+        default=INFERENCE_CONFIDENCE_DEFAULT,
+        help="Minimum confidence threshold for AI alignment score",
+    )
+    semantic_scorecard.set_defaults(func=cmd_semantic_scorecard)
+
+    semantic_strategy_report = sub.add_parser(
+        "semantic-strategy-report",
+        help="Publish monthly semantic strategy report artifact for governance council",
+    )
+    semantic_strategy_report.add_argument(
+        "--period",
+        default="monthly",
+        help="Reporting period label, for example 2026-07",
+    )
+    semantic_strategy_report.add_argument(
+        "--quarterly-alignment",
+        action="store_true",
+        help="Mark report as quarter-end aligned",
+    )
+    semantic_strategy_report.add_argument(
+        "--approved",
+        nargs="*",
+        default=[],
+        help="Council approved proposal identifiers",
+    )
+    semantic_strategy_report.add_argument(
+        "--rejected",
+        nargs="*",
+        default=[],
+        help="Council rejected proposal identifiers",
+    )
+    semantic_strategy_report.add_argument(
+        "--deferred",
+        nargs="*",
+        default=[],
+        help="Council deferred proposal identifiers",
+    )
+    semantic_strategy_report.add_argument(
+        "--request-revision",
+        nargs="*",
+        default=[],
+        help="Proposal identifiers requiring revision",
+    )
+    semantic_strategy_report.add_argument(
+        "--next-priority",
+        nargs="*",
+        default=[],
+        help="Next month semantic priorities",
+    )
+    semantic_strategy_report.set_defaults(func=cmd_semantic_strategy_report)
 
     ai_context = sub.add_parser(
         "ai-context",
