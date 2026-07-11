@@ -37,3 +37,25 @@ class ProjectNodeWriteSerializer(serializers.Serializer):
         if not normalized:
             raise serializers.ValidationError("At least one semantic tag is required.")
         return normalized
+
+
+class ProjectWizardStartSerializer(serializers.Serializer):
+    slug = serializers.SlugField(max_length=120)
+    name = serializers.CharField(max_length=255, trim_whitespace=True)
+    semantic_intent = serializers.CharField(max_length=120, trim_whitespace=True)
+    mlas_tier = serializers.CharField(max_length=120, trim_whitespace=True)
+    btif_classification = serializers.CharField(max_length=120, trim_whitespace=True)
+
+
+class ProjectWizardTagsSerializer(serializers.Serializer):
+    semantic_tags = serializers.ListField(
+        child=serializers.CharField(max_length=120, trim_whitespace=True),
+        allow_empty=False,
+    )
+    metadata = serializers.DictField(required=False)
+
+    def validate_semantic_tags(self, value):
+        normalized = sorted({tag.strip().lower() for tag in value if tag.strip()})
+        if not normalized:
+            raise serializers.ValidationError("At least one semantic tag is required.")
+        return normalized
