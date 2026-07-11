@@ -4,7 +4,10 @@ from project_middle_layer.schemas import (
     get_projects_json_schema,
     validate_project_schema_dict,
 )
-from project_middle_layer.semantic import build_semantic_tree_mermaid
+from project_middle_layer.semantic import (
+    build_project_drift_forecast,
+    build_semantic_tree_mermaid,
+)
 from project_middle_layer.tier import build_tier_aware_project
 
 
@@ -36,4 +39,5 @@ def build_project_creation_payload(
         "tier_profile": build_tier_aware_project(schema),
         "identity_payload": compile_project_middle_layer_payload(schema),
         "semantic_tree": build_semantic_tree_mermaid(schema),
+        "drift_forecast": build_project_drift_forecast(schema),
     }

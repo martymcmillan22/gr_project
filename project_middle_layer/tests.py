@@ -25,12 +25,15 @@ class ProjectMiddleLayerPipelineTests(SimpleTestCase):
         self.assertIn("tier_profile", payload)
         self.assertIn("identity_payload", payload)
         self.assertIn("semantic_tree", payload)
+        self.assertIn("drift_forecast", payload)
         self.assertEqual(payload["schema_validation_errors"], [])
         self.assertIn("cpndc://project-middle-layer/project-middle-layer", payload["identity_payload"]["identity"]["identity_uri"])
         self.assertIn("identity_id", payload["identity_payload"]["identity"])
         self.assertIn("IDEA", payload["tier_profile"]["lifecycle"])
         self.assertIn("SPECIALIZED_PATH", payload["tier_profile"]["lifecycle"])
         self.assertIn("Identity Branch", payload["semantic_tree"])
+        self.assertIn("risk", payload["drift_forecast"])
+        self.assertIn("blended_semantic_drift_risk", payload["drift_forecast"]["risk"])
 
 
 class ProjectMiddleLayerRouteTests(SimpleTestCase):
@@ -94,6 +97,7 @@ class ProjectMiddleLayerWizardAPITests(APITestCase):
         compile_response = self.client.post(compile_url, {}, format="json")
         self.assertEqual(compile_response.status_code, status.HTTP_200_OK)
         self.assertIn("schema", compile_response.data)
+        self.assertIn("drift_forecast", compile_response.data)
 
         node = ProjectNode.objects.get(slug="phase3-wizard-project")
         self.assertEqual(node.name, "Phase3 Wizard Project")
