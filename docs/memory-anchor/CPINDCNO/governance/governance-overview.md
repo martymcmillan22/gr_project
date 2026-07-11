@@ -32,7 +32,7 @@ Governance lives in its own folder:
 Code
 
 ```
-/docs/CPINDCNO/governance/
+/docs/memory-anchor/CPINDCNO/governance/
 ```
 
 This namespace is:

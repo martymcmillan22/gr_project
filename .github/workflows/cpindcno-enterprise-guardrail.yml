@@ -3,10 +3,10 @@ name: CPINDCNO Enterprise Guardrail
 on:
   pull_request:
     paths:
-      - "docs/CPINDCNO/**"
-      - "docs/CPINDCNO-Enterprise/**"
+      - "docs/memory-anchor/CPINDCNO/**"
+      - "docs/memory-anchor/CPINDCNO-Enterprise/**"
       - "scripts/operations/check-cpindcno-enterprise-guardrail.sh"
-      - "docs/CPINDCNO/enterprise-separation-guardrail.md"
+      - "docs/memory-anchor/CPINDCNO/enterprise-separation-guardrail.md"
       - ".github/workflows/cpindcno-enterprise-guardrail.yml"
   workflow_dispatch:
 

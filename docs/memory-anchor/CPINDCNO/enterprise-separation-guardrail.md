@@ -8,14 +8,14 @@ Status: Draft
 This guardrail defines deterministic separation rules for Free Tier and Enterprise Tier namespaces.
 
 2. Rule
-No file from /docs/CPINDCNO-Enterprise/ may appear inside /docs/CPINDCNO/.
+No file from /docs/memory-anchor/CPINDCNO-Enterprise/ may appear inside /docs/memory-anchor/CPINDCNO/.
 
 3. Enforcement Conditions
 Any CI, lint, or workspace scan must fail if any of the following occur:
 
-a CPINDCNO-Enterprise file is found under /docs/CPINDCNO/
+a CPINDCNO-Enterprise file is found under /docs/memory-anchor/CPINDCNO/
 
-a CPINDCNO file references /docs/CPINDCNO-Enterprise/
+a CPINDCNO file references /docs/memory-anchor/CPINDCNO-Enterprise/
 
 a CPINDCNO file imports unified-rail logic
 

@@ -13,11 +13,11 @@ This manifest ensures the Enterprise Tier remains structurally isolated from CPI
 The Enterprise Tier must live in its own top‑level folder:
 
 Code
-/docs/CPINDCNO-Enterprise/
+/docs/memory-anchor/CPINDCNO-Enterprise/
 This folder is constitutionally separate from:
 
 Code
-/docs/CPINDCNO/
+/docs/memory-anchor/CPINDCNO/
 because:
 
 CPINDCNO = Free Tier (dual‑rail, 12‑hour)
@@ -30,7 +30,7 @@ Mixing them would violate rail separation and constitutional tier boundaries.
 Below is the canonical folder structure for the Enterprise Tier.
 
 Code
-/docs/CPINDCNO-Enterprise/
+/docs/memory-anchor/CPINDCNO-Enterprise/
     enterprise-tier-blueprint.md
     enterprise-folder-manifest.md
     /identity/
@@ -157,7 +157,7 @@ It will be finalized in the Enterprise Constitution.
 7. Enterprise Strictness Boundary
 Enterprise documents must:
 
-never appear inside /docs/CPINDCNO/
+never appear inside /docs/memory-anchor/CPINDCNO/
 
 never reference AM/PM rails except historically
 

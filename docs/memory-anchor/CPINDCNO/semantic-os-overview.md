@@ -124,31 +124,31 @@ Any alternative synchronization module, alternative load chain, or alternative c
 CPINDCNO Semantic OS is the constitution-governed PM-tier operating system synchronized with AM-tier through AM–PM Interlock under deterministic load order.
 
 15. Next-Step Links
-- docs/CPINDCNO/ConstitutionCore/am-pm-interlock.md
-- docs/CPINDCNO/PM01-PersonalIdentityRail/personal-identity-rail.md
-- docs/CPINDCNO/PM02-PersonalMemoryAnchor/personal-memory-anchor.md
-- docs/CPINDCNO/PM03-PersonalRelayBlueprint/personal-relay.blueprint.md
-- docs/CPINDCNO/PM04-PersonalQPUBlueprint/personal-qpu.blueprint.md
-- docs/CPINDCNO/PM05-PersonalVSCodeAIInstructions/personal-vs-code-ai.instructions.md
-- docs/CPINDCNO/PM06-PersonalSessionMap/personal-session-map.md
-- docs/CPINDCNO/PM07-PersonalHarvestEngine/personal-harvest.engine.md
-- docs/CPINDCNO/PM08-PersonalStabilizationEngine/personal-stabilization.engine.md
-- docs/CPINDCNO/PM09-PersonalDistributionEngine/personal-distribution.engine.md
-- docs/CPINDCNO/PM10-PersonalFeedbackEngine/personal-feedback.engine.md
-- docs/CPINDCNO/PM11-PersonalContinuityEngine/personal-continuity.engine.md
-- docs/CPINDCNO/PM12-PersonalIdentityEngine/personal-identity.engine.md
-- docs/MLAS/SemanticUtility/AM01-IdentityRail/am-identity-rail.md
-- docs/MLAS/SemanticUtility/AM02-MemoryAnchor/vs-code-ai.memory.md
-- docs/MLAS/SemanticUtility/AM03-StructuralPatternEngine/repository-relay.blueprint.md
-- docs/MLAS/SemanticUtility/AM04-ExecutionPatternEngine/qpu.blueprint.md
-- docs/MLAS/SemanticUtility/AM05-ExecutionBindingEngine/vs-code-ai.instructions.md
-- docs/MLAS/SemanticUtility/AM06-SessionEngine/vs-code-ai.session-map.md
-- docs/MLAS/SemanticUtility/AM07-SemanticHarvestEngine/semantic-harvest.engine.md
-- docs/MLAS/SemanticUtility/AM08-SemanticStabilizationEngine/semantic-stabilization.engine.md
-- docs/MLAS/SemanticUtility/AM09-SemanticDistributionEngine/semantic-distribution.engine.md
-- docs/MLAS/SemanticUtility/AM10-SemanticFeedbackEngine/semantic-feedback.engine.md
-- docs/MLAS/SemanticUtility/AM11-SemanticContinuityEngine/semantic-continuity.engine.md
-- docs/MLAS/SemanticUtility/AM12-SemanticIdentityEngine/semantic-identity.engine.md
+- docs/memory-anchor/CPINDCNO/ConstitutionCore/am-pm-interlock.md
+- docs/memory-anchor/CPINDCNO/PM01-PersonalIdentityRail/personal-identity-rail.md
+- docs/memory-anchor/CPINDCNO/PM02-PersonalMemoryAnchor/personal-memory-anchor.md
+- docs/memory-anchor/CPINDCNO/PM03-PersonalRelayBlueprint/personal-relay.blueprint.md
+- docs/memory-anchor/CPINDCNO/PM04-PersonalQPUBlueprint/personal-qpu.blueprint.md
+- docs/memory-anchor/CPINDCNO/PM05-PersonalVSCodeAIInstructions/personal-vs-code-ai.instructions.md
+- docs/memory-anchor/CPINDCNO/PM06-PersonalSessionMap/personal-session-map.md
+- docs/memory-anchor/CPINDCNO/PM07-PersonalHarvestEngine/personal-harvest.engine.md
+- docs/memory-anchor/CPINDCNO/PM08-PersonalStabilizationEngine/personal-stabilization.engine.md
+- docs/memory-anchor/CPINDCNO/PM09-PersonalDistributionEngine/personal-distribution.engine.md
+- docs/memory-anchor/CPINDCNO/PM10-PersonalFeedbackEngine/personal-feedback.engine.md
+- docs/memory-anchor/CPINDCNO/PM11-PersonalContinuityEngine/personal-continuity.engine.md
+- docs/memory-anchor/CPINDCNO/PM12-PersonalIdentityEngine/personal-identity.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM01-IdentityRail/am-identity-rail.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM02-MemoryAnchor/vs-code-ai.memory.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM03-StructuralPatternEngine/repository-relay.blueprint.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM04-ExecutionPatternEngine/qpu.blueprint.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM05-ExecutionBindingEngine/vs-code-ai.instructions.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM06-SessionEngine/vs-code-ai.session-map.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM07-SemanticHarvestEngine/semantic-harvest.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM08-SemanticStabilizationEngine/semantic-stabilization.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM09-SemanticDistributionEngine/semantic-distribution.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM10-SemanticFeedbackEngine/semantic-feedback.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM11-SemanticContinuityEngine/semantic-continuity.engine.md
+- docs/memory-anchor/MLAS/SemanticUtility/AM12-SemanticIdentityEngine/semantic-identity.engine.md
 
 16. Completion Signal
 CPINDCNO Semantic OS Overview active.
