@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 import argparse
 import json
+from pathlib import Path
 import sys
 
 from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
+from _engine.semantic_propagation import propagate_feature_semantics, propagate_registry_semantics
 from _engine.mlas_integration import build_mlas_report
 from _engine.registry import add_feature, feature_exists, load_registry, save_registry
 from _engine.scaffold import create_feature_scaffold, slugify
+from _engine.sync_erd import sync_erd_to_backend_model_stub
+from _engine.sync_sequence import sync_sequence_to_backend_logic_stub
+from _engine.sync_ui_component import sync_ui_component_to_design_system
+from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
 from validation.suite import run_workflow_validation
 
@@ -88,6 +94,84 @@ def cmd_semantic_check(_: argparse.Namespace) -> int:
     return 0
 
 
+def _sync_feature(feature: dict, repo_root: Path) -> dict[str, str]:
+    synced: dict[str, str] = {}
+    paths = feature.get("paths", {})
+
+    erd_path = repo_root / "workflow" / paths.get("erd", "")
+    sequence_path = repo_root / "workflow" / paths.get("sequence", "")
+    template_path = repo_root / "workflow" / paths.get("ui_template", "")
+    component_spec_path = repo_root / "workflow" / paths.get("ui_component", "")
+
+    erd_out = sync_erd_to_backend_model_stub(
+        erd_path,
+        feature["slug"],
+        feature.get("mlas_tier", ""),
+        repo_root,
+    )
+    synced["erd_backend_models"] = str(Path(erd_out).relative_to(repo_root))
+    btif_route = feature.get("propagation", {}).get("btif_route", "")
+    if not btif_route:
+        btif_route = build_btif_routing_table({"features": [feature]})[0]["route"]
+
+    seq_out = sync_sequence_to_backend_logic_stub(
+        sequence_path,
+        feature["slug"],
+        feature.get("semantic_intent", ""),
+        btif_route,
+        repo_root,
+    )
+    synced["sequence_backend_logic"] = str(Path(seq_out).relative_to(repo_root))
+
+    template_out = sync_ui_template_to_react_page(
+        template_path,
+        feature["slug"],
+        feature.get("semantic_tags", []),
+        repo_root,
+    )
+    synced["ui_template_react_page"] = str(Path(template_out).relative_to(repo_root))
+
+    component_out = sync_ui_component_to_design_system(
+        component_spec_path,
+        feature["slug"],
+        repo_root,
+    )
+    synced["ui_component_design_system"] = str(Path(component_out).relative_to(repo_root))
+    return synced
+
+
+def cmd_sync(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    feature = next((f for f in registry.get("features", []) if f.get("slug") == args.feature), None)
+    if not feature:
+        print(f"ERROR: feature not found: {args.feature}")
+        return 1
+
+    repo_root = WORKFLOW_ROOT.parent
+    synced_targets = _sync_feature(feature, repo_root)
+    propagate_feature_semantics(feature, synced_targets)
+    save_registry(REGISTRY_PATH, registry)
+    print(json.dumps({"feature": args.feature, "synced": synced_targets}, indent=2))
+    return 0
+
+
+def cmd_sync_all(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+    all_results: dict[str, dict[str, str]] = {}
+
+    for feature in registry.get("features", []):
+        slug = str(feature.get("slug", "")).strip()
+        if not slug:
+            continue
+        all_results[slug] = _sync_feature(feature, repo_root)
+
+    propagate_registry_semantics(registry, all_results)
+    save_registry(REGISTRY_PATH, registry)
+    print(json.dumps({"synced": all_results}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -125,6 +209,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run semantic validation checks for MLAS + BTIF consistency",
     )
     semantic_check.set_defaults(func=cmd_semantic_check)
+
+    sync_cmd = sub.add_parser(
+        "sync",
+        help="Run sync layer for one feature and propagate semantics",
+    )
+    sync_cmd.add_argument("--feature", required=True, help="Feature slug to sync")
+    sync_cmd.set_defaults(func=cmd_sync)
+
+    sync_all = sub.add_parser(
+        "sync-all",
+        help="Run sync layer for all features and propagate semantics",
+    )
+    sync_all.set_defaults(func=cmd_sync_all)
 
     return parser
 

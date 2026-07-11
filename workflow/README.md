@@ -48,6 +48,8 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py validate-suite
 - python workflow/cli.py classify
 - python workflow/cli.py semantic-check
+- python workflow/cli.py sync --feature <slug>
+- python workflow/cli.py sync-all
 
 ### Generated Outputs for new-feature
 
@@ -73,3 +75,27 @@ Semantic checks enforce deterministic consistency for:
 - semantic_tags
 - mlas_tier
 - btif_classification
+
+## Phase-3 Slice 4: Sync Layer + Semantic Propagation
+
+Sync modules:
+
+- workflow/_engine/sync_erd.py
+- workflow/_engine/sync_sequence.py
+- workflow/_engine/sync_ui_template.py
+- workflow/_engine/sync_ui_component.py
+- workflow/_engine/semantic_propagation.py
+
+Sync behavior:
+
+- ERD to backend model stubs under platform_core/workflow_generated/models/
+- sequence to backend logic stubs under platform_core/workflow_generated/logic/
+- UI templates to React pages under ui_apps/workflow_generated/pages/
+- UI component specs to generated design-system components under workflow/ui_components/penpot_components/generated/
+
+Semantic propagation behavior:
+
+- normalizes semantic_tags
+- updates propagation.mlas report for each feature
+- updates propagation.btif_route
+- records propagation.synced_targets

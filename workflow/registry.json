@@ -19,7 +19,22 @@
         "ui_template": "ui_templates/penpot_templates/features/pilot-intake/template.md",
         "ui_component": "ui_components/penpot_components/features/pilot-intake/component.md"
       },
-      "status": "scaffolded"
+      "status": "scaffolded",
+      "propagation": {
+        "mlas": {
+          "slug": "pilot-intake",
+          "mlas_tier": "Semantic Utility",
+          "semantic_intent": "CaptureAndRoute",
+          "semantic_tags": "intake,pilot,routing"
+        },
+        "btif_route": "btif://intakeflow/captureandroute/pilot-intake",
+        "synced_targets": {
+          "erd_backend_models": "platform_core/workflow_generated/models/pilot-intake_models.py",
+          "sequence_backend_logic": "platform_core/workflow_generated/logic/pilot-intake_logic.py",
+          "ui_template_react_page": "ui_apps/workflow_generated/pages/PilotIntakePage.tsx",
+          "ui_component_design_system": "workflow/ui_components/penpot_components/generated/PilotIntakeCard.tsx"
+        }
+      }
     }
   ]
 }
