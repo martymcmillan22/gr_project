@@ -31,3 +31,6 @@ static/homepage_app/main.js
 static/homepage_app/images/Twist-clean.png
 static/homepage_app/images/Twist.png
 static/homepage_app/images/bt_slides/
+
+# Workflow generated health report
+workflow/semantic_health_report.json

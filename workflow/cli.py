@@ -64,6 +64,7 @@ AI_EXPANSION_PATH = WORKFLOW_ROOT / "ai_expansion.json"
 AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
 AI_CYCLE_PATH = WORKFLOW_ROOT / "ai_cycle.json"
 CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan.json"
+SEMANTIC_HEALTH_PATH = WORKFLOW_ROOT / "semantic_health_report.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -334,6 +335,77 @@ def cmd_semantic_resolve(args: argparse.Namespace) -> int:
             indent=2,
         )
     )
+    return 0
+
+
+def cmd_semantic_health(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+
+    shape_errors = validate_registry_shape(registry)
+    suite_errors = run_workflow_validation(WORKFLOW_ROOT, registry)
+    drift_report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    inference_report = build_inference_report(registry, WORKFLOW_ROOT)
+    inference_policy = evaluate_inference_policy(inference_report, args.min_confidence)
+    conflict_report = build_conflict_report(registry, repo_root)
+    autofix_plan = build_autofix_plan(conflict_report)
+    cycle_policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    cycle_preview = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, cycle_policy)
+
+    drift_total = sum(
+        int(payload.get("drift_count", 0))
+        for payload in drift_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+    conflict_total = sum(
+        int(payload.get("conflict_count", 0))
+        for payload in conflict_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+    low_confidence_total = len(inference_policy.get("below_threshold", []))
+    unsafe_conflict_features = len(autofix_plan.get("unsafe_features", []))
+    feature_count = len(registry.get("features", []))
+
+    report = {
+        "generated_at": cycle_preview.get("generated_at"),
+        "target": "all",
+        "feature_count": feature_count,
+        "health_dimensions": {
+            "semantic_aging_and_drift": drift_report,
+            "metadata_inference": {
+                "inference": inference_report,
+                "policy": inference_policy,
+                "min_confidence": args.min_confidence,
+            },
+            "sync_and_conflicts": {
+                "conflicts": conflict_report,
+                "autofix_plan": autofix_plan,
+            },
+            "validation": {
+                "registry_shape_errors": shape_errors,
+                "artifact_errors": suite_errors,
+            },
+            "improvement_cycle_preview": cycle_preview,
+        },
+        "summary": {
+            "drift_total": drift_total,
+            "conflict_total": conflict_total,
+            "unsafe_conflict_features": unsafe_conflict_features,
+            "low_confidence_total": low_confidence_total,
+            "validation_error_total": len(shape_errors) + len(suite_errors),
+            "cycle_proposal_count": cycle_preview.get("proposal_count", 0),
+        },
+        "passes": (
+            drift_total == 0
+            and conflict_total == 0
+            and low_confidence_total == 0
+            and not shape_errors
+            and not suite_errors
+        ),
+    }
+
+    out = write_json_file(SEMANTIC_HEALTH_PATH, report)
+    print(json.dumps({"semantic_health": report, "written": out}, indent=2))
     return 0
 
 
@@ -969,6 +1041,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override safety gate and apply autofix even when unsafe conflict types are present",
     )
     semantic_resolve.set_defaults(func=cmd_semantic_resolve)
+
+    semantic_health = sub.add_parser(
+        "semantic-health",
+        help="Run a deterministic weekly semantic health scan and write workflow/semantic_health_report.json",
+    )
+    semantic_health.add_argument(
+        "--min-confidence",
+        type=float,
+        default=INFERENCE_CONFIDENCE_DEFAULT,
+        help="Minimum confidence threshold for semantic health inference checks",
+    )
+    semantic_health.set_defaults(func=cmd_semantic_health)
 
     ai_context = sub.add_parser(
         "ai-context",

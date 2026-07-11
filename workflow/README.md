@@ -55,6 +55,7 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-drift
 - python workflow/cli.py semantic-infer
 - python workflow/cli.py semantic-resolve [--apply]
+- python workflow/cli.py semantic-health
 - python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python workflow/cli.py semantic-resolve --apply [--force-unsafe]
 - python workflow/cli.py ai-context
@@ -356,3 +357,68 @@ Apply mode requires explicit approvals:
 - --approve-semantic
 - --approve-structural
 - --approve-sync
+
+## Weekly Semantic Health Ritual
+
+Run this deterministic maintenance cycle once per week.
+
+### Monday: Semantic Health Baseline
+
+- python3 workflow/cli.py semantic-health
+
+Output:
+
+- workflow/semantic_health_report.json
+
+### Tuesday: Unified Improvement Planning
+
+- python3 workflow/cli.py improve-all
+
+Output:
+
+- workflow/cycle_plan.json
+
+### Wednesday: Human + AI Review
+
+Review these artifacts before any apply-mode mutation:
+
+- workflow/cycle_plan.json
+- per-feature summaries inside cycle plan
+- aggregated governance blocks inside cycle plan
+
+### Thursday: Governance Approval Gate
+
+Use explicit approvals for apply mode:
+
+- --approve-evolution
+- --approve-expansion
+- --approve-refactor
+- --approve-semantic
+- --approve-structural
+- --approve-sync
+
+### Friday Morning: Apply Improvements
+
+- python3 workflow/cli.py improve-all --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync
+
+### Friday Afternoon: Integrity Chain
+
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py visualize-all
+- python3 workflow/cli.py sync-all
+- python3 workflow/cli.py ai-export
+- python3 -m unittest discover workflow/tests -v
+
+### Friday Evening: Release
+
+- python3 workflow/cli.py release --bump patch
+- python3 workflow/cli.py release-notes
+
+### Saturday: AI Context Refresh
+
+AI surfaces pick up refreshed outputs from ai-export, including:
+
+- workflow/ai_hints.json
+- workflow/ai_navigation.json
+- workflow/semantic_context.json
+- workflow/ai_cycle.json

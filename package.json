@@ -21,6 +21,7 @@
     "workflow:semantic-drift": "python3 workflow/cli.py semantic-drift",
     "workflow:semantic-infer": "python3 workflow/cli.py semantic-infer",
     "workflow:semantic-resolve": "python3 workflow/cli.py semantic-resolve",
+    "workflow:semantic-health": "python3 workflow/cli.py semantic-health",
     "workflow:ai-context": "python3 workflow/cli.py ai-context",
     "workflow:ai-export": "python3 workflow/cli.py ai-export",
     "workflow:ai-new-feature": "python3 workflow/cli.py ai-new-feature",

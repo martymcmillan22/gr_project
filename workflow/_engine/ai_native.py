@@ -52,6 +52,7 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "semantic-drift", "description": "Detect semantic drift"},
         {"command": "semantic-infer", "description": "Infer semantic metadata with confidence policy"},
         {"command": "semantic-resolve", "description": "Resolve semantic conflicts with safety gate"},
+        {"command": "semantic-health", "description": "Run deterministic semantic health scan and write weekly health report"},
         {"command": "ai-context", "description": "Print combined AI hints, navigation, and semantic context"},
         {"command": "ai-export", "description": "Write AI JSON context files for assistants"},
         {"command": "ai-new-feature", "description": "Generate feature from AI template with validation"},

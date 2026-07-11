@@ -57,6 +57,7 @@ Common commands:
 - python3 workflow/cli.py semantic-drift
 - python3 workflow/cli.py semantic-infer
 - python3 workflow/cli.py semantic-resolve
+- python3 workflow/cli.py semantic-health
 - python3 workflow/cli.py ai-context
 - python3 workflow/cli.py ai-export
 - python3 workflow/cli.py ai-new-feature --name "Feature Name"
