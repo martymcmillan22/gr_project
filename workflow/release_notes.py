@@ -12,7 +12,7 @@ from _engine.versioning import get_version_report, load_version_state
 
 def main() -> int:
     registry = load_registry(REGISTRY_PATH)
-    version_state = load_version_state(WORKFLOW_ROOT / "version.json")
+    version_state = load_version_state(WORKFLOW_ROOT / "meta" / "version.json")
     context_bundle = build_ai_context_bundle(registry, WORKFLOW_ROOT)
 
     notes = build_release_notes(
@@ -26,7 +26,7 @@ def main() -> int:
             "version": get_version_report(version_state),
         },
     )
-    out = write_release_notes(WORKFLOW_ROOT / "release_notes.json", notes)
+    out = write_release_notes(WORKFLOW_ROOT / "reports" / "release_notes.json", notes)
     print(json.dumps({"release_notes": out}, indent=2))
     return 0
 

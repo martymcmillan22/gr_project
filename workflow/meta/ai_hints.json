@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:48:29.817752+00:00",
+  "generated_at": "2026-07-11T18:35:57.826720+00:00",
   "workflow_root": "workflow",
   "canonical_categories": {
     "database_design": "database_design/mermaid_erds",
@@ -89,6 +89,22 @@
     {
       "command": "semantic-resolve",
       "description": "Resolve semantic conflicts with safety gate"
+    },
+    {
+      "command": "semantic-health",
+      "description": "Run deterministic semantic health scan with weekly, monthly, quarterly, or annual profiles"
+    },
+    {
+      "command": "semantic-drift-forecast",
+      "description": "Generate long-range semantic drift forecast for governance planning"
+    },
+    {
+      "command": "semantic-scorecard",
+      "description": "Generate monthly, quarterly, or annual semantic governance scorecard artifact"
+    },
+    {
+      "command": "semantic-strategy-report",
+      "description": "Publish monthly, quarterly, or annual semantic strategy report for governance council"
     },
     {
       "command": "ai-context",

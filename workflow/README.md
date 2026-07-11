@@ -2,6 +2,15 @@
 
 This directory is the unified command center and canonical source for workflow artifacts used to design and build apps, features, UI flows, backend logic, and schema flows.
 
+## Consolidated Layout
+
+To keep the workflow root minimal while preserving deterministic behavior:
+
+- Keep only `README.md` and executable Python entrypoints at workflow root.
+- Store durable metadata and AI context files in `workflow/meta`.
+- Store generated runtime artifacts in `workflow/reports`.
+- Store detailed reference docs in `workflow/meta/docs`.
+
 ## Categories
 
 1. database_design/mermaid_erds
@@ -98,7 +107,7 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 
 ### Metadata Source of Truth
 
-Feature metadata is stored in workflow/registry.json and validated with workflow/cli.py validate.
+Feature metadata is stored in workflow/meta/registry.json and validated with workflow/cli.py validate.
 
 ## Phase-3 Slice 3: Semantic Integration
 
@@ -172,8 +181,8 @@ New semantic commands:
 
 Additional docs:
 
-- workflow/SEMANTIC_DRIFT_OVERVIEW.md
-- workflow/SEMANTIC_INFERENCE_OVERVIEW.md
+- workflow/meta/docs/SEMANTIC_DRIFT_OVERVIEW.md
+- workflow/meta/docs/SEMANTIC_INFERENCE_OVERVIEW.md
 
 ## Phase-4 Slice 4: Semantic Hardening
 
@@ -193,9 +202,9 @@ Test suite:
 
 AI onboarding and command files:
 
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 
 AI prompt surface:
 
@@ -217,16 +226,16 @@ AI-native CLI commands:
 
 AI integration docs:
 
-- workflow/COPILOT_INTEGRATION_GUIDE.md
-- workflow/COPILOT_OPERATING_MODEL.md
+- workflow/meta/docs/COPILOT_INTEGRATION_GUIDE.md
+- workflow/meta/docs/COPILOT_OPERATING_MODEL.md
 
 ## Phase-4 Slice 6: Release And Governance System
 
 Versioning and governance files:
 
-- workflow/version.json
-- workflow/governance_policy.json
-- workflow/semantic_changelog.md
+- workflow/meta/version.json
+- workflow/meta/governance_policy.json
+- workflow/meta/semantic_changelog.md
 
 Release pipeline scripts:
 
@@ -235,8 +244,8 @@ Release pipeline scripts:
 
 Release docs:
 
-- workflow/RELEASE_OVERVIEW.md
-- workflow/VERSIONING_GUIDE.md
+- workflow/meta/docs/RELEASE_OVERVIEW.md
+- workflow/meta/docs/VERSIONING_GUIDE.md
 
 Release and version CLI commands:
 
@@ -263,16 +272,16 @@ Evolution engine module:
 
 Long-term evolution governance:
 
-- workflow/governance_long_term.json
+- workflow/meta/governance_long_term.json
 
 Evolution AI surfaces:
 
 - workflow/ai_prompts/ai_evolution_prompt.txt
-- workflow/ai_evolution.json
+- workflow/meta/ai_evolution.json
 
 Evolution docs:
 
-- workflow/SEMANTIC_EVOLUTION_OVERVIEW.md
+- workflow/meta/docs/SEMANTIC_EVOLUTION_OVERVIEW.md
 
 Evolution commands:
 
@@ -291,11 +300,11 @@ Expansion engine module:
 Expansion AI surfaces:
 
 - workflow/ai_prompts/ai_expansion_prompt.txt
-- workflow/ai_expansion.json
+- workflow/meta/ai_expansion.json
 
 Expansion docs:
 
-- workflow/FEATURE_EXPANSION_OVERVIEW.md
+- workflow/meta/docs/FEATURE_EXPANSION_OVERVIEW.md
 
 Expansion commands:
 
@@ -319,11 +328,11 @@ Refactor engine module:
 Refactor AI surfaces:
 
 - workflow/ai_prompts/ai_refactor_prompt.txt
-- workflow/ai_refactor.json
+- workflow/meta/ai_refactor.json
 
 Refactor docs:
 
-- workflow/SEMANTIC_REFACTORING_OVERVIEW.md
+- workflow/meta/docs/SEMANTIC_REFACTORING_OVERVIEW.md
 
 Refactor commands:
 
@@ -347,11 +356,11 @@ Improvement cycle engine module:
 Improvement cycle AI surfaces:
 
 - workflow/ai_prompts/ai_cycle_prompt.txt
-- workflow/ai_cycle.json
+- workflow/meta/ai_cycle.json
 
 Improvement cycle docs:
 
-- workflow/SEMANTIC_IMPROVEMENT_CYCLE_OVERVIEW.md
+- workflow/meta/docs/SEMANTIC_IMPROVEMENT_CYCLE_OVERVIEW.md
 
 Improvement cycle commands:
 
@@ -378,7 +387,7 @@ Run this deterministic maintenance cycle once per week.
 
 Output:
 
-- workflow/semantic_health_report.json
+- workflow/reports/semantic_health_report.json
 
 ### Tuesday: Unified Improvement Planning
 
@@ -386,13 +395,13 @@ Output:
 
 Output:
 
-- workflow/cycle_plan.json
+- workflow/reports/cycle_plan.json
 
 ### Wednesday: Human + AI Review
 
 Review these artifacts before any apply-mode mutation:
 
-- workflow/cycle_plan.json
+- workflow/reports/cycle_plan.json
 - per-feature summaries inside cycle plan
 - aggregated governance blocks inside cycle plan
 
@@ -428,10 +437,10 @@ Use explicit approvals for apply mode:
 
 AI surfaces pick up refreshed outputs from ai-export, including:
 
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
-- workflow/ai_cycle.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
+- workflow/meta/ai_cycle.json
 
 ## Monthly Semantic Governance Ritual
 
@@ -443,7 +452,7 @@ Run this strategic governance cycle once per month.
 
 Output:
 
-- workflow/semantic_health_report.json
+- workflow/reports/semantic_health_report.json
 
 ### Week 1: Full Unified Improvement Cycle
 
@@ -451,7 +460,7 @@ Output:
 
 Output:
 
-- workflow/cycle_plan.json
+- workflow/reports/cycle_plan.json
 
 ### Week 2: Semantic Scorecard Review
 
@@ -459,7 +468,7 @@ Output:
 
 Output:
 
-- workflow/semantic_scorecard.json
+- workflow/reports/semantic_scorecard.json
 
 Council review focus:
 
@@ -510,7 +519,7 @@ Apply mode approvals remain explicit:
 
 Output:
 
-- workflow/monthly_semantic_strategy_report.json
+- workflow/reports/monthly_semantic_strategy_report.json
 
 ### Quarter End Alignment
 
@@ -529,7 +538,7 @@ Run this platform-wide governed release cycle once per quarter.
 
 Output:
 
-- workflow/semantic_health_report_quarterly.json
+- workflow/reports/semantic_health_report_quarterly.json
 
 ### Week 1: Quarterly Unified Improvement Cycle
 
@@ -537,7 +546,7 @@ Output:
 
 Output:
 
-- workflow/cycle_plan_quarterly.json
+- workflow/reports/cycle_plan_quarterly.json
 
 ### Week 2: Quarterly Semantic Scorecard
 
@@ -545,7 +554,7 @@ Output:
 
 Output:
 
-- workflow/semantic_scorecard_quarterly.json
+- workflow/reports/semantic_scorecard_quarterly.json
 
 ### Week 2: Ontology and MLAS BTIF Evolution Planning
 
@@ -585,7 +594,7 @@ Review focus:
 
 Output:
 
-- workflow/quarterly_semantic_strategy_report.json
+- workflow/reports/quarterly_semantic_strategy_report.json
 
 ### Week 4: Quarterly Release and AI Regeneration
 
@@ -603,7 +612,7 @@ Run this long-range semantic strategy cycle once per year.
 
 Output:
 
-- workflow/semantic_health_report_annual.json
+- workflow/reports/semantic_health_report_annual.json
 
 ### January: Annual Semantic Scorecard
 
@@ -611,7 +620,7 @@ Output:
 
 Output:
 
-- workflow/semantic_scorecard_annual.json
+- workflow/reports/semantic_scorecard_annual.json
 
 ### February: Annual Semantic Drift Forecast
 
@@ -619,7 +628,7 @@ Output:
 
 Output:
 
-- workflow/annual_semantic_drift_forecast.json
+- workflow/reports/annual_semantic_drift_forecast.json
 
 ### February: Ontology and MLAS BTIF Long-Range Planning
 
@@ -648,8 +657,8 @@ Define goals for:
 
 Output:
 
-- workflow/cycle_plan_annual.json
-- workflow/annual_semantic_strategy_report.json
+- workflow/reports/cycle_plan_annual.json
+- workflow/reports/annual_semantic_strategy_report.json
 
 ### April: Annual Full Validation Chain
 

@@ -34,7 +34,7 @@ Proposal block fields:
 
 Long-term safety gates are defined in:
 
-- workflow/governance_long_term.json
+- workflow/meta/governance_long_term.json
 
 Required approvals can include:
 
@@ -65,7 +65,7 @@ Preview write mode:
 Evolution AI surfaces:
 
 - workflow/ai_prompts/ai_evolution_prompt.txt
-- workflow/ai_evolution.json
+- workflow/meta/ai_evolution.json
 
 These allow AI tools to reason about deterministic improvement proposals and validate governance requirements.
 

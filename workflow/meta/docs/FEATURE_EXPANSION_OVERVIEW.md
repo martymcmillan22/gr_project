@@ -21,7 +21,7 @@ The engine analyzes:
 
 Expansion governance is defined in:
 
-- workflow/governance_long_term.json
+- workflow/meta/governance_long_term.json
 
 Apply mode requires explicit approvals:
 
@@ -48,7 +48,7 @@ Preview example:
 ## AI Surfaces
 
 - workflow/ai_prompts/ai_expansion_prompt.txt
-- workflow/ai_expansion.json
+- workflow/meta/ai_expansion.json
 
 ## Proposal Schema
 

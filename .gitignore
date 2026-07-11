@@ -33,21 +33,21 @@ static/homepage_app/images/Twist.png
 static/homepage_app/images/bt_slides/
 
 # Workflow generated health report
-workflow/semantic_health_report.json
+workflow/reports/semantic_health_report.json
 
 # Workflow generated monthly governance artifacts
-workflow/semantic_scorecard.json
-workflow/monthly_semantic_strategy_report.json
+workflow/reports/semantic_scorecard.json
+workflow/reports/monthly_semantic_strategy_report.json
 
 # Workflow generated quarterly governance artifacts
-workflow/semantic_health_report_quarterly.json
-workflow/cycle_plan_quarterly.json
-workflow/semantic_scorecard_quarterly.json
-workflow/quarterly_semantic_strategy_report.json
+workflow/reports/semantic_health_report_quarterly.json
+workflow/reports/cycle_plan_quarterly.json
+workflow/reports/semantic_scorecard_quarterly.json
+workflow/reports/quarterly_semantic_strategy_report.json
 
 # Workflow generated annual governance artifacts
-workflow/semantic_health_report_annual.json
-workflow/cycle_plan_annual.json
-workflow/semantic_scorecard_annual.json
-workflow/annual_semantic_strategy_report.json
-workflow/annual_semantic_drift_forecast.json
+workflow/reports/semantic_health_report_annual.json
+workflow/reports/cycle_plan_annual.json
+workflow/reports/semantic_scorecard_annual.json
+workflow/reports/annual_semantic_strategy_report.json
+workflow/reports/annual_semantic_drift_forecast.json

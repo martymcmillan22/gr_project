@@ -52,32 +52,32 @@ from semantic_improvement_cycle import (
 from validation.suite import run_workflow_validation
 
 
-AI_HINTS_PATH = WORKFLOW_ROOT / "ai_hints.json"
-AI_NAVIGATION_PATH = WORKFLOW_ROOT / "ai_navigation.json"
-AI_SEMANTIC_CONTEXT_PATH = WORKFLOW_ROOT / "semantic_context.json"
+AI_HINTS_PATH = WORKFLOW_ROOT / "meta" / "ai_hints.json"
+AI_NAVIGATION_PATH = WORKFLOW_ROOT / "meta" / "ai_navigation.json"
+AI_SEMANTIC_CONTEXT_PATH = WORKFLOW_ROOT / "meta" / "semantic_context.json"
 AI_FEATURE_TEMPLATE_PATH = WORKFLOW_ROOT / "ai_templates" / "feature.json"
-VERSION_PATH = WORKFLOW_ROOT / "version.json"
-RELEASE_NOTES_PATH = WORKFLOW_ROOT / "release_notes.json"
-SEMANTIC_CHANGELOG_PATH = WORKFLOW_ROOT / "semantic_changelog.md"
-GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "governance_policy.json"
-GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "governance_long_term.json"
-AI_EVOLUTION_PATH = WORKFLOW_ROOT / "ai_evolution.json"
-AI_EXPANSION_PATH = WORKFLOW_ROOT / "ai_expansion.json"
-AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
-AI_CYCLE_PATH = WORKFLOW_ROOT / "ai_cycle.json"
-CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan.json"
-QUARTERLY_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan_quarterly.json"
-ANNUAL_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan_annual.json"
-SEMANTIC_HEALTH_PATH = WORKFLOW_ROOT / "semantic_health_report.json"
-SEMANTIC_HEALTH_QUARTERLY_PATH = WORKFLOW_ROOT / "semantic_health_report_quarterly.json"
-SEMANTIC_HEALTH_ANNUAL_PATH = WORKFLOW_ROOT / "semantic_health_report_annual.json"
-SEMANTIC_SCORECARD_PATH = WORKFLOW_ROOT / "semantic_scorecard.json"
-SEMANTIC_SCORECARD_QUARTERLY_PATH = WORKFLOW_ROOT / "semantic_scorecard_quarterly.json"
-SEMANTIC_SCORECARD_ANNUAL_PATH = WORKFLOW_ROOT / "semantic_scorecard_annual.json"
-MONTHLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "monthly_semantic_strategy_report.json"
-QUARTERLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "quarterly_semantic_strategy_report.json"
-ANNUAL_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "annual_semantic_strategy_report.json"
-ANNUAL_DRIFT_FORECAST_PATH = WORKFLOW_ROOT / "annual_semantic_drift_forecast.json"
+VERSION_PATH = WORKFLOW_ROOT / "meta" / "version.json"
+RELEASE_NOTES_PATH = WORKFLOW_ROOT / "reports" / "release_notes.json"
+SEMANTIC_CHANGELOG_PATH = WORKFLOW_ROOT / "meta" / "semantic_changelog.md"
+GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "meta" / "governance_policy.json"
+GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "meta" / "governance_long_term.json"
+AI_EVOLUTION_PATH = WORKFLOW_ROOT / "meta" / "ai_evolution.json"
+AI_EXPANSION_PATH = WORKFLOW_ROOT / "meta" / "ai_expansion.json"
+AI_REFACTOR_PATH = WORKFLOW_ROOT / "meta" / "ai_refactor.json"
+AI_CYCLE_PATH = WORKFLOW_ROOT / "meta" / "ai_cycle.json"
+CYCLE_PLAN_PATH = WORKFLOW_ROOT / "reports" / "cycle_plan.json"
+QUARTERLY_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "reports" / "cycle_plan_quarterly.json"
+ANNUAL_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "reports" / "cycle_plan_annual.json"
+SEMANTIC_HEALTH_PATH = WORKFLOW_ROOT / "reports" / "semantic_health_report.json"
+SEMANTIC_HEALTH_QUARTERLY_PATH = WORKFLOW_ROOT / "reports" / "semantic_health_report_quarterly.json"
+SEMANTIC_HEALTH_ANNUAL_PATH = WORKFLOW_ROOT / "reports" / "semantic_health_report_annual.json"
+SEMANTIC_SCORECARD_PATH = WORKFLOW_ROOT / "reports" / "semantic_scorecard.json"
+SEMANTIC_SCORECARD_QUARTERLY_PATH = WORKFLOW_ROOT / "reports" / "semantic_scorecard_quarterly.json"
+SEMANTIC_SCORECARD_ANNUAL_PATH = WORKFLOW_ROOT / "reports" / "semantic_scorecard_annual.json"
+MONTHLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "monthly_semantic_strategy_report.json"
+QUARTERLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "quarterly_semantic_strategy_report.json"
+ANNUAL_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_strategy_report.json"
+ANNUAL_DRIFT_FORECAST_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_drift_forecast.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -1589,7 +1589,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     version_cmd = sub.add_parser(
         "version",
-        help="Show workflow layer versions from workflow/version.json",
+        help="Show workflow layer versions from workflow/meta/version.json",
     )
     version_cmd.set_defaults(func=cmd_version)
 
@@ -1668,7 +1668,7 @@ def build_parser() -> argparse.ArgumentParser:
         "evolve-preview",
         help="Preview evolution proposals without applying registry mutations",
     )
-    evolve_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_evolution.json")
+    evolve_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/meta/ai_evolution.json")
     evolve_preview.set_defaults(func=cmd_evolve_preview)
 
     expand = sub.add_parser(
@@ -1698,7 +1698,7 @@ def build_parser() -> argparse.ArgumentParser:
         "expand-preview",
         help="Preview expansion proposals without applying registry mutations",
     )
-    expand_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_expansion.json")
+    expand_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/meta/ai_expansion.json")
     expand_preview.set_defaults(func=cmd_expand_preview)
 
     refactor_feature = sub.add_parser(
@@ -1728,7 +1728,7 @@ def build_parser() -> argparse.ArgumentParser:
         "refactor-preview",
         help="Preview semantic refactor proposals without applying registry mutations",
     )
-    refactor_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_refactor.json")
+    refactor_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/meta/ai_refactor.json")
     refactor_preview.set_defaults(func=cmd_refactor_preview)
 
     improve_feature = sub.add_parser(
@@ -1768,7 +1768,7 @@ def build_parser() -> argparse.ArgumentParser:
         "improve-preview",
         help="Preview unified semantic improvement cycle plan without applying mutations",
     )
-    improve_preview.add_argument("--write", action="store_true", help="Write preview plan to workflow/ai_cycle.json")
+    improve_preview.add_argument("--write", action="store_true", help="Write preview plan to workflow/meta/ai_cycle.json")
     improve_preview.set_defaults(func=cmd_improve_preview)
 
     return parser

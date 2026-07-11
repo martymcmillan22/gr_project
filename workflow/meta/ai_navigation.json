@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:48:29.818294+00:00",
+  "generated_at": "2026-07-11T18:35:57.827315+00:00",
   "directory_map": {
     "workflow_root": "workflow",
-    "registry": "workflow/registry.json",
+    "registry": "workflow/meta/registry.json",
     "engine": "workflow/_engine",
     "validation": "workflow/validation",
     "ai_prompts": "workflow/ai_prompts",

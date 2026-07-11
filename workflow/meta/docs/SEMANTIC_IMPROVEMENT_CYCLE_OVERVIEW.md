@@ -16,8 +16,8 @@ Cycle order is deterministic:
 
 ## Outputs
 
-- workflow/cycle_plan.json
-- workflow/ai_cycle.json
+- workflow/reports/cycle_plan.json
+- workflow/meta/ai_cycle.json
 - per-feature improvement summaries
 - aggregated proposal list with governance requirements
 
@@ -43,4 +43,4 @@ Cycle apply is blocked when any required approval is missing.
 ## AI Surfaces
 
 - workflow/ai_prompts/ai_cycle_prompt.txt
-- workflow/ai_cycle.json
+- workflow/meta/ai_cycle.json

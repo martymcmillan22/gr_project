@@ -2,7 +2,7 @@
 
 ## Canonical Version File
 
-Use workflow/version.json as the single source of truth.
+Use workflow/meta/version.json as the single source of truth.
 
 Tracked layer versions:
 

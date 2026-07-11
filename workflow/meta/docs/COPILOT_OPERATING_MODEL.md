@@ -8,9 +8,9 @@ Treat workflow as a semantic operating system.
 
 Always read these files first before workflow reasoning or generation:
 
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 
 These files are the canonical AI context for:
 
@@ -25,7 +25,7 @@ These files are the canonical AI context for:
 
 For find/open/inspect/modify requests within workflow, use:
 
-- workflow/ai_navigation.json
+- workflow/meta/ai_navigation.json
 - workflow/visualizations/*
 
 Navigation responsibilities:
@@ -42,20 +42,20 @@ For new workflow feature requests:
 1. Load workflow/ai_templates/feature.json.
 2. Load workflow/ai_prompts/new_feature_prompt.txt.
 3. Produce deterministic feature definition.
-4. Validate semantic fields against workflow/semantic_context.json.
+4. Validate semantic fields against workflow/meta/semantic_context.json.
 5. Output ready-to-run command arguments.
 6. Execute or recommend workflow command center mutation.
 
 Generation rule:
 
 - Never invent MLAS or BTIF classes without semantic context alignment.
-- Use workflow/ai_prompts/semantic_inference_prompt.txt and workflow/semantic_context.json for inference.
+- Use workflow/ai_prompts/semantic_inference_prompt.txt and workflow/meta/semantic_context.json for inference.
 
 ## 4. Semantic Reasoning Behavior
 
 For semantic checks, inference, drift, and conflict analysis:
 
-- load workflow/semantic_context.json
+- load workflow/meta/semantic_context.json
 - load relevant feature artifacts from workflow categories
 - follow prompt pack:
   - workflow/ai_prompts/semantic_inference_prompt.txt
@@ -76,7 +76,7 @@ Safety rule:
 
 For code generation, output updates, or diagrams:
 
-- use workflow/ai_navigation.json and workflow/semantic_context.json
+- use workflow/meta/ai_navigation.json and workflow/meta/semantic_context.json
 - use command surface, not manual generation:
   - python3 workflow/cli.py sync --feature <slug>
   - python3 workflow/cli.py sync-all
@@ -103,7 +103,7 @@ For AI-assisted feature creation:
 1. Load workflow/ai_templates/feature.json.
 2. Use workflow/ai_prompts/new_feature_prompt.txt.
 3. Generate feature definition candidate.
-4. Validate against workflow/semantic_context.json.
+4. Validate against workflow/meta/semantic_context.json.
 5. Use command surface:
    - python3 workflow/cli.py ai-new-feature --name "Feature Name" --dry-run
    - python3 workflow/cli.py ai-new-feature --name "Feature Name" [--sync]
@@ -116,7 +116,7 @@ Copilot and AI assistants must:
 - enforce autofix safety gates
 - avoid unsafe semantic mutations by default
 - avoid manual mutation of generated sync artifacts
-- avoid direct edits to workflow/registry.json when command equivalents exist
+- avoid direct edits to workflow/meta/registry.json when command equivalents exist
 - prefer workflow CLI command mutations for deterministic consistency
 
 ## 9. Assistant Persona In This Repo

@@ -10,9 +10,9 @@ This guide applies to workflow planning, semantic reasoning, feature generation,
 
 1. Treat workflow as a semantic operating system.
 2. Bootstrap every workflow task by reading:
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 3. Prefer command-first mutation for deterministic behavior.
 4. Use workflow templates and prompts before proposing feature metadata.
 5. Preserve naming continuity across feature name, slug, semantic intent, MLAS tier, and BTIF class.
@@ -101,9 +101,9 @@ Mutation policy:
 2. python3 workflow/cli.py ai-context
 
 Expected outcome:
-- workflow/ai_hints.json updated
-- workflow/ai_navigation.json updated
-- workflow/semantic_context.json updated
+- workflow/meta/ai_hints.json updated
+- workflow/meta/ai_navigation.json updated
+- workflow/meta/semantic_context.json updated
 
 ### Example 2: AI-assisted feature creation (safe path)
 
@@ -175,9 +175,9 @@ Expected outcome:
 ## VS Code AI Integration Notes
 
 1. Keep this order for AI context bootstrap:
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 2. Prefer repository instructions in .github/copilot-instructions.md for behavior constraints.
 3. Use workflow prompt pack for deterministic reasoning:
 - workflow/ai_prompts/new_feature_prompt.txt
@@ -186,4 +186,4 @@ Expected outcome:
 - workflow/ai_prompts/conflict_resolution_prompt.txt
 - workflow/ai_prompts/visualization_prompt.txt
 4. Do not bypass CLI mutation paths with manual generation when sync and visualize commands exist.
-5. For complete operating behavior, align with workflow/COPILOT_OPERATING_MODEL.md.
+5. For complete operating behavior, align with workflow/meta/docs/COPILOT_OPERATING_MODEL.md.

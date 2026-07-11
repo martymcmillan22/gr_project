@@ -19,14 +19,14 @@ All tasks must apply the Grassroots directive unless explicitly told otherwise.
 
 For workflow platform tasks, always bootstrap context by reading:
 
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 
 Command-first mutation policy for workflow/:
 
 - Prefer python3 workflow/cli.py commands for all state mutations.
-- Do not edit workflow/registry.json directly when a CLI command exists.
+- Do not edit workflow/meta/registry.json directly when a CLI command exists.
 - Use ai-new-feature or new-feature for feature creation.
 - Use sync/sync-all for generated output updates.
 - Use visualize/visualize-all for diagram outputs.
@@ -52,9 +52,9 @@ AI prompt/template usage for workflow generation and reasoning:
 
 Long-term evolution governance:
 
-- workflow/governance_long_term.json
+- workflow/meta/governance_long_term.json
 
 Detailed playbook:
 
-- workflow/COPILOT_OPERATING_MODEL.md
-- workflow/COPILOT_INTEGRATION_GUIDE.md
+- workflow/meta/docs/COPILOT_OPERATING_MODEL.md
+- workflow/meta/docs/COPILOT_INTEGRATION_GUIDE.md

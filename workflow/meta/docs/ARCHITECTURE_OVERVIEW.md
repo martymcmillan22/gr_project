@@ -87,9 +87,9 @@ Supported commands:
 
 AI-facing deterministic metadata files:
 
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 
 AI prompt and template resources:
 
@@ -98,7 +98,7 @@ AI prompt and template resources:
 
 ## Registry
 
-Registry file: workflow/registry.json
+Registry file: workflow/meta/registry.json
 
 Top-level fields:
 

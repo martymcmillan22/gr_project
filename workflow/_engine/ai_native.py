@@ -189,7 +189,7 @@ def build_ai_navigation(registry: dict[str, Any], workflow_root: Path) -> dict[s
 
     directory_map = {
         "workflow_root": "workflow",
-        "registry": "workflow/registry.json",
+        "registry": "workflow/meta/registry.json",
         "engine": "workflow/_engine",
         "validation": "workflow/validation",
         "ai_prompts": "workflow/ai_prompts",

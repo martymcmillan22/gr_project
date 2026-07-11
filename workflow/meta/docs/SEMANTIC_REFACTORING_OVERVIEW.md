@@ -21,7 +21,7 @@ The refactor engine proposes updates for:
 
 Refactor governance is defined in:
 
-- workflow/governance_long_term.json
+- workflow/meta/governance_long_term.json
 
 Apply mode requires explicit approvals:
 
@@ -48,4 +48,4 @@ Preview example:
 ## AI Surfaces
 
 - workflow/ai_prompts/ai_refactor_prompt.txt
-- workflow/ai_refactor.json
+- workflow/meta/ai_refactor.json

@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_PATH = WORKFLOW_ROOT / "registry.json"
+REGISTRY_PATH = WORKFLOW_ROOT / "meta" / "registry.json"
 
 CATEGORY_DIRS = {
     "erd": WORKFLOW_ROOT / "database_design" / "mermaid_erds",

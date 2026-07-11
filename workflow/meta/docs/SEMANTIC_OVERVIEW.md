@@ -6,7 +6,7 @@ This document defines how workflow artifacts are interpreted semantically throug
 
 ## Semantic Inputs Per Feature
 
-From workflow/registry.json each feature provides:
+From workflow/meta/registry.json each feature provides:
 
 - mlas_tier
 - btif_classification
@@ -157,7 +157,7 @@ These modules add drift detection, metadata inference, and deterministic conflic
 
 AI semantic context file:
 
-- workflow/semantic_context.json
+- workflow/meta/semantic_context.json
 
 This export provides:
 

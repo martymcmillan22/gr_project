@@ -51,7 +51,7 @@ Enforce this pipeline in order:
 7. Reusable design system components: workflow/ui_components/penpot_components/grassroots
 8. Workflow UI templates: workflow/ui_templates/penpot_templates
 9. Workflow ERD and sequence artifacts: workflow/database_design/mermaid_erds and workflow/logic_design/mermaid_sequences
-10. Workflow registry: workflow/registry.json
+10. Workflow registry: workflow/meta/registry.json
 11. Workflow CLI: workflow/cli.py
 12. Semantic and contract runtime: platform_core and BTIF
 13. Django project runtime: gr_project and manage.py
@@ -159,7 +159,7 @@ python3 workflow/cli.py sync-all
 
 ## Workflow Registry Schema
 
-Each feature in workflow/registry.json includes:
+Each feature in workflow/meta/registry.json includes:
 
 - name
 - slug

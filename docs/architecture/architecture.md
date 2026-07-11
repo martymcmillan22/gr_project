@@ -224,7 +224,7 @@ The workflow engine lives in workflow/_engine and is orchestrated through workfl
 
 ### Registry Schema (Current)
 
-Feature entries in workflow/registry.json include:
+Feature entries in workflow/meta/registry.json include:
 
 - name
 - slug

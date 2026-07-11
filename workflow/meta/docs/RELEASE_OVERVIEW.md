@@ -6,11 +6,11 @@ This document defines deterministic release orchestration for the workflow platf
 
 ## Release Inputs
 
-- workflow/registry.json
-- workflow/version.json
-- workflow/semantic_context.json
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
+- workflow/meta/registry.json
+- workflow/meta/version.json
+- workflow/meta/semantic_context.json
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
 
 ## Release Commands
 
@@ -35,12 +35,12 @@ Release fails when any gate fails:
 
 ## Release Outputs
 
-- workflow/version.json
-- workflow/release_notes.json
-- workflow/semantic_changelog.md
-- workflow/ai_hints.json
-- workflow/ai_navigation.json
-- workflow/semantic_context.json
+- workflow/meta/version.json
+- workflow/reports/release_notes.json
+- workflow/meta/semantic_changelog.md
+- workflow/meta/ai_hints.json
+- workflow/meta/ai_navigation.json
+- workflow/meta/semantic_context.json
 
 ## Governance Scope
 
