@@ -45,6 +45,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 
 - python workflow/cli.py new-feature --name "Feature Name" --mlas-tier "TierName" --btif-classification "ClassName" --semantic-intent "IntentName" --semantic-tags tag1 tag2
 - python workflow/cli.py validate
+- python workflow/cli.py validate-suite
+- python workflow/cli.py classify
+- python workflow/cli.py semantic-check
 
 ### Generated Outputs for new-feature
 
@@ -56,3 +59,17 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 ### Metadata Source of Truth
 
 Feature metadata is stored in workflow/registry.json and validated with workflow/cli.py validate.
+
+## Phase-3 Slice 3: Semantic Integration
+
+Semantic integration modules:
+
+- workflow/_engine/mlas_integration.py
+- workflow/_engine/btif_router.py
+
+Semantic checks enforce deterministic consistency for:
+
+- semantic_intent
+- semantic_tags
+- mlas_tier
+- btif_classification

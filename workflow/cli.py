@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import sys
 
+from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
+from _engine.mlas_integration import build_mlas_report
 from _engine.registry import add_feature, feature_exists, load_registry, save_registry
 from _engine.scaffold import create_feature_scaffold, slugify
 from _engine.validate import validate_registry_shape
@@ -63,6 +66,28 @@ def cmd_validate_suite(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_classify(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    mlas_report = build_mlas_report(registry)
+    btif_routes = build_btif_routing_table(registry)
+    print(json.dumps({"mlas": mlas_report, "btif": btif_routes}, indent=2))
+    return 0
+
+
+def cmd_semantic_check(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    shape_errors = validate_registry_shape(registry)
+    suite_errors = run_workflow_validation(WORKFLOW_ROOT, registry)
+    errors = shape_errors + suite_errors
+    if errors:
+        print("ERROR: semantic-check failed")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("OK: semantic-check passed")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -88,6 +113,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run registry and artifact validation suite",
     )
     validate_suite.set_defaults(func=cmd_validate_suite)
+
+    classify = sub.add_parser(
+        "classify",
+        help="Generate MLAS classification and BTIF routing report",
+    )
+    classify.set_defaults(func=cmd_classify)
+
+    semantic_check = sub.add_parser(
+        "semantic-check",
+        help="Run semantic validation checks for MLAS + BTIF consistency",
+    )
+    semantic_check.set_defaults(func=cmd_semantic_check)
 
     return parser
 

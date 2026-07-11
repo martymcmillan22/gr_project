@@ -11,7 +11,9 @@
     "type-check": "tsc --noEmit",
     "guardrail:cpindcno": "bash scripts/operations/check-cpindcno-enterprise-guardrail.sh",
     "workflow:new-feature": "python3 workflow/cli.py new-feature",
-    "workflow:validate": "python3 workflow/cli.py validate-suite"
+    "workflow:validate": "python3 workflow/cli.py validate-suite",
+    "workflow:classify": "python3 workflow/cli.py classify",
+    "workflow:semantic-check": "python3 workflow/cli.py semantic-check"
   },
   "dependencies": {
     "react": "^18.2.0",

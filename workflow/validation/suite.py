@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import Any
 
+from _engine.btif_router import validate_btif_feature
+from _engine.mlas_integration import validate_mlas_feature
+
 
 def run_workflow_validation(workflow_root: Path, registry: dict[str, Any]) -> list[str]:
     errors: list[str] = []
@@ -19,6 +22,9 @@ def run_workflow_validation(workflow_root: Path, registry: dict[str, Any]) -> li
         semantic_intent = feature.get("semantic_intent")
         if not isinstance(semantic_intent, str) or not semantic_intent.strip():
             errors.append(f"feature[{index}] semantic_intent must be non-empty")
+
+        errors.extend(validate_mlas_feature(feature, index))
+        errors.extend(validate_btif_feature(feature, index))
 
         status = feature.get("status")
         if status not in {"scaffolded", "in-progress", "validated", "released"}:
