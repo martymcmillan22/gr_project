@@ -67,12 +67,17 @@ AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
 AI_CYCLE_PATH = WORKFLOW_ROOT / "ai_cycle.json"
 CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan.json"
 QUARTERLY_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan_quarterly.json"
+ANNUAL_CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan_annual.json"
 SEMANTIC_HEALTH_PATH = WORKFLOW_ROOT / "semantic_health_report.json"
 SEMANTIC_HEALTH_QUARTERLY_PATH = WORKFLOW_ROOT / "semantic_health_report_quarterly.json"
+SEMANTIC_HEALTH_ANNUAL_PATH = WORKFLOW_ROOT / "semantic_health_report_annual.json"
 SEMANTIC_SCORECARD_PATH = WORKFLOW_ROOT / "semantic_scorecard.json"
 SEMANTIC_SCORECARD_QUARTERLY_PATH = WORKFLOW_ROOT / "semantic_scorecard_quarterly.json"
+SEMANTIC_SCORECARD_ANNUAL_PATH = WORKFLOW_ROOT / "semantic_scorecard_annual.json"
 MONTHLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "monthly_semantic_strategy_report.json"
 QUARTERLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "quarterly_semantic_strategy_report.json"
+ANNUAL_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "annual_semantic_strategy_report.json"
+ANNUAL_DRIFT_FORECAST_PATH = WORKFLOW_ROOT / "annual_semantic_drift_forecast.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -413,7 +418,7 @@ def cmd_semantic_health(args: argparse.Namespace) -> int:
         ),
     }
 
-    if args.profile in {"monthly", "quarterly"}:
+    if args.profile in {"monthly", "quarterly", "annual"}:
         tags: list[str] = []
         missing_intent: list[str] = []
         mlas_btif_gaps: list[str] = []
@@ -461,8 +466,15 @@ def cmd_semantic_health(args: argparse.Namespace) -> int:
             3,
         )
 
-        scope_label = "monthly" if args.profile == "monthly" else "quarterly"
-        drift_horizon = "next_month" if args.profile == "monthly" else "next_quarter"
+        if args.profile == "monthly":
+            scope_label = "monthly"
+            drift_horizon = "next_month"
+        elif args.profile == "quarterly":
+            scope_label = "quarterly"
+            drift_horizon = "next_quarter"
+        else:
+            scope_label = "annual"
+            drift_horizon = "next_12_months"
         structural_entropy = round((len(low_reuse_tags) / len(tag_counter)), 4) if tag_counter else 0.0
         semantic_noise_index = round((len(low_reuse_tags) / total_tags), 4) if total_tags else 0.0
         stability_index = round(
@@ -519,21 +531,75 @@ def cmd_semantic_health(args: argparse.Namespace) -> int:
             },
         }
 
-        if args.profile == "quarterly":
-            compared_pairs = report["health_dimensions"]["quarterly_deep_scan"]["cross_feature_semantic_alignment"]["compared_pairs"]
-            aligned_pairs = report["health_dimensions"]["quarterly_deep_scan"]["cross_feature_semantic_alignment"]["aligned_pairs"]
-            report["health_dimensions"]["quarterly_deep_scan"]["dependency_graph_health"] = {
+        if args.profile in {"quarterly", "annual"}:
+            deep_scan_key = f"{scope_label}_deep_scan"
+            compared_pairs = report["health_dimensions"][deep_scan_key]["cross_feature_semantic_alignment"]["compared_pairs"]
+            aligned_pairs = report["health_dimensions"][deep_scan_key]["cross_feature_semantic_alignment"]["aligned_pairs"]
+            report["health_dimensions"][deep_scan_key]["dependency_graph_health"] = {
                 "connected_pair_ratio": round((aligned_pairs / compared_pairs), 3) if compared_pairs else 1.0,
                 "isolated_feature_risk": "high" if aligned_pairs == 0 and compared_pairs > 0 else "low",
             }
-            report["health_dimensions"]["quarterly_deep_scan"]["quarterly_semantic_stability_index"] = {
+            index_key = "quarterly_semantic_stability_index" if args.profile == "quarterly" else "annual_semantic_stability_index"
+            report["health_dimensions"][deep_scan_key][index_key] = {
                 "value": stability_index,
                 "interpretation": "higher is more stable",
             }
 
-    health_out_path = SEMANTIC_HEALTH_QUARTERLY_PATH if args.profile == "quarterly" else SEMANTIC_HEALTH_PATH
+    if args.profile == "quarterly":
+        health_out_path = SEMANTIC_HEALTH_QUARTERLY_PATH
+    elif args.profile == "annual":
+        health_out_path = SEMANTIC_HEALTH_ANNUAL_PATH
+    else:
+        health_out_path = SEMANTIC_HEALTH_PATH
     out = write_json_file(health_out_path, report)
     print(json.dumps({"semantic_health": report, "written": out}, indent=2))
+    return 0
+
+
+def cmd_semantic_drift_forecast(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    repo_root = WORKFLOW_ROOT.parent
+    drift_report = build_drift_report(registry, WORKFLOW_ROOT, repo_root)
+    conflict_report = build_conflict_report(registry, repo_root)
+
+    drift_total = sum(
+        int(payload.get("drift_count", 0))
+        for payload in drift_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+    conflict_total = sum(
+        int(payload.get("conflict_count", 0))
+        for payload in conflict_report.get("features", {}).values()
+        if isinstance(payload, dict)
+    )
+
+    weighted_risk = min(1.0, ((drift_total * 0.55) + (conflict_total * 0.45)) / 10.0)
+    forecast = {
+        "generated_at": build_improvement_cycle_plan(registry, WORKFLOW_ROOT, load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)).get("generated_at"),
+        "profile": args.profile,
+        "horizon_months": args.horizon_months,
+        "drift_forecast": {
+            "semantic_drift_risk": round(weighted_risk, 4),
+            "ontology_drift_risk": round(min(1.0, weighted_risk * 1.05), 4),
+            "mlas_btif_tier_drift_risk": round(min(1.0, weighted_risk * 0.95), 4),
+            "tag_ontology_drift_risk": round(min(1.0, weighted_risk * 1.1), 4),
+            "semantic_intent_drift_risk": round(min(1.0, weighted_risk * 0.9), 4),
+            "ai_context_drift_risk": round(min(1.0, weighted_risk * 1.0), 4),
+        },
+        "inputs": {
+            "drift_total": drift_total,
+            "conflict_total": conflict_total,
+        },
+        "recommended_actions": [
+            "Prioritize low-reuse ontology tags for normalization",
+            "Review MLAS and BTIF lineage consistency before annual apply mode",
+            "Run semantic-scorecard with annual profile before governance decisions",
+        ],
+    }
+
+    forecast_out = ANNUAL_DRIFT_FORECAST_PATH if args.profile == "annual" else WORKFLOW_ROOT / "semantic_drift_forecast.json"
+    out = write_json_file(forecast_out, forecast)
+    print(json.dumps({"semantic_drift_forecast": forecast, "written": out}, indent=2))
     return 0
 
 
@@ -615,7 +681,8 @@ def cmd_semantic_scorecard(args: argparse.Namespace) -> int:
         },
     }
 
-    if args.profile == "quarterly":
+    if args.profile in {"quarterly", "annual"}:
+        index_key = "quarterly_semantic_stability_index" if args.profile == "quarterly" else "annual_semantic_stability_index"
         scorecard["metrics"]["quarterly_semantic_stability_index"] = {
             "value": round(
                 max(
@@ -630,10 +697,17 @@ def cmd_semantic_scorecard(args: argparse.Namespace) -> int:
                 ),
                 2,
             ),
-            "interpretation": "higher is more stable over quarter horizon",
+            "interpretation": "higher is more stable over long-range horizon",
         }
+        if args.profile == "annual":
+            scorecard["metrics"]["annual_semantic_stability_index"] = scorecard["metrics"].pop("quarterly_semantic_stability_index")
 
-    scorecard_out = SEMANTIC_SCORECARD_QUARTERLY_PATH if args.profile == "quarterly" else SEMANTIC_SCORECARD_PATH
+    if args.profile == "quarterly":
+        scorecard_out = SEMANTIC_SCORECARD_QUARTERLY_PATH
+    elif args.profile == "annual":
+        scorecard_out = SEMANTIC_SCORECARD_ANNUAL_PATH
+    else:
+        scorecard_out = SEMANTIC_SCORECARD_PATH
     out = write_json_file(scorecard_out, scorecard)
     print(json.dumps({"semantic_scorecard": scorecard, "written": out}, indent=2))
     return 0
@@ -649,7 +723,12 @@ def cmd_semantic_strategy_report(args: argparse.Namespace) -> int:
         "scope": args.profile,
         "note": "Run semantic-scorecard to generate full scorecard artifact before council publication.",
     }
-    scorecard_path = SEMANTIC_SCORECARD_QUARTERLY_PATH if args.profile == "quarterly" else SEMANTIC_SCORECARD_PATH
+    if args.profile == "quarterly":
+        scorecard_path = SEMANTIC_SCORECARD_QUARTERLY_PATH
+    elif args.profile == "annual":
+        scorecard_path = SEMANTIC_SCORECARD_ANNUAL_PATH
+    else:
+        scorecard_path = SEMANTIC_SCORECARD_PATH
     if scorecard_path.exists():
         try:
             scorecard = json.loads(scorecard_path.read_text(encoding="utf-8"))
@@ -671,8 +750,8 @@ def cmd_semantic_strategy_report(args: argparse.Namespace) -> int:
 
     report = {
         "generated_at": cycle_plan.get("generated_at"),
-        "period": args.period or ("quarterly" if args.profile == "quarterly" else "monthly"),
-        "quarterly_alignment": bool(args.quarterly_alignment or args.profile == "quarterly"),
+        "period": args.period or ("annual" if args.profile == "annual" else "quarterly" if args.profile == "quarterly" else "monthly"),
+        "quarterly_alignment": bool(args.quarterly_alignment or args.profile in {"quarterly", "annual"}),
         "scope": args.profile,
         "semantic_scorecard": scorecard,
         "ontology_evolution_summary": {
@@ -699,7 +778,12 @@ def cmd_semantic_strategy_report(args: argparse.Namespace) -> int:
         "next_priorities": args.next_priority,
     }
 
-    strategy_path = QUARTERLY_STRATEGY_REPORT_PATH if args.profile == "quarterly" else MONTHLY_STRATEGY_REPORT_PATH
+    if args.profile == "quarterly":
+        strategy_path = QUARTERLY_STRATEGY_REPORT_PATH
+    elif args.profile == "annual":
+        strategy_path = ANNUAL_STRATEGY_REPORT_PATH
+    else:
+        strategy_path = MONTHLY_STRATEGY_REPORT_PATH
     out = write_json_file(strategy_path, report)
     print(json.dumps({"semantic_strategy_report": report, "written": out}, indent=2))
     return 0
@@ -1196,7 +1280,12 @@ def cmd_improve_all(args: argparse.Namespace) -> int:
     registry = load_registry(REGISTRY_PATH)
     policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
     plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, policy)
-    cycle_out = QUARTERLY_CYCLE_PLAN_PATH if args.profile == "quarterly" else CYCLE_PLAN_PATH
+    if args.profile == "quarterly":
+        cycle_out = QUARTERLY_CYCLE_PLAN_PATH
+    elif args.profile == "annual":
+        cycle_out = ANNUAL_CYCLE_PLAN_PATH
+    else:
+        cycle_out = CYCLE_PLAN_PATH
     write_json_file(cycle_out, plan)
 
     if args.apply:
@@ -1351,11 +1440,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     semantic_health.add_argument(
         "--profile",
-        choices=["weekly", "monthly", "quarterly"],
+        choices=["weekly", "monthly", "quarterly", "annual"],
         default="weekly",
         help="Health scan depth profile",
     )
     semantic_health.set_defaults(func=cmd_semantic_health)
+
+    semantic_drift_forecast = sub.add_parser(
+        "semantic-drift-forecast",
+        help="Generate semantic drift forecast report for long-range governance planning",
+    )
+    semantic_drift_forecast.add_argument(
+        "--profile",
+        choices=["monthly", "quarterly", "annual"],
+        default="annual",
+        help="Forecast scope",
+    )
+    semantic_drift_forecast.add_argument(
+        "--horizon-months",
+        type=int,
+        default=12,
+        help="Forecast horizon in months",
+    )
+    semantic_drift_forecast.set_defaults(func=cmd_semantic_drift_forecast)
 
     semantic_scorecard = sub.add_parser(
         "semantic-scorecard",
@@ -1369,7 +1476,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     semantic_scorecard.add_argument(
         "--profile",
-        choices=["monthly", "quarterly"],
+        choices=["monthly", "quarterly", "annual"],
         default="monthly",
         help="Scorecard scope",
     )
@@ -1386,7 +1493,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     semantic_strategy_report.add_argument(
         "--profile",
-        choices=["monthly", "quarterly"],
+        choices=["monthly", "quarterly", "annual"],
         default="monthly",
         help="Strategy report scope",
     )
@@ -1651,7 +1758,7 @@ def build_parser() -> argparse.ArgumentParser:
     improve_all.add_argument("--approve-sync", action="store_true", help="Approve sync-impacting proposals")
     improve_all.add_argument(
         "--profile",
-        choices=["standard", "quarterly"],
+        choices=["standard", "quarterly", "annual"],
         default="standard",
         help="Output profile for cycle plan artifact naming",
     )

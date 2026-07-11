@@ -56,11 +56,16 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-infer
 - python workflow/cli.py semantic-resolve [--apply]
 - python workflow/cli.py semantic-health
+- python workflow/cli.py semantic-drift-forecast
 - python workflow/cli.py semantic-scorecard
 - python workflow/cli.py semantic-strategy-report
 - python workflow/cli.py semantic-health --profile quarterly
 - python workflow/cli.py semantic-scorecard --profile quarterly --min-confidence 0.85
 - python workflow/cli.py semantic-strategy-report --profile quarterly --period YYYY-QN
+- python workflow/cli.py semantic-health --profile annual
+- python workflow/cli.py semantic-drift-forecast --profile annual --horizon-months 12
+- python workflow/cli.py semantic-scorecard --profile annual --min-confidence 0.85
+- python workflow/cli.py semantic-strategy-report --profile annual --period YYYY
 - python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python workflow/cli.py semantic-resolve --apply [--force-unsafe]
 - python workflow/cli.py ai-context
@@ -583,6 +588,78 @@ Output:
 - workflow/quarterly_semantic_strategy_report.json
 
 ### Week 4: Quarterly Release and AI Regeneration
+
+- python3 workflow/cli.py release --bump patch
+- python3 workflow/cli.py release-notes
+- python3 workflow/cli.py ai-export
+
+## Annual Semantic Roadmap Ritual
+
+Run this long-range semantic strategy cycle once per year.
+
+### January: Annual Deep Semantic Scan
+
+- python3 workflow/cli.py semantic-health --profile annual
+
+Output:
+
+- workflow/semantic_health_report_annual.json
+
+### January: Annual Semantic Scorecard
+
+- python3 workflow/cli.py semantic-scorecard --profile annual --min-confidence 0.85
+
+Output:
+
+- workflow/semantic_scorecard_annual.json
+
+### February: Annual Semantic Drift Forecast
+
+- python3 workflow/cli.py semantic-drift-forecast --profile annual --horizon-months 12
+
+Output:
+
+- workflow/annual_semantic_drift_forecast.json
+
+### February: Ontology and MLAS BTIF Long-Range Planning
+
+Council decision states:
+
+- approve
+- reject
+- defer
+- request revision
+
+### March: Annual Semantic Architecture Planning
+
+Define goals for:
+
+- ontology evolution
+- MLAS and BTIF tier evolution
+- semantic intent evolution
+- tag ontology evolution
+- dependency graph health
+- AI context alignment
+
+### March: Annual Governance Approval and Apply
+
+- python3 workflow/cli.py improve-all --profile annual --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync
+- python3 workflow/cli.py semantic-strategy-report --profile annual --period YYYY
+
+Output:
+
+- workflow/cycle_plan_annual.json
+- workflow/annual_semantic_strategy_report.json
+
+### April: Annual Full Validation Chain
+
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py visualize-all
+- python3 workflow/cli.py sync-all
+- python3 workflow/cli.py ai-export
+- python3 -m unittest discover workflow/tests -v
+
+### May: Annual Semantic Release and AI Regeneration
 
 - python3 workflow/cli.py release --bump patch
 - python3 workflow/cli.py release-notes

@@ -64,6 +64,11 @@ Common commands:
 - python3 workflow/cli.py improve-all --profile quarterly
 - python3 workflow/cli.py semantic-scorecard --profile quarterly --min-confidence 0.85
 - python3 workflow/cli.py semantic-strategy-report --profile quarterly --period YYYY-QN --quarterly-alignment
+- python3 workflow/cli.py semantic-health --profile annual
+- python3 workflow/cli.py semantic-drift-forecast --profile annual --horizon-months 12
+- python3 workflow/cli.py improve-all --profile annual
+- python3 workflow/cli.py semantic-scorecard --profile annual --min-confidence 0.85
+- python3 workflow/cli.py semantic-strategy-report --profile annual --period YYYY
 - python3 workflow/cli.py ai-context
 - python3 workflow/cli.py ai-export
 - python3 workflow/cli.py ai-new-feature --name "Feature Name"
