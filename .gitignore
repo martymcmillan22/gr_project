@@ -38,3 +38,9 @@ workflow/semantic_health_report.json
 # Workflow generated monthly governance artifacts
 workflow/semantic_scorecard.json
 workflow/monthly_semantic_strategy_report.json
+
+# Workflow generated quarterly governance artifacts
+workflow/semantic_health_report_quarterly.json
+workflow/cycle_plan_quarterly.json
+workflow/semantic_scorecard_quarterly.json
+workflow/quarterly_semantic_strategy_report.json

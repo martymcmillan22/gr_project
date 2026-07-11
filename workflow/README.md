@@ -58,6 +58,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-health
 - python workflow/cli.py semantic-scorecard
 - python workflow/cli.py semantic-strategy-report
+- python workflow/cli.py semantic-health --profile quarterly
+- python workflow/cli.py semantic-scorecard --profile quarterly --min-confidence 0.85
+- python workflow/cli.py semantic-strategy-report --profile quarterly --period YYYY-QN
 - python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
 - python workflow/cli.py semantic-resolve --apply [--force-unsafe]
 - python workflow/cli.py ai-context
@@ -510,3 +513,77 @@ When the month closes a quarter:
 
 - python3 workflow/cli.py release --bump patch
 - python3 workflow/cli.py release-notes
+
+## Quarterly Semantic Release Ritual
+
+Run this platform-wide governed release cycle once per quarter.
+
+### Week 1: Quarterly Deep Semantic Scan
+
+- python3 workflow/cli.py semantic-health --profile quarterly
+
+Output:
+
+- workflow/semantic_health_report_quarterly.json
+
+### Week 1: Quarterly Unified Improvement Cycle
+
+- python3 workflow/cli.py improve-all --profile quarterly
+
+Output:
+
+- workflow/cycle_plan_quarterly.json
+
+### Week 2: Quarterly Semantic Scorecard
+
+- python3 workflow/cli.py semantic-scorecard --profile quarterly --min-confidence 0.85
+
+Output:
+
+- workflow/semantic_scorecard_quarterly.json
+
+### Week 2: Ontology and MLAS BTIF Evolution Planning
+
+Council decision states:
+
+- approve
+- reject
+- defer
+- request revision
+
+### Week 3: Cross-Feature Architecture Planning
+
+Review focus:
+
+- cross-feature integration proposals
+- multi-feature bundle proposals
+- dependency graph improvements
+- semantic intent expansion
+- MLAS and BTIF lineage restructuring
+- ontology restructuring
+
+### Week 3: Governance Approval and Apply
+
+- python3 workflow/cli.py improve-all --profile quarterly --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync
+
+### Week 4: Full Validation Chain
+
+- python3 workflow/cli.py validate-suite
+- python3 workflow/cli.py visualize-all
+- python3 workflow/cli.py sync-all
+- python3 workflow/cli.py ai-export
+- python3 -m unittest discover workflow/tests -v
+
+### Week 4: Quarterly Semantic Strategy Report
+
+- python3 workflow/cli.py semantic-strategy-report --profile quarterly --period YYYY-QN --quarterly-alignment
+
+Output:
+
+- workflow/quarterly_semantic_strategy_report.json
+
+### Week 4: Quarterly Release and AI Regeneration
+
+- python3 workflow/cli.py release --bump patch
+- python3 workflow/cli.py release-notes
+- python3 workflow/cli.py ai-export
