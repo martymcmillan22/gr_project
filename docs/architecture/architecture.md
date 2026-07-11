@@ -1,5 +1,11 @@
 # Architecture
 
+## Project Middle Layer Platform Docs
+
+- [Project Middle Layer Platform Release Notes (Phase 1 to Phase 10)](project_middle_layer_platform_release_notes_phase1_to_phase10.md)
+- [Project Middle Layer Semantic Architecture Overview](project_middle_layer_semantic_architecture_overview.md)
+- [Project Middle Layer Developer Onboarding Guide](../operations/project_middle_layer_developer_onboarding_guide.md)
+
 ## ERD: Feature Request Mapping
 
 ```mermaid
