@@ -35,6 +35,41 @@
           "ui_component_design_system": "workflow/ui_components/penpot_components/generated/PilotIntakeCard.tsx"
         }
       }
+    },
+    {
+      "name": "Workflow Expansion Hub",
+      "slug": "workflow-expansion-hub",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "ExpansionFlow",
+      "semantic_intent": "ExpandAndIntegrate",
+      "semantic_tags": [
+        "expansion",
+        "integration",
+        "workflow"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/workflow-expansion-hub.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/workflow-expansion-hub.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/workflow-expansion-hub/template.md",
+        "ui_component": "ui_components/penpot_components/features/workflow-expansion-hub/component.md"
+      },
+      "status": "scaffolded",
+      "expansion": {
+        "proposed_by": "feature_expansion",
+        "proposal_category": "new_semantic_intent",
+        "semantic_lineage": {
+          "derived_from": "missing semantic intent",
+          "source_features": [
+            "pilot-intake"
+          ]
+        },
+        "dependency_graph_impact": {
+          "adds_node": "workflow-expansion-hub",
+          "integration_targets": [
+            "pilot-intake"
+          ]
+        }
+      }
     }
   ]
 }

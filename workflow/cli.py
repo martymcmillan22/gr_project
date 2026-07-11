@@ -641,7 +641,7 @@ def cmd_expand(args: argparse.Namespace) -> int:
             print("ERROR: expansion apply blocked by governance approval gates")
             return 1
 
-        apply_expansion_report_to_registry(registry, report)
+        apply_expansion_report_to_registry(registry, report, create_scaffolds=True)
         save_registry(REGISTRY_PATH, registry)
 
     print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
@@ -669,7 +669,7 @@ def cmd_expand_all(args: argparse.Namespace) -> int:
             print("ERROR: expansion apply blocked by governance approval gates")
             return 1
 
-        apply_expansion_report_to_registry(registry, report)
+        apply_expansion_report_to_registry(registry, report, create_scaffolds=True)
         save_registry(REGISTRY_PATH, registry)
 
     print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))

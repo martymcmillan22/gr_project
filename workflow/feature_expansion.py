@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from _engine.mlas_integration import normalize_semantic_tags
-from _engine.scaffold import slugify
+from _engine.scaffold import create_feature_scaffold, slugify
 
 
 DEFAULT_EXPANSION_GOVERNANCE = {
@@ -297,7 +297,12 @@ def validate_expansion_approvals(report: dict[str, Any], approvals: dict[str, bo
     return [item for item in required if not approvals.get(item, False)]
 
 
-def apply_expansion_report_to_registry(registry: dict[str, Any], report: dict[str, Any]) -> dict[str, Any]:
+def apply_expansion_report_to_registry(
+    registry: dict[str, Any],
+    report: dict[str, Any],
+    *,
+    create_scaffolds: bool = False,
+) -> dict[str, Any]:
     existing = _existing_slugs(registry)
     for row in report.get("proposals", []):
         feature = row.get("proposed_feature", {})
@@ -310,6 +315,15 @@ def apply_expansion_report_to_registry(registry: dict[str, Any], report: dict[st
         btif = str(feature.get("btif_classification", "GeneralFlow")).strip()
         intent = str(feature.get("semantic_intent", "CaptureAndRoute")).strip()
         tags = normalize_semantic_tags(feature.get("semantic_tags", []))
+        if create_scaffolds:
+            paths = create_feature_scaffold(name, slug, mlas_tier, btif)
+        else:
+            paths = {
+                "erd": f"database_design/mermaid_erds/{slug}.erd.mmd",
+                "sequence": f"logic_design/mermaid_sequences/{slug}.sequence.mmd",
+                "ui_template": f"ui_templates/penpot_templates/features/{slug}/template.md",
+                "ui_component": f"ui_components/penpot_components/features/{slug}/component.md",
+            }
 
         registry.setdefault("features", []).append(
             {
@@ -319,12 +333,7 @@ def apply_expansion_report_to_registry(registry: dict[str, Any], report: dict[st
                 "btif_classification": btif,
                 "semantic_intent": intent,
                 "semantic_tags": tags,
-                "paths": {
-                    "erd": f"database_design/mermaid_erds/{slug}.erd.mmd",
-                    "sequence": f"logic_design/mermaid_sequences/{slug}.sequence.mmd",
-                    "ui_template": f"ui_templates/penpot_templates/features/{slug}/template.md",
-                    "ui_component": f"ui_components/penpot_components/features/{slug}/component.md",
-                },
+                "paths": paths,
                 "status": "scaffolded",
                 "expansion": {
                     "proposed_by": "feature_expansion",
