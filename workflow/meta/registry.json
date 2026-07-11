@@ -85,6 +85,45 @@
           "ui_component_design_system": "workflow/ui_components/penpot_components/generated/WorkflowExpansionHubCard.tsx"
         }
       }
+    },
+    {
+      "name": "Project Middle Layer",
+      "slug": "project-middle-layer",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "ExpansionFlow",
+      "semantic_intent": "ExpandAndIntegrate",
+      "feature_lineage": "workflow/project-middle-layer",
+      "semantic_tags": [
+        "compiler",
+        "identity",
+        "middle-layer",
+        "pipeline",
+        "project",
+        "semantic",
+        "tier"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/project-middle-layer.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/project-middle-layer.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/project-middle-layer/template.md",
+        "ui_component": "ui_components/penpot_components/features/project-middle-layer/component.md"
+      },
+      "status": "scaffolded",
+      "propagation": {
+        "mlas": {
+          "slug": "project-middle-layer",
+          "mlas_tier": "Semantic Utility",
+          "semantic_intent": "ExpandAndIntegrate",
+          "semantic_tags": "compiler,identity,middle-layer,pipeline,project,semantic,tier"
+        },
+        "btif_route": "btif://expansionflow/expandandintegrate/project-middle-layer",
+        "synced_targets": {
+          "erd_backend_models": "platform_core/workflow_generated/models/project-middle-layer_models.py",
+          "sequence_backend_logic": "platform_core/workflow_generated/logic/project-middle-layer_logic.py",
+          "ui_template_react_page": "ui_apps/workflow_generated/pages/ProjectMiddleLayerPage.tsx",
+          "ui_component_design_system": "workflow/ui_components/penpot_components/generated/ProjectMiddleLayerCard.tsx"
+        }
+      }
     }
   ]
 }

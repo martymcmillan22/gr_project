@@ -1,0 +1,19 @@
+erDiagram
+    %% feature: Project Middle Layer
+    %% slug: project-middle-layer
+    %% mlas_tier: Semantic Utility
+    %% btif_classification: ExpansionFlow
+    %% generated: 2026-07-11
+    FEATURE_ENTITY ||--o{ FEATURE_METADATA : enriches
+
+    FEATURE_ENTITY {
+      string id PK
+      string name
+    }
+
+    FEATURE_METADATA {
+      string entity_id FK
+      string semantic_intent
+      string mlas_tier
+      string btif_classification
+    }

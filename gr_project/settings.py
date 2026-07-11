@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'support.apps.SupportConfig',
     'storytelling_dashboard.apps.StorytellingDashboardConfig',
     'baseture_engine.apps.BasetureEngineConfig',
+    'project_middle_layer.apps.ProjectMiddleLayerConfig',
 
     #Third Party Apps
     'bulma',

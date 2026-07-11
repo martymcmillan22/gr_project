@@ -41,7 +41,13 @@ class TwistEntryView(TemplateView):
             query = self.request.GET.get('q', '').strip()
             status_filter = self.request.GET.get('status', 'all').strip() or 'all'
             ideas = CreativeIdea.objects.filter(user=self.request.user)
-            if status_filter in {CreativeIdea.STATUS_RAW, CreativeIdea.STATUS_SEED, CreativeIdea.STATUS_BUSINESS}:
+            allowed_statuses = {
+                CreativeIdea.STATUS_RAW,
+                CreativeIdea.STATUS_SEED,
+                CreativeIdea.STATUS_PROJECT,
+                CreativeIdea.STATUS_BUSINESS,
+            }
+            if status_filter in allowed_statuses:
                 ideas = ideas.filter(status=status_filter)
             if query:
                 ideas = ideas.filter(Q(content__icontains=query) | Q(tags__icontains=query))

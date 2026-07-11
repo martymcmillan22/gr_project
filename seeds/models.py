@@ -5,11 +5,13 @@ from django.db import models
 class Idea(models.Model):
 	STATUS_RAW = "RAW"
 	STATUS_SEED = "SEED"
+	STATUS_PROJECT = "PROJECT"
 	STATUS_BUSINESS = "BUSINESS"
 	STATUS_CHOICES = [
 		(STATUS_RAW, "Raw"),
 		(STATUS_SEED, "Seed"),
-		(STATUS_BUSINESS, "Business"),
+		(STATUS_PROJECT, "Project"),
+		(STATUS_BUSINESS, "Business (Legacy)"),
 	]
 
 	user = models.ForeignKey(
@@ -57,6 +59,8 @@ class Business(models.Model):
 
 	class Meta:
 		ordering = ["-updated_at"]
+		verbose_name = "Project"
+		verbose_name_plural = "Projects"
 
 	def __str__(self):
 		return self.brand_name

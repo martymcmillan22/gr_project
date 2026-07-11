@@ -7,11 +7,13 @@ from django.conf import settings
 class CreativeIdea(models.Model):
     STATUS_RAW = 'RAW'
     STATUS_SEED = 'SEED'
+    STATUS_PROJECT = 'PROJECT'
     STATUS_BUSINESS = 'BUSINESS'
     STATUS_CHOICES = [
         (STATUS_RAW, 'Raw'),
         (STATUS_SEED, 'Seed'),
-        (STATUS_BUSINESS, 'Business'),
+        (STATUS_PROJECT, 'Project'),
+        (STATUS_BUSINESS, 'Business (Legacy)'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

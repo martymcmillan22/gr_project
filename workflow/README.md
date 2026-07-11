@@ -87,7 +87,7 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py evolve-feature --feature <slug>
 - python workflow/cli.py evolve-all
 - python workflow/cli.py evolve-preview
-- python workflow/cli.py expand
+- python workflow/cli.py expand [--target <slug>]
 - python workflow/cli.py expand-all
 - python workflow/cli.py expand-preview
 - python workflow/cli.py refactor-feature --feature <slug>
@@ -308,7 +308,7 @@ Expansion docs:
 
 Expansion commands:
 
-- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand [--target <slug>]
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py expand-preview
 

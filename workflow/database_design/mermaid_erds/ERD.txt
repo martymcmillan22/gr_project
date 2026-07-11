@@ -20,7 +20,7 @@ graph TD
     N[Recommended Diagram Types] --> O[Sequence Diagrams]
     N --> P[ERDs]
     
-    O --> Q[Business Logic Flow]
+    O --> Q[Project Logic Flow]
     Q --> R[User → API → Service → DB]
     
     P --> S[Data Schema]
@@ -50,18 +50,18 @@ erDiagram
     INDUSTRY ||--o{ IDEA : contains
     USER ||--o{ IDEA : submits
     IDEA ||--|| SEED : matures_into
-    SEED ||--|| BUSINESS : launches_as
+    SEED ||--|| PROJECT : evolves_into
     
     INDUSTRY {
         int id
         string name
         string sector_code
     }
-    
+   
     IDEA {
         int id
         string raw_content
-        string status "RAW, SEED, BUSINESS"
+        string status "RAW, SEED, PROJECT"
     }
     
     SEED {
@@ -70,9 +70,9 @@ erDiagram
         date germination_date
     }
     
-    BUSINESS {
+    PROJECT {
         int id
-        string brand_name
-        string market_status
+        string project_name
+        string readiness_status
     }
 -----------------------------------------------End of 64 Industries----------------------------------------------

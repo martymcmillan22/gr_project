@@ -79,7 +79,7 @@ Common commands:
 - python3 workflow/cli.py evolve-feature --feature <slug>
 - python3 workflow/cli.py evolve-all
 - python3 workflow/cli.py evolve-preview
-- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand [--target <slug>]
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py expand-preview
 - python3 workflow/cli.py refactor-feature --feature <slug>

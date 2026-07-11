@@ -68,7 +68,7 @@ def _build_agenda_text(sector_name, idea, objective):
         "",  # spacer
         "Agenda:",
         "1. Market Snapshot: define target customer and demand signals.",
-        "2. Offer Design: package the idea into a clear business offer.",
+        "2. Offer Design: package the idea into a clear project offer.",
         "3. Revenue Path: define pricing, channels, and first sale plan.",
         "4. Execution Tasks: identify owners, deadlines, and dependencies.",
         "5. Risk Review: list top 3 risks and mitigation actions.",
@@ -80,6 +80,7 @@ def _build_agenda_text(sector_name, idea, objective):
 WORKFLOW_SOURCE_MODELS = {
     "idea": Idea,
     "seed": Seed,
+    "project": Business,
     "business": Business,
     "corporation": CorporationItem,
 }
@@ -223,7 +224,7 @@ def _build_source_options(user):
     for seed in Seed.objects.filter(idea__user=user).order_by("-updated_at")[:6]:
         options.append((f"seed:{seed.id}", f"Seed #{seed.id} (Idea #{seed.idea_id})"))
     for business in Business.objects.filter(seed__idea__user=user).order_by("-updated_at")[:6]:
-        options.append((f"business:{business.id}", f"Business #{business.id} ({business.brand_name})"))
+        options.append((f"project:{business.id}", f"Project #{business.id} ({business.brand_name})"))
     for item in CorporationItem.objects.filter(owner=user).order_by("-updated_at")[:6]:
         options.append((f"corporation:{item.id}", f"Corporation Item #{item.id} ({item.title})"))
     return options

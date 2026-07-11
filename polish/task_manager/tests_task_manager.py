@@ -71,7 +71,7 @@ class TaskManagerWorkflowTests(TestCase):
         self.idea = Idea.objects.create(
             user=self.engineer,
             industry=self.industry,
-            raw_content="Idea to seed to business",
+            raw_content="Idea to seed to project",
         )
         self.corporation_item = CorporationItem.objects.create(
             owner=self.engineer,

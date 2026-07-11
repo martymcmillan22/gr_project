@@ -99,14 +99,14 @@ class TwistEntryViewTests(TestCase):
 		self.client.login(username='entryuser@example.com', password='testpass123')
 		response = self.client.post(
 			reverse('twist-idea-edit', kwargs={'pk': idea.pk}),
-			{'content': 'updated idea', 'tags': 'refined, shortlist', 'status': 'BUSINESS'},
+			{'content': 'updated idea', 'tags': 'refined, shortlist', 'status': 'PROJECT'},
 		)
 
 		self.assertEqual(response.status_code, 302)
 		idea.refresh_from_db()
 		self.assertEqual(idea.content, 'updated idea')
 		self.assertEqual(idea.tags, 'refined, shortlist')
-		self.assertEqual(idea.status, 'BUSINESS')
+		self.assertEqual(idea.status, 'PROJECT')
 
 	def test_edit_cannot_access_other_users_idea(self):
 		idea = CreativeIdea.objects.create(user=self.other_user, content='private idea')

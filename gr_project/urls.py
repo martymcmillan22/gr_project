@@ -56,6 +56,7 @@ urlpatterns = [
 
     path('homepage/', include('homepage_backend.urls')),
     path('support/', include('support.urls')),
+    path('project-middle-layer/', include('project_middle_layer.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # https://docs.djangoproject.com/en/4.2/howto/static-files/#serving-uploaded-files-in-development
 
 if 'debug_toolbar' in settings.INSTALLED_APPS:

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-11T17:48:29.164577+00:00",
-  "target": "all",
+  "generated_at": "2026-07-11T20:04:52.186699+00:00",
+  "target": "project-middle-layer",
   "engine_order": [
     "evolution",
     "expansion",
@@ -8,18 +8,18 @@
   ],
   "reports": {
     "evolution": {
-      "generated_at": "2026-07-11T17:48:29.162777+00:00",
-      "target": "all",
-      "feature_count": 2,
-      "proposal_count": 6,
+      "generated_at": "2026-07-11T20:04:52.185270+00:00",
+      "target": "project-middle-layer",
+      "feature_count": 1,
+      "proposal_count": 3,
       "features": [
         {
-          "slug": "pilot-intake",
+          "slug": "project-middle-layer",
           "proposal_count": 3,
           "proposals": [
             {
               "category": "erd",
-              "target": "database_design/mermaid_erds/pilot-intake.erd.mmd",
+              "target": "database_design/mermaid_erds/project-middle-layer.erd.mmd",
               "proposed_change": "Add explicit relationship notation between entities.",
               "rationale": "No relationship markers detected in ERD content.",
               "confidence": 0.74,
@@ -31,8 +31,8 @@
             },
             {
               "category": "mlas_btif_lineage",
-              "target": "registry.features[pilot-intake].feature_lineage",
-              "proposed_change": "Set feature_lineage to workflow/pilot-intake.",
+              "target": "registry.features[project-middle-layer].feature_lineage",
+              "proposed_change": "Set feature_lineage to workflow/project-middle-layer.",
               "rationale": "Feature lineage missing for semantic traceability.",
               "confidence": 0.92,
               "semantic_impact": "medium",
@@ -43,50 +43,8 @@
             },
             {
               "category": "tag_ontology",
-              "target": "registry.features[pilot-intake].semantic_tags",
-              "proposed_change": "Review low-reuse tags for ontology alignment: intake, pilot, routing",
-              "rationale": "Tags appear only once across registry and may be stale or overly specific.",
-              "confidence": 0.73,
-              "semantic_impact": "low",
-              "governance_requirements": [
-                "evolution_approval",
-                "semantic_approval"
-              ]
-            }
-          ]
-        },
-        {
-          "slug": "workflow-expansion-hub",
-          "proposal_count": 3,
-          "proposals": [
-            {
-              "category": "erd",
-              "target": "database_design/mermaid_erds/workflow-expansion-hub.erd.mmd",
-              "proposed_change": "Add explicit relationship notation between entities.",
-              "rationale": "No relationship markers detected in ERD content.",
-              "confidence": 0.74,
-              "semantic_impact": "low",
-              "governance_requirements": [
-                "evolution_approval",
-                "structural_approval"
-              ]
-            },
-            {
-              "category": "mlas_btif_lineage",
-              "target": "registry.features[workflow-expansion-hub].feature_lineage",
-              "proposed_change": "Set feature_lineage to workflow/workflow-expansion-hub.",
-              "rationale": "Feature lineage missing for semantic traceability.",
-              "confidence": 0.92,
-              "semantic_impact": "medium",
-              "governance_requirements": [
-                "evolution_approval",
-                "semantic_approval"
-              ]
-            },
-            {
-              "category": "tag_ontology",
-              "target": "registry.features[workflow-expansion-hub].semantic_tags",
-              "proposed_change": "Review low-reuse tags for ontology alignment: expansion, integration, workflow",
+              "target": "registry.features[project-middle-layer].semantic_tags",
+              "proposed_change": "Review low-reuse tags for ontology alignment: compiler, identity, middle-layer, pipeline, project, semantic, tier",
               "rationale": "Tags appear only once across registry and may be stale or overly specific.",
               "confidence": 0.73,
               "semantic_impact": "low",
@@ -100,8 +58,8 @@
       ]
     },
     "expansion": {
-      "generated_at": "2026-07-11T17:48:29.163077+00:00",
-      "target": "all",
+      "generated_at": "2026-07-11T20:04:52.185569+00:00",
+      "target": "project-middle-layer",
       "proposal_count": 4,
       "proposals": [
         {
@@ -128,6 +86,7 @@
             "derived_from": "registry semantic coverage gap",
             "source_features": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -135,6 +94,7 @@
             "adds_node": "lineage-governance",
             "integration_targets": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           }
@@ -154,11 +114,18 @@
             ],
             "bundle": "semantic-governance",
             "new_tag_candidates": [
+              "compiler",
               "expansion",
+              "identity",
               "intake",
               "integration",
+              "middle-layer",
               "pilot",
+              "pipeline",
+              "project",
               "routing",
+              "semantic",
+              "tier",
               "workflow"
             ]
           },
@@ -172,6 +139,7 @@
             "derived_from": "tag frequency analysis",
             "source_features": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -179,7 +147,7 @@
             "adds_node": "ontology-normalization",
             "integration_targets": [
               "pilot-intake",
-              "workflow-expansion-hub"
+              "project-middle-layer"
             ]
           }
         },
@@ -198,6 +166,7 @@
             ],
             "bundle_members": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -211,6 +180,7 @@
             "derived_from": "cross-feature composition",
             "source_features": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -218,6 +188,7 @@
             "adds_node": "semantic-intake-expansion-bundle",
             "integration_targets": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           }
@@ -237,6 +208,7 @@
             ],
             "depends_on": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -250,6 +222,7 @@
             "derived_from": "dependency graph integration opportunity",
             "source_features": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           },
@@ -257,6 +230,7 @@
             "adds_node": "semantic-integration-orchestrator",
             "integration_targets": [
               "pilot-intake",
+              "project-middle-layer",
               "workflow-expansion-hub"
             ]
           }
@@ -264,21 +238,21 @@
       ]
     },
     "refactor": {
-      "generated_at": "2026-07-11T17:48:29.164478+00:00",
-      "target": "all",
-      "feature_count": 2,
-      "proposal_count": 4,
+      "generated_at": "2026-07-11T20:04:52.186640+00:00",
+      "target": "project-middle-layer",
+      "feature_count": 1,
+      "proposal_count": 2,
       "features": [
         {
-          "slug": "pilot-intake",
+          "slug": "project-middle-layer",
           "proposal_count": 2,
           "proposals": [
             {
               "category": "mlas_btif_lineage",
-              "target": "registry.features[pilot-intake].feature_lineage",
+              "target": "registry.features[project-middle-layer].feature_lineage",
               "proposed_refactor": {
                 "action": "set_feature_lineage",
-                "to": "workflow/pilot-intake"
+                "to": "workflow/project-middle-layer"
               },
               "rationale": "Feature lineage is missing and should be set for semantic traceability.",
               "confidence": 0.9,
@@ -291,55 +265,17 @@
             },
             {
               "category": "tag_ontology",
-              "target": "registry.features[pilot-intake].semantic_tags",
+              "target": "registry.features[project-middle-layer].semantic_tags",
               "proposed_refactor": {
                 "action": "deprecate_or_merge_singleton_tags",
                 "tags": [
-                  "intake",
-                  "pilot",
-                  "routing"
-                ]
-              },
-              "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
-              "confidence": 0.72,
-              "semantic_impact": "medium",
-              "structural_impact": "low",
-              "governance_requirements": [
-                "refactor_approval",
-                "semantic_approval"
-              ]
-            }
-          ]
-        },
-        {
-          "slug": "workflow-expansion-hub",
-          "proposal_count": 2,
-          "proposals": [
-            {
-              "category": "mlas_btif_lineage",
-              "target": "registry.features[workflow-expansion-hub].feature_lineage",
-              "proposed_refactor": {
-                "action": "set_feature_lineage",
-                "to": "workflow/workflow-expansion-hub"
-              },
-              "rationale": "Feature lineage is missing and should be set for semantic traceability.",
-              "confidence": 0.9,
-              "semantic_impact": "medium",
-              "structural_impact": "low",
-              "governance_requirements": [
-                "refactor_approval",
-                "semantic_approval"
-              ]
-            },
-            {
-              "category": "tag_ontology",
-              "target": "registry.features[workflow-expansion-hub].semantic_tags",
-              "proposed_refactor": {
-                "action": "deprecate_or_merge_singleton_tags",
-                "tags": [
-                  "expansion",
-                  "integration",
-                  "workflow"
+                  "compiler",
+                  "identity",
+                  "middle-layer",
+                  "pipeline",
+                  "project",
+                  "semantic",
+                  "tier"
                 ]
               },
               "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
@@ -356,10 +292,17 @@
       ]
     }
   },
-  "proposal_count": 14,
+  "proposal_count": 9,
   "feature_summaries": [
     {
       "feature": "pilot-intake",
+      "evolution": 0,
+      "expansion": 4,
+      "refactor": 0,
+      "total": 4
+    },
+    {
+      "feature": "project-middle-layer",
       "evolution": 3,
       "expansion": 4,
       "refactor": 2,
@@ -367,18 +310,18 @@
     },
     {
       "feature": "workflow-expansion-hub",
-      "evolution": 3,
+      "evolution": 0,
       "expansion": 4,
-      "refactor": 2,
-      "total": 9
+      "refactor": 0,
+      "total": 4
     }
   ],
   "aggregated_proposals": [
     {
       "engine": "evolution",
-      "feature": "pilot-intake",
+      "feature": "project-middle-layer",
       "category": "erd",
-      "target": "database_design/mermaid_erds/pilot-intake.erd.mmd",
+      "target": "database_design/mermaid_erds/project-middle-layer.erd.mmd",
       "confidence": 0.74,
       "rationale": "No relationship markers detected in ERD content.",
       "governance_requirements": [
@@ -390,9 +333,9 @@
     },
     {
       "engine": "evolution",
-      "feature": "pilot-intake",
+      "feature": "project-middle-layer",
       "category": "mlas_btif_lineage",
-      "target": "registry.features[pilot-intake].feature_lineage",
+      "target": "registry.features[project-middle-layer].feature_lineage",
       "confidence": 0.92,
       "rationale": "Feature lineage missing for semantic traceability.",
       "governance_requirements": [
@@ -404,51 +347,9 @@
     },
     {
       "engine": "evolution",
-      "feature": "pilot-intake",
+      "feature": "project-middle-layer",
       "category": "tag_ontology",
-      "target": "registry.features[pilot-intake].semantic_tags",
-      "confidence": 0.73,
-      "rationale": "Tags appear only once across registry and may be stale or overly specific.",
-      "governance_requirements": [
-        "evolution_approval",
-        "semantic_approval"
-      ],
-      "semantic_impact": "low",
-      "structural_impact": "low"
-    },
-    {
-      "engine": "evolution",
-      "feature": "workflow-expansion-hub",
-      "category": "erd",
-      "target": "database_design/mermaid_erds/workflow-expansion-hub.erd.mmd",
-      "confidence": 0.74,
-      "rationale": "No relationship markers detected in ERD content.",
-      "governance_requirements": [
-        "evolution_approval",
-        "structural_approval"
-      ],
-      "semantic_impact": "low",
-      "structural_impact": "medium"
-    },
-    {
-      "engine": "evolution",
-      "feature": "workflow-expansion-hub",
-      "category": "mlas_btif_lineage",
-      "target": "registry.features[workflow-expansion-hub].feature_lineage",
-      "confidence": 0.92,
-      "rationale": "Feature lineage missing for semantic traceability.",
-      "governance_requirements": [
-        "evolution_approval",
-        "semantic_approval"
-      ],
-      "semantic_impact": "medium",
-      "structural_impact": "low"
-    },
-    {
-      "engine": "evolution",
-      "feature": "workflow-expansion-hub",
-      "category": "tag_ontology",
-      "target": "registry.features[workflow-expansion-hub].semantic_tags",
+      "target": "registry.features[project-middle-layer].semantic_tags",
       "confidence": 0.73,
       "rationale": "Tags appear only once across registry and may be stale or overly specific.",
       "governance_requirements": [
@@ -515,9 +416,9 @@
     },
     {
       "engine": "refactor",
-      "feature": "pilot-intake",
+      "feature": "project-middle-layer",
       "category": "mlas_btif_lineage",
-      "target": "registry.features[pilot-intake].feature_lineage",
+      "target": "registry.features[project-middle-layer].feature_lineage",
       "confidence": 0.9,
       "rationale": "Feature lineage is missing and should be set for semantic traceability.",
       "governance_requirements": [
@@ -529,37 +430,9 @@
     },
     {
       "engine": "refactor",
-      "feature": "pilot-intake",
+      "feature": "project-middle-layer",
       "category": "tag_ontology",
-      "target": "registry.features[pilot-intake].semantic_tags",
-      "confidence": 0.72,
-      "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
-      "governance_requirements": [
-        "refactor_approval",
-        "semantic_approval"
-      ],
-      "semantic_impact": "medium",
-      "structural_impact": "low"
-    },
-    {
-      "engine": "refactor",
-      "feature": "workflow-expansion-hub",
-      "category": "mlas_btif_lineage",
-      "target": "registry.features[workflow-expansion-hub].feature_lineage",
-      "confidence": 0.9,
-      "rationale": "Feature lineage is missing and should be set for semantic traceability.",
-      "governance_requirements": [
-        "refactor_approval",
-        "semantic_approval"
-      ],
-      "semantic_impact": "medium",
-      "structural_impact": "low"
-    },
-    {
-      "engine": "refactor",
-      "feature": "workflow-expansion-hub",
-      "category": "tag_ontology",
-      "target": "registry.features[workflow-expansion-hub].semantic_tags",
+      "target": "registry.features[project-middle-layer].semantic_tags",
       "confidence": 0.72,
       "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
       "governance_requirements": [
