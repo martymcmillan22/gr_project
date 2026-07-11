@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "gates": {
+    "evolution_proposals_require_approval": true,
+    "mlas_btif_evolution_requires_semantic_approval": true,
+    "tag_ontology_evolution_requires_semantic_approval": true,
+    "erd_sequence_refactors_require_structural_approval": true,
+    "ui_component_refactors_require_sync_approval": true
+  }
+}

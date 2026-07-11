@@ -39,6 +39,7 @@ Engine package: workflow/_engine/
 - versioning.py: semantic versioning state and bump helpers
 - release_notes.py: release notes payload generation
 - release_pipeline.py: release orchestration and governance safety gates
+- semantic_evolution.py: deterministic evolution proposal generation and governance gating
 - visualize.py: workflow visualization generation
 
 ## CLI Surface
@@ -66,6 +67,9 @@ Supported commands:
 - bump-version
 - release
 - release-notes
+- evolve-feature
+- evolve-all
+- evolve-preview
 
 ## AI-Native Artifacts
 

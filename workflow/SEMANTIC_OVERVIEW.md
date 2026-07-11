@@ -88,6 +88,9 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py ai-export
 - python3 workflow/cli.py release --approve-semantic-changes
 - python3 workflow/cli.py release-notes
+- python3 workflow/cli.py evolve-feature --feature <slug>
+- python3 workflow/cli.py evolve-all
+- python3 workflow/cli.py evolve-preview
 
 ## Semantic Intelligence Modules
 
@@ -109,6 +112,14 @@ These modules add drift detection, metadata inference, and deterministic conflic
 - semantic intent changes require explicit semantic approval at release time.
 - tag ontology changes require explicit semantic approval at release time.
 - release gates enforce drift, inference, conflict, validation, sync, visualization, and AI export checks.
+
+## Semantic Evolution Policies
+
+- evolution proposals are non-destructive by default.
+- proposal apply-mode requires explicit governance approvals.
+- MLAS/BTIF and ontology evolution require semantic approval.
+- ERD/sequence evolution requires structural approval.
+- UI/component evolution requires sync approval.
 
 ## AI Semantic Export
 

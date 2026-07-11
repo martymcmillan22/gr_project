@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/components/ui/styles";
+import { cn } from "../ui/styles";
 import { tokens } from "@/design-system/tokens";
 
 export interface AstrologyWheelProps {

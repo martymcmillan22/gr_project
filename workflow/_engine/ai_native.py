@@ -59,6 +59,9 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "bump-version", "description": "Bump semantic versions for workflow release"},
         {"command": "release", "description": "Run governed release pipeline with safety gates"},
         {"command": "release-notes", "description": "Generate deterministic release notes payload"},
+        {"command": "evolve-feature", "description": "Analyze one feature for deterministic evolution proposals"},
+        {"command": "evolve-all", "description": "Analyze all features for deterministic evolution proposals"},
+        {"command": "evolve-preview", "description": "Preview evolution proposals without apply-mode mutation"},
     ]
 
 

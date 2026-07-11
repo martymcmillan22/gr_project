@@ -38,6 +38,8 @@ Workflow docs:
 - [workflow/VERSIONING_GUIDE.md](workflow/VERSIONING_GUIDE.md)
 - [workflow/version.json](workflow/version.json)
 - [workflow/governance_policy.json](workflow/governance_policy.json)
+- [workflow/SEMANTIC_EVOLUTION_OVERVIEW.md](workflow/SEMANTIC_EVOLUTION_OVERVIEW.md)
+- [workflow/ai_evolution.json](workflow/ai_evolution.json)
 
 Common commands:
 - python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
@@ -56,6 +58,9 @@ Common commands:
 - python3 workflow/cli.py bump-version --part patch
 - python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
 - python3 workflow/cli.py release-notes
+- python3 workflow/cli.py evolve-feature --feature <slug>
+- python3 workflow/cli.py evolve-all
+- python3 workflow/cli.py evolve-preview
 
 ## AWS Deployment Docs
 

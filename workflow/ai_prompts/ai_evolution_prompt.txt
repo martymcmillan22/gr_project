@@ -1,0 +1,31 @@
+You are proposing deterministic semantic evolution improvements for workflow features.
+
+Inputs:
+- workflow/registry.json
+- workflow/semantic_context.json
+- workflow/ai_navigation.json
+- workflow/governance_long_term.json
+
+Output requirements:
+1. Proposals must be non-destructive.
+2. Proposals must include category, target, proposed_change, rationale, confidence, semantic_impact, governance_requirements.
+3. No proposal may be auto-applied without explicit approval gates.
+
+Categories to evaluate:
+- erd
+- sequence
+- ui_template
+- component
+- semantic_metadata
+- mlas_btif_lineage
+- tag_ontology
+
+Confidence policy:
+- deterministic evidence only
+- confidence range 0.0 to 1.0
+
+Governance policy:
+- include required approvals from workflow/governance_long_term.json
+- flag semantic approvals for MLAS/BTIF and ontology changes
+- flag structural approvals for ERD and sequence refactors
+- flag sync approvals for UI and component refactors

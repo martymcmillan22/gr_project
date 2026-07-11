@@ -23,6 +23,12 @@ from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
 from _engine.versioning import bump_all_versions, get_version_report, load_version_state, save_version_state
 from _engine.visualize import write_feature_visualization, write_global_visualizations
+from semantic_evolution import (
+    apply_evolution_report_to_registry,
+    build_evolution_report,
+    load_long_term_governance,
+    validate_evolution_approvals,
+)
 from validation.suite import run_workflow_validation
 
 
@@ -34,6 +40,8 @@ VERSION_PATH = WORKFLOW_ROOT / "version.json"
 RELEASE_NOTES_PATH = WORKFLOW_ROOT / "release_notes.json"
 SEMANTIC_CHANGELOG_PATH = WORKFLOW_ROOT / "semantic_changelog.md"
 GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "governance_policy.json"
+GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "governance_long_term.json"
+AI_EVOLUTION_PATH = WORKFLOW_ROOT / "ai_evolution.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -513,6 +521,89 @@ def cmd_release_notes(_: argparse.Namespace) -> int:
     return 0
 
 
+def _evolution_approvals_from_args(args: argparse.Namespace) -> dict[str, bool]:
+    return {
+        "evolution_approval": bool(args.approve_evolution),
+        "semantic_approval": bool(args.approve_semantic),
+        "structural_approval": bool(args.approve_structural),
+        "sync_approval": bool(args.approve_sync),
+    }
+
+
+def cmd_evolve_feature(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_long_term_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_evolution_report(registry, WORKFLOW_ROOT, policy, feature_slug=args.feature)
+
+    if report.get("feature_count", 0) == 0:
+        print(json.dumps({"error": f"feature not found: {args.feature}"}, indent=2))
+        return 1
+
+    if args.apply:
+        missing = validate_evolution_approvals(report, _evolution_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: evolution apply blocked by governance approval gates")
+            return 1
+
+        apply_evolution_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_evolve_all(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_long_term_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_evolution_report(registry, WORKFLOW_ROOT, policy)
+
+    if args.apply:
+        missing = validate_evolution_approvals(report, _evolution_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: evolution apply blocked by governance approval gates")
+            return 1
+
+        apply_evolution_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_evolve_preview(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_long_term_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_evolution_report(registry, WORKFLOW_ROOT, policy)
+
+    if args.write:
+        out = write_json_file(AI_EVOLUTION_PATH, report)
+        print(json.dumps({"report": report, "written": out}, indent=2))
+        return 0
+
+    print(json.dumps({"report": report}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -722,6 +813,36 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate release_notes.json from current workflow state",
     )
     release_notes.set_defaults(func=cmd_release_notes)
+
+    evolve_feature = sub.add_parser(
+        "evolve-feature",
+        help="Analyze one feature and produce deterministic semantic evolution proposals",
+    )
+    evolve_feature.add_argument("--feature", required=True, help="Feature slug to evolve")
+    evolve_feature.add_argument("--apply", action="store_true", help="Apply proposal metadata to registry")
+    evolve_feature.add_argument("--approve-evolution", action="store_true", help="Approve baseline evolution proposals")
+    evolve_feature.add_argument("--approve-semantic", action="store_true", help="Approve semantic evolution proposals")
+    evolve_feature.add_argument("--approve-structural", action="store_true", help="Approve ERD/sequence refactor proposals")
+    evolve_feature.add_argument("--approve-sync", action="store_true", help="Approve UI/component sync-related proposals")
+    evolve_feature.set_defaults(func=cmd_evolve_feature)
+
+    evolve_all = sub.add_parser(
+        "evolve-all",
+        help="Analyze all workflow features and produce deterministic semantic evolution proposals",
+    )
+    evolve_all.add_argument("--apply", action="store_true", help="Apply proposal metadata to registry")
+    evolve_all.add_argument("--approve-evolution", action="store_true", help="Approve baseline evolution proposals")
+    evolve_all.add_argument("--approve-semantic", action="store_true", help="Approve semantic evolution proposals")
+    evolve_all.add_argument("--approve-structural", action="store_true", help="Approve ERD/sequence refactor proposals")
+    evolve_all.add_argument("--approve-sync", action="store_true", help="Approve UI/component sync-related proposals")
+    evolve_all.set_defaults(func=cmd_evolve_all)
+
+    evolve_preview = sub.add_parser(
+        "evolve-preview",
+        help="Preview evolution proposals without applying registry mutations",
+    )
+    evolve_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_evolution.json")
+    evolve_preview.set_defaults(func=cmd_evolve_preview)
 
     return parser
 

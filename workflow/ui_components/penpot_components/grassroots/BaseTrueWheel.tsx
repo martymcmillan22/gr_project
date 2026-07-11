@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/components/ui/styles";
+import { cn } from "../ui/styles";
 
 export type QuadrantId = "green" | "red" | "yellow" | "blue";
 
@@ -19,13 +19,6 @@ export const BaseTrueWheel = React.forwardRef<HTMLDivElement, BaseTrueWheelProps
     const innerRadius = radius * 0.34;
 
     const isDimmed = (quadrant: QuadrantId) => activeQuadrant !== null && activeQuadrant !== quadrant;
-
-    const handleQuadrantKeyDown = (event: React.KeyboardEvent<SVGGElement>, quadrant: QuadrantId) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onQuadrantSelect?.(quadrant);
-      }
-    };
 
     return (
       <div className={cn("flex flex-col items-center gap-3", className)} ref={ref}>

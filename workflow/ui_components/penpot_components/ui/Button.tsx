@@ -5,7 +5,6 @@
  */
 
 import React from "react";
-import * as Primitive from "@radix-ui/react-primitive";
 import { cn } from "./styles";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

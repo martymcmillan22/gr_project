@@ -64,6 +64,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py bump-version --part patch
 - python workflow/cli.py release --bump patch
 - python workflow/cli.py release-notes
+- python workflow/cli.py evolve-feature --feature <slug>
+- python workflow/cli.py evolve-all
+- python workflow/cli.py evolve-preview
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -231,3 +234,30 @@ Release safety checks:
 - visualize-all must pass
 - sync-all must pass
 - ai-export must pass
+
+## Phase-5 Slice 1: Semantic Evolution Engine
+
+Evolution engine module:
+
+- workflow/semantic_evolution.py
+
+Long-term evolution governance:
+
+- workflow/governance_long_term.json
+
+Evolution AI surfaces:
+
+- workflow/ai_prompts/ai_evolution_prompt.txt
+- workflow/ai_evolution.json
+
+Evolution docs:
+
+- workflow/SEMANTIC_EVOLUTION_OVERVIEW.md
+
+Evolution commands:
+
+- python3 workflow/cli.py evolve-feature --feature <slug>
+- python3 workflow/cli.py evolve-all
+- python3 workflow/cli.py evolve-preview
+
+Apply mode remains blocked by default unless explicit approvals are provided.

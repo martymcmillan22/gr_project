@@ -28,6 +28,9 @@
     "workflow:bump-version": "python3 workflow/cli.py bump-version",
     "workflow:release": "python3 workflow/cli.py release",
     "workflow:release-notes": "python3 workflow/cli.py release-notes",
+    "workflow:evolve-feature": "python3 workflow/cli.py evolve-feature",
+    "workflow:evolve-all": "python3 workflow/cli.py evolve-all",
+    "workflow:evolve-preview": "python3 workflow/cli.py evolve-preview",
     "workflow:test": "python3 -m unittest discover workflow/tests -v"
   },
   "dependencies": {

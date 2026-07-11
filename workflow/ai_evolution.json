@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-07-11T17:19:36.997549+00:00",
+  "target": "all",
+  "feature_count": 1,
+  "proposal_count": 3,
+  "features": [
+    {
+      "slug": "pilot-intake",
+      "proposal_count": 3,
+      "proposals": [
+        {
+          "category": "erd",
+          "target": "database_design/mermaid_erds/pilot-intake.erd.mmd",
+          "proposed_change": "Add explicit relationship notation between entities.",
+          "rationale": "No relationship markers detected in ERD content.",
+          "confidence": 0.74,
+          "semantic_impact": "low",
+          "governance_requirements": [
+            "evolution_approval",
+            "structural_approval"
+          ]
+        },
+        {
+          "category": "mlas_btif_lineage",
+          "target": "registry.features[pilot-intake].feature_lineage",
+          "proposed_change": "Set feature_lineage to workflow/pilot-intake.",
+          "rationale": "Feature lineage missing for semantic traceability.",
+          "confidence": 0.92,
+          "semantic_impact": "medium",
+          "governance_requirements": [
+            "evolution_approval",
+            "semantic_approval"
+          ]
+        },
+        {
+          "category": "tag_ontology",
+          "target": "registry.features[pilot-intake].semantic_tags",
+          "proposed_change": "Review low-reuse tags for ontology alignment: intake, pilot, routing",
+          "rationale": "Tags appear only once across registry and may be stale or overly specific.",
+          "confidence": 0.73,
+          "semantic_impact": "low",
+          "governance_requirements": [
+            "evolution_approval",
+            "semantic_approval"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -45,6 +45,11 @@ AI prompt/template usage for workflow generation and reasoning:
 - workflow/ai_prompts/drift_analysis_prompt.txt
 - workflow/ai_prompts/conflict_resolution_prompt.txt
 - workflow/ai_prompts/visualization_prompt.txt
+- workflow/ai_prompts/ai_evolution_prompt.txt
+
+Long-term evolution governance:
+
+- workflow/governance_long_term.json
 
 Detailed playbook:
 

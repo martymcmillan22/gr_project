@@ -49,6 +49,9 @@ Primary command surface:
 - python3 workflow/cli.py bump-version --part patch
 - python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
 - python3 workflow/cli.py release-notes
+- python3 workflow/cli.py evolve-feature --feature <slug>
+- python3 workflow/cli.py evolve-all
+- python3 workflow/cli.py evolve-preview
 
 Mutation policy:
 
@@ -68,6 +71,7 @@ Mutation policy:
 4. Never run semantic-resolve --force-unsafe unless user explicitly asks for unsafe override.
 5. If unsafe conflicts exist, stop, report, and ask for explicit instruction.
 6. If semantic governance deltas are detected, require explicit approval before release.
+7. If evolution proposals include governance requirements, require matching explicit approvals before apply mode.
 
 ## Confidence Thresholds
 
@@ -114,6 +118,14 @@ Expected outcome:
 6. python3 workflow/cli.py sync-all
 7. python3 workflow/cli.py ai-export
 8. python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+
+### Example 5: Evolution preview and governed apply
+
+1. python3 workflow/cli.py evolve-all
+2. python3 workflow/cli.py evolve-preview --write
+3. Review governance requirements in proposal blocks.
+4. Apply only with explicit approvals:
+	python3 workflow/cli.py evolve-all --apply --approve-evolution --approve-semantic --approve-structural --approve-sync
 
 ## Recommended Copilot Prompts
 
