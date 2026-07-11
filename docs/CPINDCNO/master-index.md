@@ -5,6 +5,8 @@ Role: Provides a complete, canonical listing of all CPINDCNO documents, modules,
 Scope: Entire CPINDCNO Semantic Operating System
 Strictness: Sole permitted index of CPINDCNO
 
+![CPINDCNO Constitutional Guardrail](https://img.shields.io/badge/CPINDCNO-Constitutional_Guardrail_PASS-2ea44f?style=for-the-badge)
+
 This index is the authoritative map of the entire system.
 
 2. Constitution Core Documents
@@ -31,6 +33,8 @@ Session Map Specification
 Tier‑Wide Validation Specification
 
 Tier‑Wide Validation Report
+
+Enterprise Separation Guardrail (Draft)
 
 Completion Certificate
 

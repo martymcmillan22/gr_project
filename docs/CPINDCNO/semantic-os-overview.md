@@ -137,7 +137,7 @@ CPINDCNO Semantic OS is the constitution-governed PM-tier operating system synch
 - docs/CPINDCNO/PM10-PersonalFeedbackEngine/personal-feedback.engine.md
 - docs/CPINDCNO/PM11-PersonalContinuityEngine/personal-continuity.engine.md
 - docs/CPINDCNO/PM12-PersonalIdentityEngine/personal-identity.engine.md
-- docs/MLAS/AM01-IdentityRail/am-identity-rail.md
+- docs/MLAS/SemanticUtility/AM01-IdentityRail/am-identity-rail.md
 - docs/MLAS/SemanticUtility/AM02-MemoryAnchor/vs-code-ai.memory.md
 - docs/MLAS/SemanticUtility/AM03-StructuralPatternEngine/repository-relay.blueprint.md
 - docs/MLAS/SemanticUtility/AM04-ExecutionPatternEngine/qpu.blueprint.md
@@ -147,8 +147,8 @@ CPINDCNO Semantic OS is the constitution-governed PM-tier operating system synch
 - docs/MLAS/SemanticUtility/AM08-SemanticStabilizationEngine/semantic-stabilization.engine.md
 - docs/MLAS/SemanticUtility/AM09-SemanticDistributionEngine/semantic-distribution.engine.md
 - docs/MLAS/SemanticUtility/AM10-SemanticFeedbackEngine/semantic-feedback.engine.md
-- docs/MLAS/AM11-SemanticContinuityEngine/semantic-continuity.engine.md
-- docs/MLAS/AM12-SemanticIdentityEngine/semantic-identity.engine.md
+- docs/MLAS/SemanticUtility/AM11-SemanticContinuityEngine/semantic-continuity.engine.md
+- docs/MLAS/SemanticUtility/AM12-SemanticIdentityEngine/semantic-identity.engine.md
 
 16. Completion Signal
 CPINDCNO Semantic OS Overview active.

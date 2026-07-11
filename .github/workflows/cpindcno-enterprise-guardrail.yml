@@ -1,0 +1,22 @@
+name: CPINDCNO Enterprise Guardrail
+
+on:
+  pull_request:
+    paths:
+      - "docs/CPINDCNO/**"
+      - "docs/CPINDCNO-Enterprise/**"
+      - "scripts/operations/check-cpindcno-enterprise-guardrail.sh"
+      - "docs/CPINDCNO/enterprise-separation-guardrail.md"
+      - ".github/workflows/cpindcno-enterprise-guardrail.yml"
+  workflow_dispatch:
+
+jobs:
+  cpindcno-enterprise-separation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run CPINDCNO enterprise separation guardrail
+        run: |
+          bash scripts/operations/check-cpindcno-enterprise-guardrail.sh
