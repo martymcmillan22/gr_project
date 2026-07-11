@@ -56,7 +56,14 @@ class ProjectMiddleLayerCompileAPIView(APIView):
                 "semantic_intent": payload["semantic_intent"],
                 "mlas_tier": payload["mlas_tier"],
                 "btif_classification": payload["btif_classification"],
-                "metadata": payload.get("metadata", {}),
+                "metadata": {
+                    **payload.get("metadata", {}),
+                    "semantic_tags": payload["semantic_tags"],
+                    "drift_forecast": compiled["drift_forecast"],
+                    "identity_payload": compiled["identity_payload"],
+                    "specialized_path": compiled["specialized_path"],
+                    "semantic_tree": compiled["semantic_tree"],
+                },
             },
         )
 
@@ -143,7 +150,14 @@ class ProjectCreationWizardCompileAPIView(APIView):
                 "semantic_intent": base["semantic_intent"],
                 "mlas_tier": base["mlas_tier"],
                 "btif_classification": base["btif_classification"],
-                "metadata": tags.get("metadata", {}),
+                "metadata": {
+                    **tags.get("metadata", {}),
+                    "semantic_tags": tags["semantic_tags"],
+                    "drift_forecast": compiled["drift_forecast"],
+                    "identity_payload": compiled["identity_payload"],
+                    "specialized_path": compiled["specialized_path"],
+                    "semantic_tree": compiled["semantic_tree"],
+                },
             },
         )
 

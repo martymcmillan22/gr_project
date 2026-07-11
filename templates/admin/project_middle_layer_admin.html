@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:index' %}" title="Open Admin Home">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Project Middle Layer Admin</h1>
+    <p class="bt-brand-sub">Dedicated semantic identity control surface</p>
+  </div>
+</div>
+
+<p>Scoped admin for project nodes, deterministic identity branching, specialized path output, and drift-aware governance.</p>
+
+<h2 class="bt-section bt-q-green" id="pm-quick-actions">Quick Actions</h2>
+<div class="bt-actions">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Refresh</a>
+  <a class="bt-action bt-q-blue" href="{% url 'admin:dashboard' %}">Platform Dashboard</a>
+  <a class="bt-action bt-q-red" href="{% url 'admin:basetrue-insights' %}">BaseTrue Insights</a>
+  <a class="bt-action bt-q-yellow" href="{% url 'task-manager-admin:index' %}">Task Manager Admin</a>
+</div>
+
+<h2 class="bt-section bt-q-blue">Project Nodes</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      <p><strong>Slug:</strong> {{ card.node.slug }}</p>
+      <p><strong>Selected Branch:</strong> {{ card.branch.selected_branch }}</p>
+      <p><strong>Confidence:</strong> {{ card.branch.confidence }}</p>
+      <p><strong>Risk:</strong> {{ card.drift_forecast.risk.risk_level }}</p>
+      <p><strong>Final URI:</strong> {{ card.specialized_path.forms.0.final_identity_uri }}</p>
+      <details>
+        <summary>Semantic Tree</summary>
+        <pre style="white-space:pre-wrap;">{{ card.semantic_tree }}</pre>
+      </details>
+      {% if card.schema_validation_errors %}
+        <p class="has-text-danger"><strong>Schema issues:</strong> {{ card.schema_validation_errors|join:", " }}</p>
+      {% else %}
+        <p class="has-text-success"><strong>Schema validation:</strong> clean</p>
+      {% endif %}
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No Project Middle Layer nodes have been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -23,6 +23,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 
 from .admin_analytics import build_admin_metrics
+from project_middle_layer.admin_dashboard import project_middle_layer_admin_view
 
 
 CONTRACT_RELEASE_DATE = date(2026, 6, 28)
@@ -7217,6 +7218,11 @@ def configure_unified_admin():
                 "insights-contract-billing-access-links-audit/",
                 admin.site.admin_view(_insights_contract_billing_access_links_audit_view),
                 name="insights-contract-billing-access-links-audit",
+            ),
+            path(
+                "project-middle-layer/",
+                admin.site.admin_view(project_middle_layer_admin_view),
+                name="project-middle-layer-admin",
             ),
             path(
                 "insights-contract-billing-notifications/",

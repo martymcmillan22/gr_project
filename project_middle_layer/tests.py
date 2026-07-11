@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -115,3 +115,40 @@ class ProjectMiddleLayerWizardAPITests(APITestCase):
         node = ProjectNode.objects.get(slug="phase3-wizard-project")
         self.assertEqual(node.name, "Phase3 Wizard Project")
         self.assertEqual(node.metadata.get("source"), "api-wizard-test")
+
+
+class ProjectMiddleLayerAdminTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="admin@example.com",
+            username="admin",
+            name="Admin User",
+            password="testpass123",
+        )
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        ProjectNode.objects.create(
+            slug="admin-project",
+            name="Admin Project",
+            semantic_intent="ExpandAndIntegrate",
+            mlas_tier="Semantic Utility",
+            btif_classification="ExpansionFlow",
+            metadata={"semantic_tags": ["project", "admin", "identity"]},
+        )
+
+    def test_platform_dashboard_shows_project_middle_layer_button(self):
+        response = self.client.get(reverse("admin:dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Project Middle Layer Admin")
+
+    def test_project_middle_layer_admin_page_renders_scoped_content(self):
+        response = self.client.get(reverse("admin:project-middle-layer-admin"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Project Middle Layer Admin")
+        self.assertContains(response, "Admin Project")
+        self.assertContains(response, "Selected Branch")
