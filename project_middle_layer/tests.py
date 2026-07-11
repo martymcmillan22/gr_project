@@ -29,6 +29,11 @@ class ProjectMiddleLayerPipelineTests(SimpleTestCase):
         self.assertEqual(payload["schema_validation_errors"], [])
         self.assertIn("cpndc://project-middle-layer/project-middle-layer", payload["identity_payload"]["identity"]["identity_uri"])
         self.assertIn("identity_id", payload["identity_payload"]["identity"])
+        self.assertIn("branch_resolution", payload["identity_payload"]["identity"])
+        self.assertIn(
+            payload["identity_payload"]["identity"]["branch_resolution"]["selected_branch"],
+            ["stabilization_branch", "expansion_integration_branch"],
+        )
         self.assertIn("IDEA", payload["tier_profile"]["lifecycle"])
         self.assertIn("SPECIALIZED_PATH", payload["tier_profile"]["lifecycle"])
         self.assertIn("Identity Branch", payload["semantic_tree"])
@@ -98,6 +103,8 @@ class ProjectMiddleLayerWizardAPITests(APITestCase):
         self.assertEqual(compile_response.status_code, status.HTTP_200_OK)
         self.assertIn("schema", compile_response.data)
         self.assertIn("drift_forecast", compile_response.data)
+        self.assertIn("identity_payload", compile_response.data)
+        self.assertIn("branch_resolution", compile_response.data["identity_payload"]["identity"])
 
         node = ProjectNode.objects.get(slug="phase3-wizard-project")
         self.assertEqual(node.name, "Phase3 Wizard Project")

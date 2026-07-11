@@ -1,5 +1,6 @@
 import hashlib
 
+from .branch_resolver import resolve_identity_branch
 from .typing import IdentityPayload
 
 
@@ -16,6 +17,8 @@ def compile_cpndc_identity(project: IdentityPayload) -> dict[str, object]:
     identity_hash = hashlib.sha256(canonical_key.encode("utf-8")).hexdigest()[:16]
 
     semantic_tags = sorted({tag.strip().lower() for tag in project.get("semantic_tags", []) if tag.strip()})
+    drift_risk = project.get("drift_risk")
+    branch_resolution = resolve_identity_branch(project, drift_risk=drift_risk)
 
     return {
         "identity_uri": f"cpndc://project-middle-layer/{slug}",
@@ -31,4 +34,5 @@ def compile_cpndc_identity(project: IdentityPayload) -> dict[str, object]:
             "idea_seed_project": f"cpndc://branch/{slug}/idea-seed-project",
             "identity_specialization": f"cpndc://branch/{slug}/identity-specialization",
         },
+        "branch_resolution": branch_resolution,
     }

@@ -8,7 +8,11 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def compile_project_middle_layer_payload(schema: ProjectSchema) -> dict[str, object]:
+def compile_project_middle_layer_payload(
+    schema: ProjectSchema,
+    *,
+    drift_forecast: dict[str, object] | None = None,
+) -> dict[str, object]:
     root = _repo_root()
     slug = schema["slug"]
 
@@ -19,6 +23,14 @@ def compile_project_middle_layer_payload(schema: ProjectSchema) -> dict[str, obj
         "logic": root / f"platform_core/workflow_generated/logic/{slug}_logic.py",
     }
 
+    blended_drift_risk = None
+    if isinstance(drift_forecast, dict):
+        risk_block = drift_forecast.get("risk")
+        if isinstance(risk_block, dict):
+            risk_value = risk_block.get("blended_semantic_drift_risk")
+            if isinstance(risk_value, (int, float)):
+                blended_drift_risk = float(risk_value)
+
     identity = compile_cpndc_identity(
         {
             "slug": schema["slug"],
@@ -27,6 +39,7 @@ def compile_project_middle_layer_payload(schema: ProjectSchema) -> dict[str, obj
             "mlas_tier": schema["mlas_tier"],
             "btif_classification": schema["btif_classification"],
             "semantic_tags": schema["semantic_tags"],
+            "drift_risk": blended_drift_risk,
         }
     )
 

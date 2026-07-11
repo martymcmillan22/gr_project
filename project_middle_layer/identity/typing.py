@@ -8,3 +8,4 @@ class IdentityPayload(TypedDict):
     btif_classification: str
     name: NotRequired[str]
     semantic_tags: NotRequired[list[str]]
+    drift_risk: NotRequired[float]
