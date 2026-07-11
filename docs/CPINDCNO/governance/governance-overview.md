@@ -129,7 +129,26 @@ Governance strictness requires:
 
 Governance strictness is absolute.
 
-## 9. Simplest Definition
+## 9. Enterprise Strictness Lifecycle
+CPINDCNO-Enterprise strictness follows a 3-phase progression:
+
+1. Draft
+2. Final Draft (strictness lock pending Enterprise Constitution)
+3. Strictness Locked
+
+Current status: Phase 2 of 3.
+
+When Enterprise Constitution is finalized, governance must update enterprise strictness labels from:
+
+Final Draft - strictness lock pending Enterprise Constitution.
+
+to:
+
+Strictness Locked - governed by finalized Enterprise Constitution.
+
+This update is deterministic and must be applied to enterprise governance surfaces.
+
+## 10. Simplest Definition
 Governance is the constitutional shield of CPINDCNO.
 It enforces boundaries.
 It prevents drift.
@@ -137,6 +156,6 @@ It protects tiers.
 It governs CI.
 It makes the semantic OS self-protecting.
 
-## 10. Governance Completion Signal
+## 11. Governance Completion Signal
 
 CPINDCNO Governance Overview generated: constitutional governance layer established.

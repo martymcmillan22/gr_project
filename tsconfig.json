@@ -22,11 +22,11 @@
     "paths": {
       "@/*": ["./*"],
       "@/design-system": ["./design-system"],
-      "@/components": ["./components"],
-      "@/components/ui": ["./components/ui"],
-      "@/components/grassroots": ["./components/grassroots"]
+      "@/components": ["./workflow/ui_components/penpot_components"],
+      "@/components/ui": ["./workflow/ui_components/penpot_components/ui"],
+      "@/components/grassroots": ["./workflow/ui_components/penpot_components/grassroots"]
     }
   },
-  "include": ["src", "components", "design-system"],
+  "include": ["src", "workflow", "design-system"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

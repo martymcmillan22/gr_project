@@ -149,7 +149,7 @@ FRONTEND_PAGE_TEMPLATE = """import {
     QuickActions,
     SettingsPanel,
     Taskboard,
-} from \"../../../ui_template_library/react_onepager/src/index\";
+} from "../../../workflow/ui_templates/penpot_templates/index";
 
 export default function __PAGE_NAME__Page() {
     return (

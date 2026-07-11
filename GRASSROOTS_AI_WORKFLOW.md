@@ -47,7 +47,7 @@ Enforce this pipeline in order:
 3. UI shared components: frontend_homepage/src/ui
 4. MDX slide sources: frontend_homepage/src/presentation/slides
 5. Component documentation MDX: mdx/component-docs
-6. Reusable design system components: components/grassroots
+6. Reusable design system components: workflow/ui_components/penpot_components/grassroots
 7. Semantic and contract runtime: platform_core and BTIF
 8. Django project runtime: gr_project and manage.py
 
