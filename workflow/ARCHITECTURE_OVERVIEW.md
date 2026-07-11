@@ -41,6 +41,7 @@ Engine package: workflow/_engine/
 - release_pipeline.py: release orchestration and governance safety gates
 - semantic_evolution.py: deterministic evolution proposal generation and governance gating
 - feature_expansion.py: deterministic new-feature expansion proposal generation and governance gating
+- semantic_refactor.py: deterministic semantic refactor proposal generation and governance gating
 - visualize.py: workflow visualization generation
 
 ## CLI Surface
@@ -74,6 +75,9 @@ Supported commands:
 - expand
 - expand-all
 - expand-preview
+- refactor-feature
+- refactor-all
+- refactor-preview
 
 ## AI-Native Artifacts
 

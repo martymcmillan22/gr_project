@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-07-11T17:40:21.487214+00:00",
+  "target": "all",
+  "feature_count": 2,
+  "proposal_count": 4,
+  "features": [
+    {
+      "slug": "pilot-intake",
+      "proposal_count": 2,
+      "proposals": [
+        {
+          "category": "mlas_btif_lineage",
+          "target": "registry.features[pilot-intake].feature_lineage",
+          "proposed_refactor": {
+            "action": "set_feature_lineage",
+            "to": "workflow/pilot-intake"
+          },
+          "rationale": "Feature lineage is missing and should be set for semantic traceability.",
+          "confidence": 0.9,
+          "semantic_impact": "medium",
+          "structural_impact": "low",
+          "governance_requirements": [
+            "refactor_approval",
+            "semantic_approval"
+          ]
+        },
+        {
+          "category": "tag_ontology",
+          "target": "registry.features[pilot-intake].semantic_tags",
+          "proposed_refactor": {
+            "action": "deprecate_or_merge_singleton_tags",
+            "tags": [
+              "intake",
+              "pilot",
+              "routing"
+            ]
+          },
+          "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
+          "confidence": 0.72,
+          "semantic_impact": "medium",
+          "structural_impact": "low",
+          "governance_requirements": [
+            "refactor_approval",
+            "semantic_approval"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "workflow-expansion-hub",
+      "proposal_count": 2,
+      "proposals": [
+        {
+          "category": "mlas_btif_lineage",
+          "target": "registry.features[workflow-expansion-hub].feature_lineage",
+          "proposed_refactor": {
+            "action": "set_feature_lineage",
+            "to": "workflow/workflow-expansion-hub"
+          },
+          "rationale": "Feature lineage is missing and should be set for semantic traceability.",
+          "confidence": 0.9,
+          "semantic_impact": "medium",
+          "structural_impact": "low",
+          "governance_requirements": [
+            "refactor_approval",
+            "semantic_approval"
+          ]
+        },
+        {
+          "category": "tag_ontology",
+          "target": "registry.features[workflow-expansion-hub].semantic_tags",
+          "proposed_refactor": {
+            "action": "deprecate_or_merge_singleton_tags",
+            "tags": [
+              "expansion",
+              "integration",
+              "workflow"
+            ]
+          },
+          "rationale": "Tag ontology contains singleton tags that may indicate redundant or overly-specific vocabulary.",
+          "confidence": 0.72,
+          "semantic_impact": "medium",
+          "structural_impact": "low",
+          "governance_requirements": [
+            "refactor_approval",
+            "semantic_approval"
+          ]
+        }
+      ]
+    }
+  ]
+}

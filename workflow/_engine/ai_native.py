@@ -65,6 +65,9 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "expand", "description": "Propose deterministic feature expansion opportunities"},
         {"command": "expand-all", "description": "Propose expansion opportunities across all features"},
         {"command": "expand-preview", "description": "Preview expansion proposals without apply-mode mutation"},
+        {"command": "refactor-feature", "description": "Propose deterministic refactors for one feature"},
+        {"command": "refactor-all", "description": "Propose deterministic refactors for all features"},
+        {"command": "refactor-preview", "description": "Preview refactor proposals without apply-mode mutation"},
     ]
 
 

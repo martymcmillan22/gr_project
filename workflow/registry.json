@@ -69,6 +69,21 @@
             "pilot-intake"
           ]
         }
+      },
+      "propagation": {
+        "mlas": {
+          "slug": "workflow-expansion-hub",
+          "mlas_tier": "Semantic Utility",
+          "semantic_intent": "ExpandAndIntegrate",
+          "semantic_tags": "expansion,integration,workflow"
+        },
+        "btif_route": "btif://expansionflow/expandandintegrate/workflow-expansion-hub",
+        "synced_targets": {
+          "erd_backend_models": "platform_core/workflow_generated/models/workflow-expansion-hub_models.py",
+          "sequence_backend_logic": "platform_core/workflow_generated/logic/workflow-expansion-hub_logic.py",
+          "ui_template_react_page": "ui_apps/workflow_generated/pages/WorkflowExpansionHubPage.tsx",
+          "ui_component_design_system": "workflow/ui_components/penpot_components/generated/WorkflowExpansionHubCard.tsx"
+        }
       }
     }
   ]

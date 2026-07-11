@@ -70,6 +70,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py expand
 - python workflow/cli.py expand-all
 - python workflow/cli.py expand-preview
+- python workflow/cli.py refactor-feature --feature <slug>
+- python workflow/cli.py refactor-all
+- python workflow/cli.py refactor-preview
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -289,6 +292,34 @@ Expansion commands:
 Expansion apply mode requires explicit approvals:
 
 - --approve-expansion
+- --approve-semantic
+- --approve-structural
+- --approve-sync
+
+## Phase-5 Slice 3: Semantic Refactoring Engine
+
+Refactor engine module:
+
+- workflow/semantic_refactor.py
+
+Refactor AI surfaces:
+
+- workflow/ai_prompts/ai_refactor_prompt.txt
+- workflow/ai_refactor.json
+
+Refactor docs:
+
+- workflow/SEMANTIC_REFACTORING_OVERVIEW.md
+
+Refactor commands:
+
+- python3 workflow/cli.py refactor-feature --feature <slug>
+- python3 workflow/cli.py refactor-all
+- python3 workflow/cli.py refactor-preview
+
+Refactor apply mode requires explicit approvals:
+
+- --approve-refactor
 - --approve-semantic
 - --approve-structural
 - --approve-sync

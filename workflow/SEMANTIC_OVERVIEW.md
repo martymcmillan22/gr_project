@@ -94,6 +94,9 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py expand
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py expand-preview
+- python3 workflow/cli.py refactor-feature --feature <slug>
+- python3 workflow/cli.py refactor-all
+- python3 workflow/cli.py refactor-preview
 
 ## Semantic Intelligence Modules
 
@@ -131,6 +134,14 @@ These modules add drift detection, metadata inference, and deterministic conflic
 - new semantic intents, MLAS/BTIF patterns, and ontology additions require semantic approval.
 - cross-feature integrations require structural approval.
 - multi-feature bundles require sync approval.
+
+## Semantic Refactor Policies
+
+- refactor proposals are non-destructive by default.
+- apply mode is blocked without explicit refactor approval.
+- ERD and sequence refactors require structural approval.
+- UI template and component refactors require sync approval.
+- semantic metadata, MLAS/BTIF lineage, and ontology rewrites require semantic approval.
 
 ## AI Semantic Export
 

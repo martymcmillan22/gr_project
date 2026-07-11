@@ -55,6 +55,9 @@ Primary command surface:
 - python3 workflow/cli.py expand
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py expand-preview
+- python3 workflow/cli.py refactor-feature --feature <slug>
+- python3 workflow/cli.py refactor-all
+- python3 workflow/cli.py refactor-preview
 
 Mutation policy:
 
@@ -76,6 +79,7 @@ Mutation policy:
 6. If semantic governance deltas are detected, require explicit approval before release.
 7. If evolution proposals include governance requirements, require matching explicit approvals before apply mode.
 8. If expansion proposals include governance requirements, require matching explicit approvals before apply mode.
+9. If refactor proposals include governance requirements, require matching explicit approvals before apply mode.
 
 ## Confidence Thresholds
 
@@ -138,6 +142,14 @@ Expected outcome:
 3. Review proposal lineage, ontology entries, and integration impact.
 4. Apply only with explicit approvals:
 	python3 workflow/cli.py expand-all --apply --approve-expansion --approve-semantic --approve-structural --approve-sync
+
+### Example 7: Refactor preview and governed apply
+
+1. python3 workflow/cli.py refactor-all
+2. python3 workflow/cli.py refactor-preview --write
+3. Review semantic and structural impact in proposal blocks.
+4. Apply only with explicit approvals:
+	python3 workflow/cli.py refactor-all --apply --approve-refactor --approve-semantic --approve-structural --approve-sync
 
 ## Recommended Copilot Prompts
 

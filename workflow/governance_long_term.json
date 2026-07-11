@@ -1,11 +1,15 @@
 {
   "version": "1.0.0",
   "gates": {
+    "refactor_proposals_require_approval": true,
     "evolution_proposals_require_approval": true,
     "mlas_btif_evolution_requires_semantic_approval": true,
     "tag_ontology_evolution_requires_semantic_approval": true,
     "erd_sequence_refactors_require_structural_approval": true,
     "ui_component_refactors_require_sync_approval": true,
+    "semantic_metadata_refactors_require_semantic_approval": true,
+    "mlas_btif_lineage_refactors_require_semantic_approval": true,
+    "tag_ontology_refactors_require_semantic_approval": true,
     "new_feature_proposals_require_approval": true,
     "new_semantic_intents_require_approval": true,
     "new_mlas_btif_patterns_require_approval": true,

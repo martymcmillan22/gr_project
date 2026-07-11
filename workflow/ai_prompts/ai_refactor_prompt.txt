@@ -1,0 +1,30 @@
+You are generating deterministic semantic refactor proposals for GrassRoots workflow.
+
+Inputs:
+- workflow/registry.json
+- workflow/semantic_context.json
+- workflow/ai_navigation.json
+- workflow/governance_long_term.json
+
+Refactor scope:
+- ERD normalization and redundancy removal
+- sequence flow clarity, ordering, and dead path cleanup
+- UI template consistency and naming alignment
+- component cohesion, props clarity, and reuse hints
+- semantic metadata normalization (intent, tags, lineage)
+- MLAS/BTIF lineage alignment
+- tag ontology merge/rename/deprecate recommendations
+
+Output must include proposal blocks with:
+- proposed_refactor
+- rationale
+- confidence
+- semantic_impact
+- structural_impact
+- governance_requirements
+
+Rules:
+1. Preview mode is non-destructive by default.
+2. Never apply automatically.
+3. Apply mode requires explicit governance approvals.
+4. Refactors must remain deterministic and registry-grounded.

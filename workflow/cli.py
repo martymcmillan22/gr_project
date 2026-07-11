@@ -35,6 +35,12 @@ from semantic_evolution import (
     load_long_term_governance,
     validate_evolution_approvals,
 )
+from semantic_refactor import (
+    apply_refactor_report_to_registry,
+    build_refactor_report,
+    load_refactor_governance,
+    validate_refactor_approvals,
+)
 from validation.suite import run_workflow_validation
 
 
@@ -49,6 +55,7 @@ GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "governance_policy.json"
 GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "governance_long_term.json"
 AI_EVOLUTION_PATH = WORKFLOW_ROOT / "ai_evolution.json"
 AI_EXPANSION_PATH = WORKFLOW_ROOT / "ai_expansion.json"
+AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -690,6 +697,85 @@ def cmd_expand_preview(args: argparse.Namespace) -> int:
     return 0
 
 
+def _refactor_approvals_from_args(args: argparse.Namespace) -> dict[str, bool]:
+    return {
+        "refactor_approval": bool(args.approve_refactor),
+        "semantic_approval": bool(args.approve_semantic),
+        "structural_approval": bool(args.approve_structural),
+        "sync_approval": bool(args.approve_sync),
+    }
+
+
+def cmd_refactor_feature(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_refactor_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_refactor_report(registry, WORKFLOW_ROOT, policy, feature_slug=args.feature)
+
+    if args.apply:
+        missing = validate_refactor_approvals(report, _refactor_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: refactor apply blocked by governance approval gates")
+            return 1
+
+        apply_refactor_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_refactor_all(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_refactor_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_refactor_report(registry, WORKFLOW_ROOT, policy)
+
+    if args.apply:
+        missing = validate_refactor_approvals(report, _refactor_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: refactor apply blocked by governance approval gates")
+            return 1
+
+        apply_refactor_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_refactor_preview(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_refactor_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_refactor_report(registry, WORKFLOW_ROOT, policy)
+
+    if args.write:
+        out = write_json_file(AI_REFACTOR_PATH, report)
+        print(json.dumps({"report": report, "written": out}, indent=2))
+        return 0
+
+    print(json.dumps({"report": report}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -959,6 +1045,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     expand_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_expansion.json")
     expand_preview.set_defaults(func=cmd_expand_preview)
+
+    refactor_feature = sub.add_parser(
+        "refactor-feature",
+        help="Analyze one feature and propose deterministic semantic refactors",
+    )
+    refactor_feature.add_argument("--feature", required=True, help="Feature slug to refactor")
+    refactor_feature.add_argument("--apply", action="store_true", help="Apply accepted refactor proposals to registry")
+    refactor_feature.add_argument("--approve-refactor", action="store_true", help="Approve baseline refactor proposals")
+    refactor_feature.add_argument("--approve-semantic", action="store_true", help="Approve semantic metadata refactors")
+    refactor_feature.add_argument("--approve-structural", action="store_true", help="Approve ERD/sequence structural refactors")
+    refactor_feature.add_argument("--approve-sync", action="store_true", help="Approve UI/component sync-affecting refactors")
+    refactor_feature.set_defaults(func=cmd_refactor_feature)
+
+    refactor_all = sub.add_parser(
+        "refactor-all",
+        help="Analyze all features and propose deterministic semantic refactors",
+    )
+    refactor_all.add_argument("--apply", action="store_true", help="Apply accepted refactor proposals to registry")
+    refactor_all.add_argument("--approve-refactor", action="store_true", help="Approve baseline refactor proposals")
+    refactor_all.add_argument("--approve-semantic", action="store_true", help="Approve semantic metadata refactors")
+    refactor_all.add_argument("--approve-structural", action="store_true", help="Approve ERD/sequence structural refactors")
+    refactor_all.add_argument("--approve-sync", action="store_true", help="Approve UI/component sync-affecting refactors")
+    refactor_all.set_defaults(func=cmd_refactor_all)
+
+    refactor_preview = sub.add_parser(
+        "refactor-preview",
+        help="Preview semantic refactor proposals without applying registry mutations",
+    )
+    refactor_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_refactor.json")
+    refactor_preview.set_defaults(func=cmd_refactor_preview)
 
     return parser
 

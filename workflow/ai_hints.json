@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:27:44.980673+00:00",
+  "generated_at": "2026-07-11T17:40:22.009568+00:00",
   "workflow_root": "workflow",
   "canonical_categories": {
     "database_design": "database_design/mermaid_erds",
@@ -37,6 +37,7 @@
   "btif_routing": {
     "route_pattern": "btif://{btif_classification}/{semantic_intent}/{slug}",
     "known_classes": [
+      "ExpansionFlow",
       "IntakeFlow"
     ]
   },
@@ -140,6 +141,18 @@
     {
       "command": "expand-preview",
       "description": "Preview expansion proposals without apply-mode mutation"
+    },
+    {
+      "command": "refactor-feature",
+      "description": "Propose deterministic refactors for one feature"
+    },
+    {
+      "command": "refactor-all",
+      "description": "Propose deterministic refactors for all features"
+    },
+    {
+      "command": "refactor-preview",
+      "description": "Preview refactor proposals without apply-mode mutation"
     }
   ],
   "example_features": [
@@ -155,12 +168,28 @@
         "routing"
       ],
       "route": "btif://intakeflow/captureandroute/pilot-intake"
+    },
+    {
+      "name": "Workflow Expansion Hub",
+      "slug": "workflow-expansion-hub",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "ExpansionFlow",
+      "semantic_intent": "ExpandAndIntegrate",
+      "semantic_tags": [
+        "expansion",
+        "integration",
+        "workflow"
+      ],
+      "route": "btif://expansionflow/expandandintegrate/workflow-expansion-hub"
     }
   ],
   "example_semantic_tags": [
+    "expansion",
     "intake",
+    "integration",
     "pilot",
-    "routing"
+    "routing",
+    "workflow"
   ],
   "example_mlas_btif_mappings": [
     {
@@ -168,6 +197,12 @@
       "mlas_tier": "Semantic Utility",
       "btif_classification": "IntakeFlow",
       "route": "btif://intakeflow/captureandroute/pilot-intake"
+    },
+    {
+      "slug": "workflow-expansion-hub",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "ExpansionFlow",
+      "route": "btif://expansionflow/expandandintegrate/workflow-expansion-hub"
     }
   ]
 }

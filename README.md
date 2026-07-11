@@ -42,6 +42,8 @@ Workflow docs:
 - [workflow/ai_evolution.json](workflow/ai_evolution.json)
 - [workflow/FEATURE_EXPANSION_OVERVIEW.md](workflow/FEATURE_EXPANSION_OVERVIEW.md)
 - [workflow/ai_expansion.json](workflow/ai_expansion.json)
+- [workflow/SEMANTIC_REFACTORING_OVERVIEW.md](workflow/SEMANTIC_REFACTORING_OVERVIEW.md)
+- [workflow/ai_refactor.json](workflow/ai_refactor.json)
 
 Common commands:
 - python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
@@ -66,6 +68,9 @@ Common commands:
 - python3 workflow/cli.py expand
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py expand-preview
+- python3 workflow/cli.py refactor-feature --feature <slug>
+- python3 workflow/cli.py refactor-all
+- python3 workflow/cli.py refactor-preview
 
 ## AWS Deployment Docs
 

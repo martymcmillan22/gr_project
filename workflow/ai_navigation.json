@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:27:44.981131+00:00",
+  "generated_at": "2026-07-11T17:40:22.010150+00:00",
   "directory_map": {
     "workflow_root": "workflow",
     "registry": "workflow/registry.json",
@@ -22,13 +22,19 @@
       "feature_lineage": "workflow/pilot-intake",
       "mlas_tier": "Semantic Utility",
       "btif_route": "btif://intakeflow/captureandroute/pilot-intake"
+    },
+    {
+      "slug": "workflow-expansion-hub",
+      "feature_lineage": "workflow/workflow-expansion-hub",
+      "mlas_tier": "Semantic Utility",
+      "btif_route": "btif://expansionflow/expandandintegrate/workflow-expansion-hub"
     }
   ],
   "sync_output_locations": {
-    "erd_backend_models": "platform_core/workflow_generated/models/pilot-intake_models.py",
-    "sequence_backend_logic": "platform_core/workflow_generated/logic/pilot-intake_logic.py",
-    "ui_template_react_page": "ui_apps/workflow_generated/pages/PilotIntakePage.tsx",
-    "ui_component_design_system": "workflow/ui_components/penpot_components/generated/PilotIntakeCard.tsx"
+    "erd_backend_models": "platform_core/workflow_generated/models/workflow-expansion-hub_models.py",
+    "sequence_backend_logic": "platform_core/workflow_generated/logic/workflow-expansion-hub_logic.py",
+    "ui_template_react_page": "ui_apps/workflow_generated/pages/WorkflowExpansionHubPage.tsx",
+    "ui_component_design_system": "workflow/ui_components/penpot_components/generated/WorkflowExpansionHubCard.tsx"
   },
   "visualization_output_locations": {
     "feature_visualizations": "workflow/visualizations/features/{slug}.visualization.md",
@@ -54,7 +60,8 @@
   },
   "feature_dependency_graph": {
     "nodes": [
-      "pilot-intake"
+      "pilot-intake",
+      "workflow-expansion-hub"
     ],
     "edges": []
   }

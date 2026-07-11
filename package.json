@@ -34,6 +34,9 @@
     "workflow:expand": "python3 workflow/cli.py expand",
     "workflow:expand-all": "python3 workflow/cli.py expand-all",
     "workflow:expand-preview": "python3 workflow/cli.py expand-preview",
+    "workflow:refactor-feature": "python3 workflow/cli.py refactor-feature",
+    "workflow:refactor-all": "python3 workflow/cli.py refactor-all",
+    "workflow:refactor-preview": "python3 workflow/cli.py refactor-preview",
     "workflow:test": "python3 -m unittest discover workflow/tests -v"
   },
   "dependencies": {
