@@ -1,4 +1,5 @@
 from django.test import SimpleTestCase
+from django.urls import reverse
 
 from project_middle_layer.pipelines import build_project_creation_payload
 
@@ -19,3 +20,11 @@ class ProjectMiddleLayerPipelineTests(SimpleTestCase):
         self.assertIn("identity_payload", payload)
         self.assertIn("semantic_tree", payload)
         self.assertIn("cpndc://project-middle-layer/project-middle-layer", payload["identity_payload"]["identity"]["identity_uri"])
+
+
+class ProjectMiddleLayerRouteTests(SimpleTestCase):
+    def test_api_compile_route_resolves(self):
+        self.assertEqual(
+            reverse("project_middle_layer:project-middle-layer-compile"),
+            "/project-middle-layer/api/compile/",
+        )
