@@ -23,6 +23,12 @@ from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
 from _engine.versioning import bump_all_versions, get_version_report, load_version_state, save_version_state
 from _engine.visualize import write_feature_visualization, write_global_visualizations
+from feature_expansion import (
+    apply_expansion_report_to_registry,
+    build_expansion_report,
+    load_expansion_governance,
+    validate_expansion_approvals,
+)
 from semantic_evolution import (
     apply_evolution_report_to_registry,
     build_evolution_report,
@@ -42,6 +48,7 @@ SEMANTIC_CHANGELOG_PATH = WORKFLOW_ROOT / "semantic_changelog.md"
 GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "governance_policy.json"
 GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "governance_long_term.json"
 AI_EVOLUTION_PATH = WORKFLOW_ROOT / "ai_evolution.json"
+AI_EXPANSION_PATH = WORKFLOW_ROOT / "ai_expansion.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -604,6 +611,85 @@ def cmd_evolve_preview(args: argparse.Namespace) -> int:
     return 0
 
 
+def _expansion_approvals_from_args(args: argparse.Namespace) -> dict[str, bool]:
+    return {
+        "expansion_approval": bool(args.approve_expansion),
+        "semantic_approval": bool(args.approve_semantic),
+        "structural_approval": bool(args.approve_structural),
+        "sync_approval": bool(args.approve_sync),
+    }
+
+
+def cmd_expand(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_expansion_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_expansion_report(registry, policy, target_slug=args.target)
+
+    if args.apply:
+        missing = validate_expansion_approvals(report, _expansion_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: expansion apply blocked by governance approval gates")
+            return 1
+
+        apply_expansion_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_expand_all(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_expansion_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_expansion_report(registry, policy)
+
+    if args.apply:
+        missing = validate_expansion_approvals(report, _expansion_approvals_from_args(args))
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "report": report,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: expansion apply blocked by governance approval gates")
+            return 1
+
+        apply_expansion_report_to_registry(registry, report)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"report": report, "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_expand_preview(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_expansion_governance(GOVERNANCE_LONG_TERM_PATH)
+    report = build_expansion_report(registry, policy)
+
+    if args.write:
+        out = write_json_file(AI_EXPANSION_PATH, report)
+        print(json.dumps({"report": report, "written": out}, indent=2))
+        return 0
+
+    print(json.dumps({"report": report}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -843,6 +929,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evolve_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_evolution.json")
     evolve_preview.set_defaults(func=cmd_evolve_preview)
+
+    expand = sub.add_parser(
+        "expand",
+        help="Propose deterministic feature expansion opportunities",
+    )
+    expand.add_argument("--target", help="Limit expansion proposal output to one proposed slug")
+    expand.add_argument("--apply", action="store_true", help="Apply expansion proposals to registry")
+    expand.add_argument("--approve-expansion", action="store_true", help="Approve baseline expansion proposals")
+    expand.add_argument("--approve-semantic", action="store_true", help="Approve semantic expansion proposals")
+    expand.add_argument("--approve-structural", action="store_true", help="Approve structural integration proposals")
+    expand.add_argument("--approve-sync", action="store_true", help="Approve sync-impacting expansion proposals")
+    expand.set_defaults(func=cmd_expand)
+
+    expand_all = sub.add_parser(
+        "expand-all",
+        help="Propose deterministic expansion opportunities across all features",
+    )
+    expand_all.add_argument("--apply", action="store_true", help="Apply expansion proposals to registry")
+    expand_all.add_argument("--approve-expansion", action="store_true", help="Approve baseline expansion proposals")
+    expand_all.add_argument("--approve-semantic", action="store_true", help="Approve semantic expansion proposals")
+    expand_all.add_argument("--approve-structural", action="store_true", help="Approve structural integration proposals")
+    expand_all.add_argument("--approve-sync", action="store_true", help="Approve sync-impacting expansion proposals")
+    expand_all.set_defaults(func=cmd_expand_all)
+
+    expand_preview = sub.add_parser(
+        "expand-preview",
+        help="Preview expansion proposals without applying registry mutations",
+    )
+    expand_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_expansion.json")
+    expand_preview.set_defaults(func=cmd_expand_preview)
 
     return parser
 

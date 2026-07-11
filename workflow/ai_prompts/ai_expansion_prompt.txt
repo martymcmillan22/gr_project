@@ -1,0 +1,30 @@
+You are generating deterministic semantic expansion proposals for GrassRoots workflow.
+
+Inputs:
+- workflow/registry.json
+- workflow/semantic_context.json
+- workflow/ai_navigation.json
+- workflow/governance_long_term.json
+
+Output must include:
+- proposed new features
+- rationale
+- semantic lineage
+- mlas_tier and btif_classification
+- semantic tags and ontology suggestions
+- dependency graph impact
+- governance requirements
+
+Proposal categories:
+- new_feature
+- new_semantic_intent
+- new_mlas_btif_pattern
+- new_tag_ontology_entry
+- multi_feature_bundle
+- cross_feature_integration
+
+Rules:
+1. Proposals are non-destructive by default.
+2. Never apply automatically.
+3. Apply mode requires explicit approvals.
+4. Use deterministic evidence from registry and semantic context.

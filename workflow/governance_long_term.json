@@ -5,6 +5,12 @@
     "mlas_btif_evolution_requires_semantic_approval": true,
     "tag_ontology_evolution_requires_semantic_approval": true,
     "erd_sequence_refactors_require_structural_approval": true,
-    "ui_component_refactors_require_sync_approval": true
+    "ui_component_refactors_require_sync_approval": true,
+    "new_feature_proposals_require_approval": true,
+    "new_semantic_intents_require_approval": true,
+    "new_mlas_btif_patterns_require_approval": true,
+    "new_tag_ontology_entries_require_approval": true,
+    "cross_feature_integrations_require_approval": true,
+    "multi_feature_bundles_require_approval": true
   }
 }

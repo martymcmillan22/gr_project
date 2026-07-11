@@ -62,6 +62,9 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "evolve-feature", "description": "Analyze one feature for deterministic evolution proposals"},
         {"command": "evolve-all", "description": "Analyze all features for deterministic evolution proposals"},
         {"command": "evolve-preview", "description": "Preview evolution proposals without apply-mode mutation"},
+        {"command": "expand", "description": "Propose deterministic feature expansion opportunities"},
+        {"command": "expand-all", "description": "Propose expansion opportunities across all features"},
+        {"command": "expand-preview", "description": "Preview expansion proposals without apply-mode mutation"},
     ]
 
 

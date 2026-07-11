@@ -1,0 +1,219 @@
+{
+  "generated_at": "2026-07-11T17:26:39.843666+00:00",
+  "target": "all",
+  "proposal_count": 6,
+  "proposals": [
+    {
+      "category": "new_feature",
+      "proposed_feature": {
+        "name": "Lineage Governance",
+        "slug": "lineage-governance",
+        "semantic_intent": "LineageGovernance",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "GovernanceFlow",
+        "semantic_tags": [
+          "governance",
+          "lineage",
+          "semantic"
+        ],
+        "bundle": "semantic-governance"
+      },
+      "rationale": "Registry lacks lineage-focused governance coverage in tag ontology.",
+      "confidence": 0.84,
+      "governance_requirements": [
+        "expansion_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "registry semantic coverage gap",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "lineage-governance",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    },
+    {
+      "category": "new_semantic_intent",
+      "proposed_feature": {
+        "name": "Workflow Expansion Hub",
+        "slug": "workflow-expansion-hub",
+        "semantic_intent": "ExpandAndIntegrate",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "ExpansionFlow",
+        "semantic_tags": [
+          "expansion",
+          "integration",
+          "workflow"
+        ],
+        "bundle": "semantic-expansion"
+      },
+      "rationale": "No feature currently expresses expansion-intent workflow semantics.",
+      "confidence": 0.89,
+      "governance_requirements": [
+        "expansion_approval",
+        "semantic_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "missing semantic intent",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "workflow-expansion-hub",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    },
+    {
+      "category": "new_mlas_btif_pattern",
+      "proposed_feature": {
+        "name": "Expansion Routing Bridge",
+        "slug": "expansion-routing-bridge",
+        "semantic_intent": "BridgeAndRoute",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "ExpansionFlow",
+        "semantic_tags": [
+          "btif",
+          "expansion",
+          "routing"
+        ],
+        "bundle": "semantic-expansion"
+      },
+      "rationale": "BTIF expansion pattern absent in current registry classifications.",
+      "confidence": 0.86,
+      "governance_requirements": [
+        "expansion_approval",
+        "semantic_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "btif class coverage gap",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "expansion-routing-bridge",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    },
+    {
+      "category": "new_tag_ontology_entry",
+      "proposed_feature": {
+        "name": "Ontology Normalization",
+        "slug": "ontology-normalization",
+        "semantic_intent": "NormalizeOntology",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "GovernanceFlow",
+        "semantic_tags": [
+          "ontology",
+          "semantic",
+          "tags"
+        ],
+        "bundle": "semantic-governance",
+        "new_tag_candidates": [
+          "intake",
+          "pilot",
+          "routing"
+        ]
+      },
+      "rationale": "Detected low-reuse tag set suggesting ontology normalization opportunity.",
+      "confidence": 0.72,
+      "governance_requirements": [
+        "expansion_approval",
+        "semantic_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "tag frequency analysis",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "ontology-normalization",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    },
+    {
+      "category": "multi_feature_bundle",
+      "proposed_feature": {
+        "name": "Semantic Intake Expansion Bundle",
+        "slug": "semantic-intake-expansion-bundle",
+        "semantic_intent": "BundleAndCoordinate",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "ExpansionFlow",
+        "semantic_tags": [
+          "bundle",
+          "expansion",
+          "intake"
+        ],
+        "bundle_members": [
+          "pilot-intake"
+        ]
+      },
+      "rationale": "Cross-feature bundle can coordinate registry-wide evolution and expansion proposals.",
+      "confidence": 0.78,
+      "governance_requirements": [
+        "expansion_approval",
+        "sync_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "cross-feature composition",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "semantic-intake-expansion-bundle",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    },
+    {
+      "category": "cross_feature_integration",
+      "proposed_feature": {
+        "name": "Semantic Integration Orchestrator",
+        "slug": "semantic-integration-orchestrator",
+        "semantic_intent": "IntegrateAndOrchestrate",
+        "mlas_tier": "Semantic Utility",
+        "btif_classification": "IntegrationFlow",
+        "semantic_tags": [
+          "integration",
+          "orchestration",
+          "semantic"
+        ],
+        "depends_on": [
+          "pilot-intake"
+        ]
+      },
+      "rationale": "Cross-feature integration orchestrator can unify semantic propagation and expansion decisions.",
+      "confidence": 0.81,
+      "governance_requirements": [
+        "expansion_approval",
+        "structural_approval"
+      ],
+      "semantic_lineage": {
+        "derived_from": "dependency graph integration opportunity",
+        "source_features": [
+          "pilot-intake"
+        ]
+      },
+      "dependency_graph_impact": {
+        "adds_node": "semantic-integration-orchestrator",
+        "integration_targets": [
+          "pilot-intake"
+        ]
+      }
+    }
+  ]
+}

@@ -91,6 +91,9 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py evolve-feature --feature <slug>
 - python3 workflow/cli.py evolve-all
 - python3 workflow/cli.py evolve-preview
+- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand-all
+- python3 workflow/cli.py expand-preview
 
 ## Semantic Intelligence Modules
 
@@ -120,6 +123,14 @@ These modules add drift detection, metadata inference, and deterministic conflic
 - MLAS/BTIF and ontology evolution require semantic approval.
 - ERD/sequence evolution requires structural approval.
 - UI/component evolution requires sync approval.
+
+## Semantic Expansion Policies
+
+- expansion proposals are non-destructive by default.
+- new feature proposals require explicit expansion approval.
+- new semantic intents, MLAS/BTIF patterns, and ontology additions require semantic approval.
+- cross-feature integrations require structural approval.
+- multi-feature bundles require sync approval.
 
 ## AI Semantic Export
 

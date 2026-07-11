@@ -40,6 +40,8 @@ Workflow docs:
 - [workflow/governance_policy.json](workflow/governance_policy.json)
 - [workflow/SEMANTIC_EVOLUTION_OVERVIEW.md](workflow/SEMANTIC_EVOLUTION_OVERVIEW.md)
 - [workflow/ai_evolution.json](workflow/ai_evolution.json)
+- [workflow/FEATURE_EXPANSION_OVERVIEW.md](workflow/FEATURE_EXPANSION_OVERVIEW.md)
+- [workflow/ai_expansion.json](workflow/ai_expansion.json)
 
 Common commands:
 - python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
@@ -61,6 +63,9 @@ Common commands:
 - python3 workflow/cli.py evolve-feature --feature <slug>
 - python3 workflow/cli.py evolve-all
 - python3 workflow/cli.py evolve-preview
+- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand-all
+- python3 workflow/cli.py expand-preview
 
 ## AWS Deployment Docs
 

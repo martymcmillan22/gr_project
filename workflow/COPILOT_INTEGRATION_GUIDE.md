@@ -52,6 +52,9 @@ Primary command surface:
 - python3 workflow/cli.py evolve-feature --feature <slug>
 - python3 workflow/cli.py evolve-all
 - python3 workflow/cli.py evolve-preview
+- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand-all
+- python3 workflow/cli.py expand-preview
 
 Mutation policy:
 
@@ -72,6 +75,7 @@ Mutation policy:
 5. If unsafe conflicts exist, stop, report, and ask for explicit instruction.
 6. If semantic governance deltas are detected, require explicit approval before release.
 7. If evolution proposals include governance requirements, require matching explicit approvals before apply mode.
+8. If expansion proposals include governance requirements, require matching explicit approvals before apply mode.
 
 ## Confidence Thresholds
 
@@ -126,6 +130,14 @@ Expected outcome:
 3. Review governance requirements in proposal blocks.
 4. Apply only with explicit approvals:
 	python3 workflow/cli.py evolve-all --apply --approve-evolution --approve-semantic --approve-structural --approve-sync
+
+### Example 6: Expansion preview and governed apply
+
+1. python3 workflow/cli.py expand-all
+2. python3 workflow/cli.py expand-preview --write
+3. Review proposal lineage, ontology entries, and integration impact.
+4. Apply only with explicit approvals:
+	python3 workflow/cli.py expand-all --apply --approve-expansion --approve-semantic --approve-structural --approve-sync
 
 ## Recommended Copilot Prompts
 

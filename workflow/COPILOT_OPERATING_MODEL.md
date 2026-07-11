@@ -145,6 +145,8 @@ Preferred mutation commands:
 - python3 workflow/cli.py semantic-resolve [--apply]
 - python3 workflow/cli.py bump-version --part patch
 - python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+- python3 workflow/cli.py evolve-all
+- python3 workflow/cli.py expand-all
 
 Release governance commands:
 

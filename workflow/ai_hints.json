@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:19:37.515062+00:00",
+  "generated_at": "2026-07-11T17:27:44.980673+00:00",
   "workflow_root": "workflow",
   "canonical_categories": {
     "database_design": "database_design/mermaid_erds",
@@ -128,6 +128,18 @@
     {
       "command": "evolve-preview",
       "description": "Preview evolution proposals without apply-mode mutation"
+    },
+    {
+      "command": "expand",
+      "description": "Propose deterministic feature expansion opportunities"
+    },
+    {
+      "command": "expand-all",
+      "description": "Propose expansion opportunities across all features"
+    },
+    {
+      "command": "expand-preview",
+      "description": "Preview expansion proposals without apply-mode mutation"
     }
   ],
   "example_features": [

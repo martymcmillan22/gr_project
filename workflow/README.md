@@ -67,6 +67,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py evolve-feature --feature <slug>
 - python workflow/cli.py evolve-all
 - python workflow/cli.py evolve-preview
+- python workflow/cli.py expand
+- python workflow/cli.py expand-all
+- python workflow/cli.py expand-preview
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -261,3 +264,31 @@ Evolution commands:
 - python3 workflow/cli.py evolve-preview
 
 Apply mode remains blocked by default unless explicit approvals are provided.
+
+## Phase-5 Slice 2: Semantic Expansion Engine
+
+Expansion engine module:
+
+- workflow/feature_expansion.py
+
+Expansion AI surfaces:
+
+- workflow/ai_prompts/ai_expansion_prompt.txt
+- workflow/ai_expansion.json
+
+Expansion docs:
+
+- workflow/FEATURE_EXPANSION_OVERVIEW.md
+
+Expansion commands:
+
+- python3 workflow/cli.py expand
+- python3 workflow/cli.py expand-all
+- python3 workflow/cli.py expand-preview
+
+Expansion apply mode requires explicit approvals:
+
+- --approve-expansion
+- --approve-semantic
+- --approve-structural
+- --approve-sync

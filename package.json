@@ -31,6 +31,9 @@
     "workflow:evolve-feature": "python3 workflow/cli.py evolve-feature",
     "workflow:evolve-all": "python3 workflow/cli.py evolve-all",
     "workflow:evolve-preview": "python3 workflow/cli.py evolve-preview",
+    "workflow:expand": "python3 workflow/cli.py expand",
+    "workflow:expand-all": "python3 workflow/cli.py expand-all",
+    "workflow:expand-preview": "python3 workflow/cli.py expand-preview",
     "workflow:test": "python3 -m unittest discover workflow/tests -v"
   },
   "dependencies": {
