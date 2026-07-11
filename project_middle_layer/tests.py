@@ -150,5 +150,7 @@ class ProjectMiddleLayerAdminTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Project Middle Layer Admin")
+        self.assertContains(response, "Semantic Health Dashboard")
+        self.assertContains(response, "Health Score")
         self.assertContains(response, "Admin Project")
         self.assertContains(response, "Selected Branch")

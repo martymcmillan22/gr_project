@@ -24,6 +24,29 @@
 
 <p>Scoped admin for project nodes, deterministic identity branching, specialized path output, and drift-aware governance.</p>
 
+<h2 class="bt-section bt-q-green" id="pm-health">Semantic Health Dashboard</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
+  <section class="bt-overview-card bt-q-green" style="padding:14px;">
+    <h3 style="margin-top:0;">Health Score</h3>
+    <p><strong>{{ semantic_health.label }}</strong></p>
+    <p>Score: {{ semantic_health.score }}</p>
+    <p>Status: {{ semantic_health.status }}</p>
+  </section>
+  <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+    <h3 style="margin-top:0;">Drift</h3>
+    <p>Average risk: {{ semantic_health.average_drift_risk }}</p>
+    <p>Schema issue projects: {{ semantic_health.projects_with_schema_issues }}</p>
+  </section>
+  <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+    <h3 style="margin-top:0;">Branch Mix</h3>
+    {% for branch, count in semantic_health.branch_distribution.items %}
+      <p>{{ branch }}: {{ count }}</p>
+    {% empty %}
+      <p>No branch data yet.</p>
+    {% endfor %}
+  </section>
+</div>
+
 <h2 class="bt-section bt-q-green" id="pm-quick-actions">Quick Actions</h2>
 <div class="bt-actions">
   <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Refresh</a>
