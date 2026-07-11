@@ -14,3 +14,39 @@ When conflicts arise, prefer the stricter deterministic constraint.
 
 This project uses a deterministic semantic pipeline.
 All tasks must apply the Grassroots directive unless explicitly told otherwise.
+
+## AI-Native Workflow Operating Model
+
+For workflow platform tasks, always bootstrap context by reading:
+
+- workflow/ai_hints.json
+- workflow/ai_navigation.json
+- workflow/semantic_context.json
+
+Command-first mutation policy for workflow/:
+
+- Prefer python3 workflow/cli.py commands for all state mutations.
+- Do not edit workflow/registry.json directly when a CLI command exists.
+- Use ai-new-feature or new-feature for feature creation.
+- Use sync/sync-all for generated output updates.
+- Use visualize/visualize-all for diagram outputs.
+
+Safety policy:
+
+- Respect semantic inference confidence thresholds.
+- Respect semantic conflict safety gates.
+- Never use semantic-resolve --force-unsafe unless user explicitly requests unsafe override.
+
+AI prompt/template usage for workflow generation and reasoning:
+
+- workflow/ai_templates/feature.json
+- workflow/ai_prompts/new_feature_prompt.txt
+- workflow/ai_prompts/semantic_inference_prompt.txt
+- workflow/ai_prompts/drift_analysis_prompt.txt
+- workflow/ai_prompts/conflict_resolution_prompt.txt
+- workflow/ai_prompts/visualization_prompt.txt
+
+Detailed playbook:
+
+- workflow/COPILOT_OPERATING_MODEL.md
+- workflow/COPILOT_INTEGRATION_GUIDE.md

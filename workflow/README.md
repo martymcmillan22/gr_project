@@ -187,3 +187,8 @@ AI-native CLI commands:
 - python workflow/cli.py ai-context
 - python workflow/cli.py ai-export
 - python workflow/cli.py ai-new-feature --name "Feature Name" [--sync]
+
+AI integration docs:
+
+- workflow/COPILOT_INTEGRATION_GUIDE.md
+- workflow/COPILOT_OPERATING_MODEL.md
