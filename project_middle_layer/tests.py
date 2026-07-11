@@ -116,6 +116,47 @@ class ProjectMiddleLayerWizardAPITests(APITestCase):
         self.assertEqual(node.name, "Phase3 Wizard Project")
         self.assertEqual(node.metadata.get("source"), "api-wizard-test")
 
+    def test_wizard_accepts_short_alias_payloads(self):
+        start_url = reverse("project_middle_layer:project-middle-layer-wizard-start")
+        start_response = self.client.post(
+            start_url,
+            {
+                "title": "Neighborhood Story Lab",
+                "intent": "community_program",
+                "tier": "public",
+                "description": "A grassroots storytelling hub for local residents.",
+            },
+            format="json",
+        )
+        self.assertEqual(start_response.status_code, status.HTTP_201_CREATED)
+        wizard_id = start_response.data["wizard_id"]
+
+        tags_url = reverse(
+            "project_middle_layer:project-middle-layer-wizard-tags",
+            kwargs={"wizard_id": wizard_id},
+        )
+        tags_response = self.client.post(
+            tags_url,
+            {
+                "tags": ["storytelling", "community", "workshops", "local-media"],
+            },
+            format="json",
+        )
+        self.assertEqual(tags_response.status_code, status.HTTP_200_OK)
+
+        compile_url = reverse(
+            "project_middle_layer:project-middle-layer-wizard-compile",
+            kwargs={"wizard_id": wizard_id},
+        )
+        compile_response = self.client.post(compile_url, {}, format="json")
+        self.assertEqual(compile_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(compile_response.data["schema"]["name"], "Neighborhood Story Lab")
+        self.assertIn("storytelling", compile_response.data["schema"]["semantic_tags"])
+
+        node = ProjectNode.objects.get(slug="neighborhood-story-lab")
+        self.assertEqual(node.name, "Neighborhood Story Lab")
+        self.assertEqual(node.metadata.get("visibility_tier"), "public")
+
 
 class ProjectMiddleLayerAdminTests(TestCase):
     def setUp(self):
