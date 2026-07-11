@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T17:40:22.009568+00:00",
+  "generated_at": "2026-07-11T17:48:29.817752+00:00",
   "workflow_root": "workflow",
   "canonical_categories": {
     "database_design": "database_design/mermaid_erds",
@@ -153,6 +153,18 @@
     {
       "command": "refactor-preview",
       "description": "Preview refactor proposals without apply-mode mutation"
+    },
+    {
+      "command": "improve-feature",
+      "description": "Run unified semantic improvement cycle for one feature"
+    },
+    {
+      "command": "improve-all",
+      "description": "Run unified semantic improvement cycle for all features"
+    },
+    {
+      "command": "improve-preview",
+      "description": "Preview unified improvement cycle without apply-mode mutation"
     }
   ],
   "example_features": [

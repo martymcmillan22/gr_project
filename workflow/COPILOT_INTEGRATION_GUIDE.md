@@ -58,6 +58,9 @@ Primary command surface:
 - python3 workflow/cli.py refactor-feature --feature <slug>
 - python3 workflow/cli.py refactor-all
 - python3 workflow/cli.py refactor-preview
+- python3 workflow/cli.py improve-feature --feature <slug>
+- python3 workflow/cli.py improve-all
+- python3 workflow/cli.py improve-preview
 
 Mutation policy:
 
@@ -80,6 +83,7 @@ Mutation policy:
 7. If evolution proposals include governance requirements, require matching explicit approvals before apply mode.
 8. If expansion proposals include governance requirements, require matching explicit approvals before apply mode.
 9. If refactor proposals include governance requirements, require matching explicit approvals before apply mode.
+10. If running unified improvement cycle, require engine approvals plus semantic, structural, and sync approvals.
 
 ## Confidence Thresholds
 
@@ -150,6 +154,14 @@ Expected outcome:
 3. Review semantic and structural impact in proposal blocks.
 4. Apply only with explicit approvals:
 	python3 workflow/cli.py refactor-all --apply --approve-refactor --approve-semantic --approve-structural --approve-sync
+
+### Example 8: Unified cycle preview and governed apply
+
+1. python3 workflow/cli.py improve-all
+2. python3 workflow/cli.py improve-preview --write
+3. Review engine ordering, feature summaries, and aggregated governance requirements.
+4. Apply only with explicit approvals:
+	python3 workflow/cli.py improve-all --apply --approve-evolution --approve-expansion --approve-refactor --approve-semantic --approve-structural --approve-sync
 
 ## Recommended Copilot Prompts
 

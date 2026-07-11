@@ -73,6 +73,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py refactor-feature --feature <slug>
 - python workflow/cli.py refactor-all
 - python workflow/cli.py refactor-preview
+- python workflow/cli.py improve-feature --feature <slug>
+- python workflow/cli.py improve-all
+- python workflow/cli.py improve-preview
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -319,6 +322,36 @@ Refactor commands:
 
 Refactor apply mode requires explicit approvals:
 
+- --approve-refactor
+- --approve-semantic
+- --approve-structural
+- --approve-sync
+
+## Phase-5 Slice 4: Unified Semantic Improvement Cycle
+
+Improvement cycle engine module:
+
+- workflow/semantic_improvement_cycle.py
+
+Improvement cycle AI surfaces:
+
+- workflow/ai_prompts/ai_cycle_prompt.txt
+- workflow/ai_cycle.json
+
+Improvement cycle docs:
+
+- workflow/SEMANTIC_IMPROVEMENT_CYCLE_OVERVIEW.md
+
+Improvement cycle commands:
+
+- python3 workflow/cli.py improve-feature --feature <slug>
+- python3 workflow/cli.py improve-all
+- python3 workflow/cli.py improve-preview
+
+Apply mode requires explicit approvals:
+
+- --approve-evolution
+- --approve-expansion
 - --approve-refactor
 - --approve-semantic
 - --approve-structural

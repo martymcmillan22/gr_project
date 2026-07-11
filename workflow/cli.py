@@ -41,6 +41,12 @@ from semantic_refactor import (
     load_refactor_governance,
     validate_refactor_approvals,
 )
+from semantic_improvement_cycle import (
+    apply_improvement_cycle_plan,
+    build_improvement_cycle_plan,
+    load_cycle_governance,
+    validate_cycle_approvals,
+)
 from validation.suite import run_workflow_validation
 
 
@@ -56,6 +62,8 @@ GOVERNANCE_LONG_TERM_PATH = WORKFLOW_ROOT / "governance_long_term.json"
 AI_EVOLUTION_PATH = WORKFLOW_ROOT / "ai_evolution.json"
 AI_EXPANSION_PATH = WORKFLOW_ROOT / "ai_expansion.json"
 AI_REFACTOR_PATH = WORKFLOW_ROOT / "ai_refactor.json"
+AI_CYCLE_PATH = WORKFLOW_ROOT / "ai_cycle.json"
+CYCLE_PLAN_PATH = WORKFLOW_ROOT / "cycle_plan.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -776,6 +784,89 @@ def cmd_refactor_preview(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cycle_approvals_from_args(args: argparse.Namespace) -> dict[str, bool]:
+    return {
+        "evolution_approval": bool(args.approve_evolution),
+        "expansion_approval": bool(args.approve_expansion),
+        "refactor_approval": bool(args.approve_refactor),
+        "semantic_approval": bool(args.approve_semantic),
+        "structural_approval": bool(args.approve_structural),
+        "sync_approval": bool(args.approve_sync),
+    }
+
+
+def cmd_improve_feature(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, policy, feature_slug=args.feature)
+    write_json_file(CYCLE_PLAN_PATH, plan)
+
+    if args.apply:
+        missing = validate_cycle_approvals(plan, _cycle_approvals_from_args(args), policy)
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "plan": plan,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: improvement cycle apply blocked by governance approval gates")
+            return 1
+
+        apply_improvement_cycle_plan(registry, plan)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"plan": plan, "cycle_plan": str(CYCLE_PLAN_PATH), "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_improve_all(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, policy)
+    write_json_file(CYCLE_PLAN_PATH, plan)
+
+    if args.apply:
+        missing = validate_cycle_approvals(plan, _cycle_approvals_from_args(args), policy)
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "plan": plan,
+                        "applied": False,
+                        "missing_approvals": missing,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: improvement cycle apply blocked by governance approval gates")
+            return 1
+
+        apply_improvement_cycle_plan(registry, plan)
+        save_registry(REGISTRY_PATH, registry)
+
+    print(json.dumps({"plan": plan, "cycle_plan": str(CYCLE_PLAN_PATH), "applied": bool(args.apply)}, indent=2))
+    return 0
+
+
+def cmd_improve_preview(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    policy = load_cycle_governance(GOVERNANCE_LONG_TERM_PATH)
+    plan = build_improvement_cycle_plan(registry, WORKFLOW_ROOT, policy)
+
+    if args.write:
+        out = write_json_file(AI_CYCLE_PATH, plan)
+        print(json.dumps({"plan": plan, "written": out}, indent=2))
+        return 0
+
+    print(json.dumps({"plan": plan}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -1075,6 +1166,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
     refactor_preview.add_argument("--write", action="store_true", help="Write preview report to workflow/ai_refactor.json")
     refactor_preview.set_defaults(func=cmd_refactor_preview)
+
+    improve_feature = sub.add_parser(
+        "improve-feature",
+        help="Run a unified semantic improvement cycle for one feature",
+    )
+    improve_feature.add_argument("--feature", required=True, help="Feature slug for improvement cycle")
+    improve_feature.add_argument("--apply", action="store_true", help="Apply approved cycle plan to registry")
+    improve_feature.add_argument("--approve-evolution", action="store_true", help="Approve evolution proposals")
+    improve_feature.add_argument("--approve-expansion", action="store_true", help="Approve expansion proposals")
+    improve_feature.add_argument("--approve-refactor", action="store_true", help="Approve refactor proposals")
+    improve_feature.add_argument("--approve-semantic", action="store_true", help="Approve semantic-impacting proposals")
+    improve_feature.add_argument("--approve-structural", action="store_true", help="Approve structural-impacting proposals")
+    improve_feature.add_argument("--approve-sync", action="store_true", help="Approve sync-impacting proposals")
+    improve_feature.set_defaults(func=cmd_improve_feature)
+
+    improve_all = sub.add_parser(
+        "improve-all",
+        help="Run a unified semantic improvement cycle across all features",
+    )
+    improve_all.add_argument("--apply", action="store_true", help="Apply approved cycle plan to registry")
+    improve_all.add_argument("--approve-evolution", action="store_true", help="Approve evolution proposals")
+    improve_all.add_argument("--approve-expansion", action="store_true", help="Approve expansion proposals")
+    improve_all.add_argument("--approve-refactor", action="store_true", help="Approve refactor proposals")
+    improve_all.add_argument("--approve-semantic", action="store_true", help="Approve semantic-impacting proposals")
+    improve_all.add_argument("--approve-structural", action="store_true", help="Approve structural-impacting proposals")
+    improve_all.add_argument("--approve-sync", action="store_true", help="Approve sync-impacting proposals")
+    improve_all.set_defaults(func=cmd_improve_all)
+
+    improve_preview = sub.add_parser(
+        "improve-preview",
+        help="Preview unified semantic improvement cycle plan without applying mutations",
+    )
+    improve_preview.add_argument("--write", action="store_true", help="Write preview plan to workflow/ai_cycle.json")
+    improve_preview.set_defaults(func=cmd_improve_preview)
 
     return parser
 

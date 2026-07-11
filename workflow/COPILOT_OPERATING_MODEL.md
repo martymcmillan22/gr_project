@@ -148,6 +148,7 @@ Preferred mutation commands:
 - python3 workflow/cli.py evolve-all
 - python3 workflow/cli.py expand-all
 - python3 workflow/cli.py refactor-all
+- python3 workflow/cli.py improve-all
 
 Release governance commands:
 

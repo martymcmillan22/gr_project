@@ -97,6 +97,9 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py refactor-feature --feature <slug>
 - python3 workflow/cli.py refactor-all
 - python3 workflow/cli.py refactor-preview
+- python3 workflow/cli.py improve-feature --feature <slug>
+- python3 workflow/cli.py improve-all
+- python3 workflow/cli.py improve-preview
 
 ## Semantic Intelligence Modules
 
@@ -142,6 +145,13 @@ These modules add drift detection, metadata inference, and deterministic conflic
 - ERD and sequence refactors require structural approval.
 - UI template and component refactors require sync approval.
 - semantic metadata, MLAS/BTIF lineage, and ontology rewrites require semantic approval.
+
+## Unified Improvement Cycle Policies
+
+- cycle order is deterministic: evolution -> expansion -> refactor.
+- cycle apply fails fast when any required gate is missing.
+- cycle apply requires explicit engine approvals (evolution, expansion, refactor).
+- cycle apply requires semantic, structural, and sync approvals for combined changes.
 
 ## AI Semantic Export
 

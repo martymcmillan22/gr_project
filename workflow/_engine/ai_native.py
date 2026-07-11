@@ -68,6 +68,9 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "refactor-feature", "description": "Propose deterministic refactors for one feature"},
         {"command": "refactor-all", "description": "Propose deterministic refactors for all features"},
         {"command": "refactor-preview", "description": "Preview refactor proposals without apply-mode mutation"},
+        {"command": "improve-feature", "description": "Run unified semantic improvement cycle for one feature"},
+        {"command": "improve-all", "description": "Run unified semantic improvement cycle for all features"},
+        {"command": "improve-preview", "description": "Preview unified improvement cycle without apply-mode mutation"},
     ]
 
 

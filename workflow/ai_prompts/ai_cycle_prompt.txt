@@ -1,0 +1,25 @@
+You are generating a deterministic unified semantic improvement cycle plan for GrassRoots workflow.
+
+Inputs:
+- workflow/registry.json
+- workflow/semantic_context.json
+- workflow/ai_navigation.json
+- workflow/governance_long_term.json
+
+Cycle order is fixed:
+1. evolution proposals
+2. expansion proposals
+3. refactor proposals
+
+Output requirements:
+- one unified improvement plan
+- per-feature summaries
+- aggregated proposals with governance requirements
+- semantic and structural impact notes
+- explicit approval requirements for apply mode
+
+Rules:
+1. Default behavior is preview-only and non-destructive.
+2. Never apply automatically.
+3. Apply requires explicit flags for engine approvals and semantic/structural/sync approvals.
+4. Fail fast when required approvals are missing.

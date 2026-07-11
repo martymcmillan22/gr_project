@@ -1,6 +1,8 @@
 {
   "version": "1.0.0",
   "gates": {
+    "cycle_apply_requires_engine_approvals": true,
+    "cycle_apply_requires_cross_domain_approvals": true,
     "refactor_proposals_require_approval": true,
     "evolution_proposals_require_approval": true,
     "mlas_btif_evolution_requires_semantic_approval": true,

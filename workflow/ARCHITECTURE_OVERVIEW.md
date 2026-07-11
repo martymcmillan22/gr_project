@@ -42,6 +42,7 @@ Engine package: workflow/_engine/
 - semantic_evolution.py: deterministic evolution proposal generation and governance gating
 - feature_expansion.py: deterministic new-feature expansion proposal generation and governance gating
 - semantic_refactor.py: deterministic semantic refactor proposal generation and governance gating
+- semantic_improvement_cycle.py: unified evolution + expansion + refactor orchestration with governance gating
 - visualize.py: workflow visualization generation
 
 ## CLI Surface
@@ -78,6 +79,9 @@ Supported commands:
 - refactor-feature
 - refactor-all
 - refactor-preview
+- improve-feature
+- improve-all
+- improve-preview
 
 ## AI-Native Artifacts
 
