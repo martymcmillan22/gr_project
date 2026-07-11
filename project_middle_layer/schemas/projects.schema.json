@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpndc://project-middle-layer/schemas/projects.json",
+  "title": "Project Middle Layer projects.json schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "slug",
+    "name",
+    "semantic_intent",
+    "mlas_tier",
+    "btif_classification",
+    "semantic_tags"
+  ],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255
+    },
+    "semantic_intent": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "mlas_tier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "btif_classification": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "semantic_tags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      }
+    }
+  }
+}

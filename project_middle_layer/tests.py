@@ -15,11 +15,18 @@ class ProjectMiddleLayerPipelineTests(SimpleTestCase):
             semantic_tags=["project", "semantic", "identity", "pipeline", "tier", "compiler"],
         )
 
+        self.assertIn("projects_json_schema", payload)
         self.assertIn("schema", payload)
+        self.assertIn("schema_validation_errors", payload)
         self.assertIn("tier_profile", payload)
         self.assertIn("identity_payload", payload)
         self.assertIn("semantic_tree", payload)
+        self.assertEqual(payload["schema_validation_errors"], [])
         self.assertIn("cpndc://project-middle-layer/project-middle-layer", payload["identity_payload"]["identity"]["identity_uri"])
+        self.assertIn("identity_id", payload["identity_payload"]["identity"])
+        self.assertIn("IDEA", payload["tier_profile"]["lifecycle"])
+        self.assertIn("SPECIALIZED_PATH", payload["tier_profile"]["lifecycle"])
+        self.assertIn("Identity Branch", payload["semantic_tree"])
 
 
 class ProjectMiddleLayerRouteTests(SimpleTestCase):

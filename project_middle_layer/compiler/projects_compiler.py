@@ -22,9 +22,11 @@ def compile_project_middle_layer_payload(schema: ProjectSchema) -> dict[str, obj
     identity = compile_cpndc_identity(
         {
             "slug": schema["slug"],
+            "name": schema["name"],
             "semantic_intent": schema["semantic_intent"],
             "mlas_tier": schema["mlas_tier"],
             "btif_classification": schema["btif_classification"],
+            "semantic_tags": schema["semantic_tags"],
         }
     )
 
