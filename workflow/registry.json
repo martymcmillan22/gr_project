@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "workflow_version": "0.1.0",
+  "features": [
+    {
+      "name": "Pilot Intake",
+      "slug": "pilot-intake",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntakeFlow",
+      "semantic_intent": "CaptureAndRoute",
+      "semantic_tags": [
+        "intake",
+        "pilot",
+        "routing"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/pilot-intake.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/pilot-intake.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/pilot-intake/template.md",
+        "ui_component": "ui_components/penpot_components/features/pilot-intake/component.md"
+      },
+      "status": "scaffolded"
+    }
+  ]
+}

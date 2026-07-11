@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx",
     "type-check": "tsc --noEmit",
-    "guardrail:cpindcno": "bash scripts/operations/check-cpindcno-enterprise-guardrail.sh"
+    "guardrail:cpindcno": "bash scripts/operations/check-cpindcno-enterprise-guardrail.sh",
+    "workflow:new-feature": "python3 workflow/cli.py new-feature",
+    "workflow:validate": "python3 workflow/cli.py validate-suite"
   },
   "dependencies": {
     "react": "^18.2.0",

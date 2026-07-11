@@ -36,3 +36,23 @@ This directory is the unified command center and canonical source for workflow a
 ## Reorganization Mode
 
 Phase 2 hard move is active. The mapped source artifacts were relocated into workflow/ and old canonical locations were retired.
+
+## Phase-3 Engine MVP
+
+The workflow automation engine lives in workflow/_engine and is exposed by workflow/cli.py.
+
+### Commands
+
+- python workflow/cli.py new-feature --name "Feature Name" --mlas-tier "TierName" --btif-classification "ClassName" --semantic-intent "IntentName" --semantic-tags tag1 tag2
+- python workflow/cli.py validate
+
+### Generated Outputs for new-feature
+
+- workflow/database_design/mermaid_erds/<slug>.erd.mmd
+- workflow/logic_design/mermaid_sequences/<slug>.sequence.mmd
+- workflow/ui_templates/penpot_templates/features/<slug>/template.md
+- workflow/ui_components/penpot_components/features/<slug>/component.md
+
+### Metadata Source of Truth
+
+Feature metadata is stored in workflow/registry.json and validated with workflow/cli.py validate.
