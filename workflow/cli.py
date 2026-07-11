@@ -6,9 +6,9 @@ import sys
 
 from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
-from _engine.semantic_conflicts import apply_conflict_autofix, build_conflict_report
+from _engine.semantic_conflicts import apply_conflict_autofix, build_autofix_plan, build_conflict_report
 from _engine.semantic_drift import build_drift_report
-from _engine.semantic_infer import build_inference_report
+from _engine.semantic_infer import INFERENCE_CONFIDENCE_DEFAULT, build_inference_report, evaluate_inference_policy
 from _engine.semantic_propagation import propagate_feature_semantics, propagate_registry_semantics
 from _engine.mlas_integration import build_mlas_report
 from _engine.registry import add_feature, feature_exists, load_registry, save_registry
@@ -238,24 +238,58 @@ def cmd_semantic_drift(_: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_semantic_infer(_: argparse.Namespace) -> int:
+def cmd_semantic_infer(args: argparse.Namespace) -> int:
     registry = load_registry(REGISTRY_PATH)
     report = build_inference_report(registry, WORKFLOW_ROOT)
-    print(json.dumps(report, indent=2))
+    policy = evaluate_inference_policy(report, args.min_confidence)
+    print(json.dumps({"inference": report, "policy": policy}, indent=2))
+    if args.enforce_threshold and not policy.get("passes", False):
+        print("ERROR: semantic inference confidence policy failed")
+        return 1
     return 0
 
 
 def cmd_semantic_resolve(args: argparse.Namespace) -> int:
     registry = load_registry(REGISTRY_PATH)
     repo_root = WORKFLOW_ROOT.parent
-    report = build_conflict_report(registry, repo_root)
+    conflict_report = build_conflict_report(registry, repo_root)
+    autofix_plan = build_autofix_plan(conflict_report)
 
     if args.apply:
+        unsafe = autofix_plan.get("unsafe_features", [])
+        if unsafe and not args.force_unsafe:
+            print(
+                json.dumps(
+                    {
+                        "conflicts": conflict_report,
+                        "autofix_plan": autofix_plan,
+                        "autofix_applied": False,
+                    },
+                    indent=2,
+                )
+            )
+            print("ERROR: unsafe conflicts detected; rerun with --force-unsafe to override")
+            return 1
+
+        safe_slugs = set(autofix_plan.get("safe_feature_slugs", []))
         for feature in registry.get("features", []):
+            slug = str(feature.get("slug", "")).strip()
+            if not args.force_unsafe and slug not in safe_slugs:
+                continue
             apply_conflict_autofix(feature)
         save_registry(REGISTRY_PATH, registry)
 
-    print(json.dumps({"conflicts": report, "autofix_applied": bool(args.apply)}, indent=2))
+    print(
+        json.dumps(
+            {
+                "conflicts": conflict_report,
+                "autofix_plan": autofix_plan,
+                "autofix_applied": bool(args.apply),
+                "force_unsafe": bool(args.force_unsafe),
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -333,6 +367,17 @@ def build_parser() -> argparse.ArgumentParser:
         "semantic-infer",
         help="Infer semantic metadata recommendations",
     )
+    semantic_infer.add_argument(
+        "--min-confidence",
+        type=float,
+        default=INFERENCE_CONFIDENCE_DEFAULT,
+        help="Minimum confidence threshold for inference policy checks",
+    )
+    semantic_infer.add_argument(
+        "--enforce-threshold",
+        action="store_true",
+        help="Fail command when any semantic confidence score is below --min-confidence",
+    )
     semantic_infer.set_defaults(func=cmd_semantic_infer)
 
     semantic_resolve = sub.add_parser(
@@ -343,6 +388,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--apply",
         action="store_true",
         help="Apply deterministic conflict autofix updates to registry",
+    )
+    semantic_resolve.add_argument(
+        "--force-unsafe",
+        action="store_true",
+        help="Override safety gate and apply autofix even when unsafe conflict types are present",
     )
     semantic_resolve.set_defaults(func=cmd_semantic_resolve)
 

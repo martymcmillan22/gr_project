@@ -5,6 +5,13 @@ from .btif_router import assign_btif_route
 from .mlas_integration import classify_feature_mlas, normalize_semantic_tags
 
 
+SAFE_AUTOFIX_TYPES = {
+    "mlas_conflict",
+    "btif_conflict",
+    "tag_conflict",
+}
+
+
 def detect_feature_conflicts(feature: dict[str, Any], repo_root: Path) -> list[dict[str, str]]:
     conflicts: list[dict[str, str]] = []
     propagation = feature.get("propagation", {}) if isinstance(feature.get("propagation", {}), dict) else {}
@@ -70,6 +77,38 @@ def build_conflict_report(registry: dict[str, Any], repo_root: Path) -> dict[str
             "conflicts": conflicts,
         }
     return report
+
+
+def build_autofix_plan(conflict_report: dict[str, Any]) -> dict[str, Any]:
+    safe_slugs: list[str] = []
+    unsafe_slugs: list[dict[str, Any]] = []
+
+    for slug, payload in conflict_report.get("features", {}).items():
+        conflicts = payload.get("conflicts", [])
+        conflict_types = {str(item.get("type", "")) for item in conflicts}
+
+        if not conflicts:
+            safe_slugs.append(slug)
+            continue
+
+        unsafe_types = sorted(conflict_types - SAFE_AUTOFIX_TYPES)
+        if unsafe_types:
+            unsafe_slugs.append(
+                {
+                    "slug": slug,
+                    "unsafe_conflict_types": unsafe_types,
+                }
+            )
+            continue
+
+        safe_slugs.append(slug)
+
+    return {
+        "safe_feature_slugs": sorted(safe_slugs),
+        "unsafe_features": sorted(unsafe_slugs, key=lambda item: item["slug"]),
+        "unsafe_count": len(unsafe_slugs),
+        "safe_count": len(safe_slugs),
+    }
 
 
 def apply_conflict_autofix(feature: dict[str, Any]) -> dict[str, Any]:

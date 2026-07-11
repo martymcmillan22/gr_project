@@ -55,6 +55,9 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-drift
 - python workflow/cli.py semantic-infer
 - python workflow/cli.py semantic-resolve [--apply]
+- python workflow/cli.py semantic-infer --enforce-threshold --min-confidence 0.85
+- python workflow/cli.py semantic-resolve --apply [--force-unsafe]
+- python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
 
@@ -141,3 +144,17 @@ Additional docs:
 
 - workflow/SEMANTIC_DRIFT_OVERVIEW.md
 - workflow/SEMANTIC_INFERENCE_OVERVIEW.md
+
+## Phase-4 Slice 4: Semantic Hardening
+
+Hardening policies:
+
+- inference confidence threshold gate via `--enforce-threshold`
+- configurable threshold via `--min-confidence`
+- autofix safety gate that blocks `--apply` when unsafe conflict types are present
+- explicit override via `--force-unsafe`
+
+Test suite:
+
+- workflow/tests/test_semantic_infer.py
+- workflow/tests/test_semantic_conflicts.py

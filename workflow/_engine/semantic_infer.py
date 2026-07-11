@@ -4,6 +4,15 @@ from typing import Any
 from .mlas_integration import normalize_semantic_tags
 
 
+INFERENCE_CONFIDENCE_DEFAULT = 0.85
+INFERENCE_CONFIDENCE_KEYS = [
+    "mlas_tier",
+    "btif_classification",
+    "semantic_intent",
+    "semantic_tags",
+]
+
+
 def _score(value_present: bool) -> float:
     return 0.95 if value_present else 0.62
 
@@ -64,4 +73,30 @@ def infer_feature_metadata(feature: dict[str, Any], workflow_root: Path) -> dict
 def build_inference_report(registry: dict[str, Any], workflow_root: Path) -> dict[str, Any]:
     return {
         "features": [infer_feature_metadata(feature, workflow_root) for feature in registry.get("features", [])]
+    }
+
+
+def evaluate_inference_policy(report: dict[str, Any], min_confidence: float) -> dict[str, Any]:
+    failing_features: list[dict[str, Any]] = []
+    for feature in report.get("features", []):
+        slug = str(feature.get("slug", "")).strip()
+        confidence = feature.get("confidence", {})
+        below_threshold = {
+            key: float(confidence.get(key, 0.0))
+            for key in INFERENCE_CONFIDENCE_KEYS
+            if float(confidence.get(key, 0.0)) < min_confidence
+        }
+        if below_threshold:
+            failing_features.append(
+                {
+                    "slug": slug,
+                    "below_threshold": below_threshold,
+                }
+            )
+
+    return {
+        "min_confidence": min_confidence,
+        "failing_count": len(failing_features),
+        "failing_features": failing_features,
+        "passes": len(failing_features) == 0,
     }
