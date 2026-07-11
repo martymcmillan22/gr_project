@@ -1,0 +1,74 @@
+{
+  "generated_at": "2026-07-11T16:24:29.769664+00:00",
+  "version": "0.6.1",
+  "release_tag": "v0.6.1",
+  "changed_features": [
+    {
+      "slug": "pilot-intake",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntakeFlow",
+      "semantic_intent": "CaptureAndRoute",
+      "semantic_tags": [
+        "intake",
+        "pilot",
+        "routing"
+      ]
+    }
+  ],
+  "semantic_changes": {
+    "mlas_tiers": [
+      "Semantic Utility"
+    ],
+    "btif_classes": [
+      "IntakeFlow"
+    ],
+    "semantic_intents": [
+      "CaptureAndRoute"
+    ],
+    "tag_ontology_count": 3
+  },
+  "sync_changes": {
+    "sync_output_locations": {
+      "erd_backend_models": "platform_core/workflow_generated/models/pilot-intake_models.py",
+      "sequence_backend_logic": "platform_core/workflow_generated/logic/pilot-intake_logic.py",
+      "ui_template_react_page": "ui_apps/workflow_generated/pages/PilotIntakePage.tsx",
+      "ui_component_design_system": "workflow/ui_components/penpot_components/generated/PilotIntakeCard.tsx"
+    },
+    "feature_count": 1
+  },
+  "visualization_changes": {
+    "global_outputs": [
+      "workflow/visualizations/feature-dependency-graph.mmd",
+      "workflow/visualizations/mlas-tier-map.mmd",
+      "workflow/visualizations/btif-routing-map.mmd"
+    ],
+    "feature_visualization_pattern": "workflow/visualizations/features/{slug}.visualization.md"
+  },
+  "ai_context_changes": {
+    "ai_hints_version": "1.0.0",
+    "ai_navigation_version": "1.0.0",
+    "semantic_context_version": "1.0.0"
+  },
+  "governance_changes": {
+    "confidence_thresholds": {
+      "default_min_confidence": 0.85,
+      "fields": [
+        "mlas_tier",
+        "btif_classification",
+        "semantic_intent",
+        "semantic_tags"
+      ]
+    },
+    "autofix_safety_gates": {
+      "safe_conflict_types": [
+        "btif_conflict",
+        "mlas_conflict",
+        "tag_conflict"
+      ],
+      "requires_force_unsafe_for_other_types": true
+    },
+    "validation_checks": {
+      "generated_by": "workflow/cli.py release-notes"
+    }
+  }
+}

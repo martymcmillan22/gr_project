@@ -7,6 +7,8 @@ import sys
 from _engine.ai_native import build_ai_context_bundle, write_json_file
 from _engine.btif_router import build_btif_routing_table
 from _engine.config import REGISTRY_PATH, WORKFLOW_ROOT
+from _engine.release_notes import build_release_notes, write_release_notes
+from _engine.release_pipeline import run_release_pipeline
 from _engine.semantic_conflicts import apply_conflict_autofix, build_autofix_plan, build_conflict_report
 from _engine.semantic_drift import build_drift_report
 from _engine.semantic_infer import INFERENCE_CONFIDENCE_DEFAULT, build_inference_report, evaluate_inference_policy
@@ -19,6 +21,7 @@ from _engine.sync_sequence import sync_sequence_to_backend_logic_stub
 from _engine.sync_ui_component import sync_ui_component_to_design_system
 from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
+from _engine.versioning import bump_all_versions, get_version_report, load_version_state, save_version_state
 from _engine.visualize import write_feature_visualization, write_global_visualizations
 from validation.suite import run_workflow_validation
 
@@ -27,6 +30,10 @@ AI_HINTS_PATH = WORKFLOW_ROOT / "ai_hints.json"
 AI_NAVIGATION_PATH = WORKFLOW_ROOT / "ai_navigation.json"
 AI_SEMANTIC_CONTEXT_PATH = WORKFLOW_ROOT / "semantic_context.json"
 AI_FEATURE_TEMPLATE_PATH = WORKFLOW_ROOT / "ai_templates" / "feature.json"
+VERSION_PATH = WORKFLOW_ROOT / "version.json"
+RELEASE_NOTES_PATH = WORKFLOW_ROOT / "release_notes.json"
+SEMANTIC_CHANGELOG_PATH = WORKFLOW_ROOT / "semantic_changelog.md"
+GOVERNANCE_POLICY_PATH = WORKFLOW_ROOT / "governance_policy.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -445,6 +452,67 @@ def cmd_ai_new_feature(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_version(_: argparse.Namespace) -> int:
+    state = load_version_state(VERSION_PATH)
+    print(json.dumps(get_version_report(state), indent=2))
+    return 0
+
+
+def cmd_bump_version(args: argparse.Namespace) -> int:
+    state = load_version_state(VERSION_PATH)
+    result = bump_all_versions(state, args.part)
+    save_version_state(VERSION_PATH, state)
+    print(
+        json.dumps(
+            {
+                "part": result.part,
+                "previous": result.previous,
+                "current": result.current,
+                "version": get_version_report(state),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def cmd_release(args: argparse.Namespace) -> int:
+    code, payload = run_release_pipeline(
+        workflow_root=WORKFLOW_ROOT,
+        registry_path=REGISTRY_PATH,
+        version_path=VERSION_PATH,
+        semantic_changelog_path=SEMANTIC_CHANGELOG_PATH,
+        release_notes_path=RELEASE_NOTES_PATH,
+        ai_hints_path=AI_HINTS_PATH,
+        ai_navigation_path=AI_NAVIGATION_PATH,
+        semantic_context_path=AI_SEMANTIC_CONTEXT_PATH,
+        governance_policy_path=GOVERNANCE_POLICY_PATH,
+        bump_part=args.bump,
+        enforce_confidence=args.enforce_confidence,
+        min_confidence=args.min_confidence,
+        approve_semantic_changes=args.approve_semantic_changes,
+    )
+    print(json.dumps(payload, indent=2))
+    return code
+
+
+def cmd_release_notes(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    state = load_version_state(VERSION_PATH)
+    context_bundle = build_ai_context_bundle(registry, WORKFLOW_ROOT)
+    notes = build_release_notes(
+        version_state=state,
+        registry=registry,
+        semantic_context=context_bundle["semantic_context"],
+        ai_hints=context_bundle["ai_hints"],
+        ai_navigation=context_bundle["ai_navigation"],
+        validation_checks={"generated_by": "workflow/cli.py release-notes"},
+    )
+    path = write_release_notes(RELEASE_NOTES_PATH, notes)
+    print(json.dumps({"release_notes": path}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -600,6 +668,60 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run sync layer for generated feature",
     )
     ai_new_feature.set_defaults(func=cmd_ai_new_feature)
+
+    version_cmd = sub.add_parser(
+        "version",
+        help="Show workflow layer versions from workflow/version.json",
+    )
+    version_cmd.set_defaults(func=cmd_version)
+
+    bump_version = sub.add_parser(
+        "bump-version",
+        help="Bump workflow semantic version layers",
+    )
+    bump_version.add_argument(
+        "--part",
+        choices=["major", "minor", "patch"],
+        default="patch",
+        help="Semantic version bump part",
+    )
+    bump_version.set_defaults(func=cmd_bump_version)
+
+    release = sub.add_parser(
+        "release",
+        help="Run full release pipeline with governance safety gates",
+    )
+    release.add_argument(
+        "--bump",
+        choices=["major", "minor", "patch"],
+        default="patch",
+        help="Semantic version bump part",
+    )
+    release.add_argument(
+        "--min-confidence",
+        type=float,
+        default=INFERENCE_CONFIDENCE_DEFAULT,
+        help="Minimum confidence threshold for semantic inference release gate",
+    )
+    release.add_argument(
+        "--no-enforce-confidence",
+        action="store_false",
+        dest="enforce_confidence",
+        default=True,
+        help="Disable semantic inference confidence gate",
+    )
+    release.add_argument(
+        "--approve-semantic-changes",
+        action="store_true",
+        help="Approve release when MLAS/BTIF/intent/tag ontology changes are detected",
+    )
+    release.set_defaults(func=cmd_release)
+
+    release_notes = sub.add_parser(
+        "release-notes",
+        help="Generate release_notes.json from current workflow state",
+    )
+    release_notes.set_defaults(func=cmd_release_notes)
 
     return parser
 

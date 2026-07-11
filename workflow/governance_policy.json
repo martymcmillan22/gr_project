@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "semantic_approval_gates": {
+    "mlas_tier_changes_require_approval": true,
+    "btif_routing_changes_require_approval": true,
+    "semantic_intent_changes_require_approval": true,
+    "tag_ontology_changes_require_approval": true
+  },
+  "safety_gates": {
+    "drift_fixes_require_confirmation": true,
+    "conflict_autofix_requires_safe_classification": true,
+    "inference_requires_threshold_enforcement": true
+  },
+  "release_safety_checks": [
+    "semantic-drift",
+    "semantic-infer",
+    "semantic-resolve",
+    "validate-suite",
+    "visualize-all",
+    "sync-all",
+    "ai-export"
+  ]
+}

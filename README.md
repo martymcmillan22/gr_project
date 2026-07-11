@@ -34,6 +34,10 @@ Workflow docs:
 - [workflow/ai_hints.json](workflow/ai_hints.json)
 - [workflow/ai_navigation.json](workflow/ai_navigation.json)
 - [workflow/semantic_context.json](workflow/semantic_context.json)
+- [workflow/RELEASE_OVERVIEW.md](workflow/RELEASE_OVERVIEW.md)
+- [workflow/VERSIONING_GUIDE.md](workflow/VERSIONING_GUIDE.md)
+- [workflow/version.json](workflow/version.json)
+- [workflow/governance_policy.json](workflow/governance_policy.json)
 
 Common commands:
 - python3 workflow/cli.py new-feature --name "Feature Name" --mlas-tier "Tier" --btif-classification "Class" --semantic-intent "Intent" --semantic-tags tag1 tag2
@@ -48,6 +52,10 @@ Common commands:
 - python3 workflow/cli.py ai-context
 - python3 workflow/cli.py ai-export
 - python3 workflow/cli.py ai-new-feature --name "Feature Name"
+- python3 workflow/cli.py version
+- python3 workflow/cli.py bump-version --part patch
+- python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+- python3 workflow/cli.py release-notes
 
 ## AWS Deployment Docs
 

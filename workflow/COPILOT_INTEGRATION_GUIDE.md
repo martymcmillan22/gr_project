@@ -45,6 +45,10 @@ Primary command surface:
 - python3 workflow/cli.py sync-all
 - python3 workflow/cli.py visualize --feature <slug>
 - python3 workflow/cli.py visualize-all
+- python3 workflow/cli.py version
+- python3 workflow/cli.py bump-version --part patch
+- python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+- python3 workflow/cli.py release-notes
 
 Mutation policy:
 
@@ -63,6 +67,7 @@ Mutation policy:
 3. Treat sync_conflict as unsafe.
 4. Never run semantic-resolve --force-unsafe unless user explicitly asks for unsafe override.
 5. If unsafe conflicts exist, stop, report, and ask for explicit instruction.
+6. If semantic governance deltas are detected, require explicit approval before release.
 
 ## Confidence Thresholds
 
@@ -98,6 +103,17 @@ Expected outcome:
 2. python3 workflow/cli.py semantic-drift
 3. python3 workflow/cli.py semantic-resolve
 4. If safe and approved: python3 workflow/cli.py semantic-resolve --apply
+
+### Example 4: Governed release
+
+1. python3 workflow/cli.py semantic-drift
+2. python3 workflow/cli.py semantic-infer --enforce-threshold
+3. python3 workflow/cli.py semantic-resolve
+4. python3 workflow/cli.py validate-suite
+5. python3 workflow/cli.py visualize-all
+6. python3 workflow/cli.py sync-all
+7. python3 workflow/cli.py ai-export
+8. python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
 
 ## Recommended Copilot Prompts
 

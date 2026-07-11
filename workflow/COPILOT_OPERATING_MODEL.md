@@ -143,5 +143,12 @@ Preferred mutation commands:
 - python3 workflow/cli.py sync ...
 - python3 workflow/cli.py sync-all
 - python3 workflow/cli.py semantic-resolve [--apply]
+- python3 workflow/cli.py bump-version --part patch
+- python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+
+Release governance commands:
+
+- python3 workflow/cli.py version
+- python3 workflow/cli.py release-notes
 
 Direct registry edits are allowed only when command surface cannot express the change and user explicitly requests it.

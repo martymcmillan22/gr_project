@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-07-11T11:22:38.520807+00:00",
+  "generated_at": "2026-07-11T16:24:29.651858+00:00",
   "workflow_root": "workflow",
   "canonical_categories": {
     "database_design": "database_design/mermaid_erds",
@@ -100,6 +100,22 @@
     {
       "command": "ai-new-feature",
       "description": "Generate feature from AI template with validation"
+    },
+    {
+      "command": "version",
+      "description": "Read semantic layer version identities"
+    },
+    {
+      "command": "bump-version",
+      "description": "Bump semantic versions for workflow release"
+    },
+    {
+      "command": "release",
+      "description": "Run governed release pipeline with safety gates"
+    },
+    {
+      "command": "release-notes",
+      "description": "Generate deterministic release notes payload"
     }
   ],
   "example_features": [

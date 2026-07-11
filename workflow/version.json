@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "workflow_engine_version": "0.6.1",
+  "semantic_engine_version": "0.6.1",
+  "sync_layer_version": "0.6.1",
+  "visualization_layer_version": "0.6.1",
+  "cli_version": "0.6.1",
+  "ai_native_layer_version": "0.6.1",
+  "release_sequence": 1,
+  "last_release_at": "2026-07-11T16:23:49.791810+00:00",
+  "last_release_tag": "v0.6.1"
+}

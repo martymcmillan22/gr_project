@@ -86,6 +86,8 @@ This keeps semantic and sync outputs aligned with registry state.
 - python3 workflow/cli.py semantic-resolve --apply [--force-unsafe]
 - python3 workflow/cli.py ai-context
 - python3 workflow/cli.py ai-export
+- python3 workflow/cli.py release --approve-semantic-changes
+- python3 workflow/cli.py release-notes
 
 ## Semantic Intelligence Modules
 
@@ -99,6 +101,14 @@ These modules add drift detection, metadata inference, and deterministic conflic
 
 - Inference confidence can be enforced with a minimum threshold.
 - Resolve autofix is blocked when unsafe conflict types are present unless explicitly overridden.
+
+## Release Governance Policies
+
+- MLAS tier changes require explicit semantic approval at release time.
+- BTIF route changes require explicit semantic approval at release time.
+- semantic intent changes require explicit semantic approval at release time.
+- tag ontology changes require explicit semantic approval at release time.
+- release gates enforce drift, inference, conflict, validation, sync, visualization, and AI export checks.
 
 ## AI Semantic Export
 

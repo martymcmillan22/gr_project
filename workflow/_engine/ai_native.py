@@ -55,6 +55,10 @@ def _base_command_docs() -> list[dict[str, str]]:
         {"command": "ai-context", "description": "Print combined AI hints, navigation, and semantic context"},
         {"command": "ai-export", "description": "Write AI JSON context files for assistants"},
         {"command": "ai-new-feature", "description": "Generate feature from AI template with validation"},
+        {"command": "version", "description": "Read semantic layer version identities"},
+        {"command": "bump-version", "description": "Bump semantic versions for workflow release"},
+        {"command": "release", "description": "Run governed release pipeline with safety gates"},
+        {"command": "release-notes", "description": "Generate deterministic release notes payload"},
     ]
 
 

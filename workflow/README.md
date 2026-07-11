@@ -60,6 +60,10 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py ai-context
 - python workflow/cli.py ai-export
 - python workflow/cli.py ai-new-feature --name "Feature Name" [--sync]
+- python workflow/cli.py version
+- python workflow/cli.py bump-version --part patch
+- python workflow/cli.py release --bump patch
+- python workflow/cli.py release-notes
 - python3 -m unittest discover workflow/tests -v
 
 ### Generated Outputs for new-feature
@@ -192,3 +196,38 @@ AI integration docs:
 
 - workflow/COPILOT_INTEGRATION_GUIDE.md
 - workflow/COPILOT_OPERATING_MODEL.md
+
+## Phase-4 Slice 6: Release And Governance System
+
+Versioning and governance files:
+
+- workflow/version.json
+- workflow/governance_policy.json
+- workflow/semantic_changelog.md
+
+Release pipeline scripts:
+
+- workflow/release.py
+- workflow/release_notes.py
+
+Release docs:
+
+- workflow/RELEASE_OVERVIEW.md
+- workflow/VERSIONING_GUIDE.md
+
+Release and version CLI commands:
+
+- python3 workflow/cli.py version
+- python3 workflow/cli.py bump-version --part major|minor|patch
+- python3 workflow/cli.py release --bump patch [--approve-semantic-changes]
+- python3 workflow/cli.py release-notes
+
+Release safety checks:
+
+- semantic-drift must pass
+- semantic-infer confidence policy must pass
+- semantic-resolve must pass
+- validate-suite must pass
+- visualize-all must pass
+- sync-all must pass
+- ai-export must pass

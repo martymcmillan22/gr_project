@@ -36,6 +36,9 @@ Engine package: workflow/_engine/
 - semantic_infer.py: deterministic metadata inference and recommendations
 - semantic_conflicts.py: semantic conflict detection and autofix support
 - ai_native.py: AI hints, navigation metadata, semantic context exports
+- versioning.py: semantic versioning state and bump helpers
+- release_notes.py: release notes payload generation
+- release_pipeline.py: release orchestration and governance safety gates
 - visualize.py: workflow visualization generation
 
 ## CLI Surface
@@ -59,6 +62,10 @@ Supported commands:
 - ai-context
 - ai-export
 - ai-new-feature
+- version
+- bump-version
+- release
+- release-notes
 
 ## AI-Native Artifacts
 
