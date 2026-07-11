@@ -15,6 +15,7 @@ from _engine.sync_sequence import sync_sequence_to_backend_logic_stub
 from _engine.sync_ui_component import sync_ui_component_to_design_system
 from _engine.sync_ui_template import sync_ui_template_to_react_page
 from _engine.validate import validate_registry_shape
+from _engine.visualize import write_feature_visualization, write_global_visualizations
 from validation.suite import run_workflow_validation
 
 
@@ -172,6 +173,32 @@ def cmd_sync_all(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_visualize(args: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    feature = next((f for f in registry.get("features", []) if f.get("slug") == args.feature), None)
+    if not feature:
+        print(f"ERROR: feature not found: {args.feature}")
+        return 1
+
+    out_path = write_feature_visualization(feature, WORKFLOW_ROOT)
+    print(json.dumps({"feature": args.feature, "visualization": out_path}, indent=2))
+    return 0
+
+
+def cmd_visualize_all(_: argparse.Namespace) -> int:
+    registry = load_registry(REGISTRY_PATH)
+    feature_outputs: dict[str, str] = {}
+    for feature in registry.get("features", []):
+        slug = str(feature.get("slug", "")).strip()
+        if not slug:
+            continue
+        feature_outputs[slug] = write_feature_visualization(feature, WORKFLOW_ROOT)
+
+    global_outputs = write_global_visualizations(registry, WORKFLOW_ROOT)
+    print(json.dumps({"features": feature_outputs, "global": global_outputs}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Workflow command center CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -222,6 +249,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run sync layer for all features and propagate semantics",
     )
     sync_all.set_defaults(func=cmd_sync_all)
+
+    visualize = sub.add_parser(
+        "visualize",
+        help="Generate Mermaid visualization bundle for one feature",
+    )
+    visualize.add_argument("--feature", required=True, help="Feature slug to visualize")
+    visualize.set_defaults(func=cmd_visualize)
+
+    visualize_all = sub.add_parser(
+        "visualize-all",
+        help="Generate Mermaid visualizations for all features and global maps",
+    )
+    visualize_all.set_defaults(func=cmd_visualize_all)
 
     return parser
 

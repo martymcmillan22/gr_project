@@ -50,6 +50,8 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py semantic-check
 - python workflow/cli.py sync --feature <slug>
 - python workflow/cli.py sync-all
+- python workflow/cli.py visualize --feature <slug>
+- python workflow/cli.py visualize-all
 
 ### Generated Outputs for new-feature
 
@@ -99,3 +101,21 @@ Semantic propagation behavior:
 - updates propagation.mlas report for each feature
 - updates propagation.btif_route
 - records propagation.synced_targets
+
+## Phase-4 Slice 2: Workflow Visualization Layer
+
+Visualization module:
+
+- workflow/_engine/visualize.py
+
+CLI commands:
+
+- python workflow/cli.py visualize --feature <slug>
+- python workflow/cli.py visualize-all
+
+Generated visual outputs:
+
+- workflow/visualizations/features/<slug>.visualization.md
+- workflow/visualizations/feature-dependency-graph.mmd
+- workflow/visualizations/mlas-tier-map.mmd
+- workflow/visualizations/btif-routing-map.mmd

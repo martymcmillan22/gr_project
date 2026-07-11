@@ -15,7 +15,9 @@
     "workflow:classify": "python3 workflow/cli.py classify",
     "workflow:semantic-check": "python3 workflow/cli.py semantic-check",
     "workflow:sync": "python3 workflow/cli.py sync",
-    "workflow:sync-all": "python3 workflow/cli.py sync-all"
+    "workflow:sync-all": "python3 workflow/cli.py sync-all",
+    "workflow:visualize": "python3 workflow/cli.py visualize",
+    "workflow:visualize-all": "python3 workflow/cli.py visualize-all"
   },
   "dependencies": {
     "react": "^18.2.0",
