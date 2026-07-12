@@ -2,6 +2,8 @@ name: Presentation Governance
 
 on:
   push:
+    tags-ignore:
+      - "*"
     paths:
       - "platform_core/presentation_mdx.py"
       - "platform_core/management/commands/sync_presentation_ui.py"
