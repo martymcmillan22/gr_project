@@ -1,0 +1,81 @@
+{
+  "id": "strict-mode",
+  "name": "QPU Strict Mode",
+  "description": "Deterministic 4-node workflow enforcing inverse pairs, linear relay, SRL scaling, and temporal mapping for QPU validation.",
+  "nodes": [
+    {
+      "id": "inverse_pair_node",
+      "type": "validator",
+      "description": "Validates that the QPU contains two complete inverse color pairs.",
+      "inputs": ["colors"],
+      "outputs": ["inverse_pairs"],
+      "config": {
+        "inverse_map": {
+          "red": "green",
+          "green": "red",
+          "blue": "yellow",
+          "yellow": "blue",
+          "purple": "lime",
+          "lime": "purple",
+          "teal": "orange",
+          "orange": "teal",
+          "pink": "green-lime",
+          "green-lime": "pink",
+          "cyan": "amber",
+          "amber": "cyan"
+        }
+      }
+    },
+    {
+      "id": "relay_alignment_node",
+      "type": "validator",
+      "description": "Ensures the 4 colors form a contiguous segment of the Linear Relay.",
+      "inputs": ["inverse_pairs"],
+      "outputs": ["relay_segment"],
+      "config": {
+        "relay_order": [
+          "red",
+          "blue",
+          "yellow",
+          "green",
+          "purple",
+          "teal",
+          "orange",
+          "lime",
+          "pink",
+          "cyan",
+          "amber",
+          "green-lime"
+        ]
+      }
+    },
+    {
+      "id": "srl_node",
+      "type": "validator",
+      "description": "Validates SRL compartments follow ×4 growth across the 4 repositories.",
+      "inputs": ["relay_segment"],
+      "outputs": ["srl_values"],
+      "config": {
+        "growth_factor": 4
+      }
+    },
+    {
+      "id": "temporal_mapping_node",
+      "type": "validator",
+      "description": "Maps the 4 colors to Past → Present-Past → Present-Future → Future.",
+      "inputs": ["srl_values"],
+      "outputs": ["qpu"],
+      "config": {
+        "tenses": [
+          "past",
+          "present-past",
+          "present-future",
+          "future"
+        ]
+      }
+    }
+  ],
+  "entrypoint": "inverse_pair_node",
+  "endpoint": "temporal_mapping_node",
+  "tags": ["strict", "qpu", "relay", "inverse", "temporal"]
+}

@@ -98,6 +98,28 @@ The workflow automation engine lives in workflow/_engine and is exposed by workf
 - python workflow/cli.py improve-preview
 - python3 -m unittest discover workflow/tests -v
 
+### Strict Mode Workflow
+
+Create a Strict Mode QPU workflow:
+
+python workflow/cli.py strict-mode \
+	--name "QPU Strict Mode" \
+	--inverse-pairs "red:green" "blue:yellow" \
+	--relay-segment "red blue yellow green" \
+	--srl-values 4 16 64 256 \
+	--tenses past present-past present-future future \
+	--btif-subjects Math Language Arts Science \
+	--semantic-tags strict qpu relay inverse temporal
+
+This command constructs a 4-node Strict Mode workflow:
+
+1. Inverse Pair Assembly
+2. Linear Relay Alignment
+3. SRL Scaling
+4. Temporal Mapping
+
+Each node enforces deterministic rules and throws a Strict Mode error if violated.
+
 ### Generated Outputs for new-feature
 
 - workflow/database_design/mermaid_erds/<slug>.erd.mmd

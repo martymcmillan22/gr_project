@@ -78,6 +78,7 @@ MONTHLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "monthly_semantic_str
 QUARTERLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "quarterly_semantic_strategy_report.json"
 ANNUAL_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_strategy_report.json"
 ANNUAL_DRIFT_FORECAST_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_drift_forecast.json"
+STRICT_MODE_DEFINITION_PATH = WORKFLOW_ROOT / "definitions" / "strict_mode.workflow.json"
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -105,6 +106,118 @@ def cmd_new_feature(args: argparse.Namespace) -> int:
     add_feature(registry, feature)
     save_registry(REGISTRY_PATH, registry)
     print(f"OK: scaffolded feature '{args.name}' as '{slug}'")
+    return 0
+
+
+def _normalize_four_tokens(values: list[str], *, field_name: str) -> list[str]:
+    if len(values) == 1:
+        values = values[0].split()
+    if len(values) != 4:
+        raise ValueError(f"Strict Mode Error: {field_name} requires exactly 4 values.")
+    return values
+
+
+def _parse_inverse_pairs(values: list[str]) -> list[tuple[str, str]]:
+    pairs: list[tuple[str, str]] = []
+    for raw in values:
+        if ":" not in raw:
+            raise ValueError(
+                f"Strict Mode Error: inverse pair '{raw}' must be in the form color:inverse."
+            )
+        left, right = raw.split(":", 1)
+        left = left.strip().lower()
+        right = right.strip().lower()
+        if not left or not right:
+            raise ValueError(
+                f"Strict Mode Error: inverse pair '{raw}' must be in the form color:inverse."
+            )
+        pairs.append((left, right))
+    if len(pairs) != 2:
+        raise ValueError("Strict Mode Error: exactly two inverse pairs are required.")
+    return pairs
+
+
+def cmd_strict_mode(args: argparse.Namespace) -> int:
+    if not STRICT_MODE_DEFINITION_PATH.exists():
+        print(
+            f"ERROR: strict mode definition not found: {STRICT_MODE_DEFINITION_PATH.as_posix()}"
+        )
+        return 1
+
+    from nodes.inverse_pair_node import InversePairNode
+    from nodes.relay_alignment_node import RelayAlignmentNode
+    from nodes.srl_node import SRLNode
+    from nodes.temporal_mapping_node import TemporalMappingNode
+
+    definition = json.loads(STRICT_MODE_DEFINITION_PATH.read_text(encoding="utf-8"))
+    node_map = {node.get("id"): node for node in definition.get("nodes", [])}
+
+    inverse_pairs_arg = _parse_inverse_pairs(args.inverse_pairs)
+    relay_segment_arg = [v.lower() for v in _normalize_four_tokens(args.relay_segment, field_name="relay-segment")]
+    tenses_arg = _normalize_four_tokens(args.tenses, field_name="tenses")
+    btif_subjects_arg = _normalize_four_tokens(args.btif_subjects, field_name="btif-subjects")
+    srl_values_arg = [int(v) for v in _normalize_four_tokens(args.srl_values, field_name="srl-values")]
+
+    inverse_colors = {c for pair in inverse_pairs_arg for c in pair}
+    if len(inverse_colors) != 4:
+        raise ValueError("Strict Mode Error: inverse pairs must contain four unique colors.")
+    if set(relay_segment_arg) != inverse_colors:
+        raise ValueError(
+            "Strict Mode Error: relay segment colors must match colors from inverse pairs."
+        )
+
+    inverse_cfg = node_map.get("inverse_pair_node", {}).get("config", {})
+    relay_cfg = node_map.get("relay_alignment_node", {}).get("config", {})
+    srl_cfg = node_map.get("srl_node", {}).get("config", {})
+    temporal_cfg = dict(node_map.get("temporal_mapping_node", {}).get("config", {}))
+    temporal_cfg["tenses"] = tenses_arg
+
+    try:
+        inverse_node = InversePairNode(inverse_cfg)
+        inverse_pairs = inverse_node.run(relay_segment_arg)
+
+        for left, right in inverse_pairs_arg:
+            if inverse_cfg.get("inverse_map", {}).get(left) != right:
+                raise ValueError(
+                    f"Strict Mode Error: inverse pair {left}:{right} conflicts with strict inverse map."
+                )
+
+        relay_node = RelayAlignmentNode(relay_cfg)
+        relay_segment = relay_node.run(inverse_pairs)
+        if relay_segment != relay_segment_arg:
+            raise ValueError(
+                "Strict Mode Error: provided relay segment does not match strict relay alignment."
+            )
+
+        srl_node = SRLNode(srl_cfg)
+        srl_values = srl_node.run(relay_segment)
+        if srl_values != srl_values_arg:
+            raise ValueError(
+                f"Strict Mode Error: provided SRL values {srl_values_arg} do not match computed values {srl_values}."
+            )
+
+        temporal_node = TemporalMappingNode(temporal_cfg)
+        qpu = temporal_node.run(srl_values)
+    except ValueError as exc:
+        print(str(exc))
+        return 1
+
+    qpu_with_subjects = []
+    for index, item in enumerate(qpu):
+        enriched = dict(item)
+        enriched["subject"] = btif_subjects_arg[index]
+        qpu_with_subjects.append(enriched)
+
+    result = {
+        "workflow_id": definition.get("id"),
+        "name": args.name,
+        "semantic_tags": sorted(set(args.semantic_tags)),
+        "inverse_pairs": [list(pair) for pair in inverse_pairs],
+        "relay_segment": relay_segment,
+        "srl_values": srl_values,
+        "qpu": qpu_with_subjects,
+    }
+    print(json.dumps(result, indent=2))
     return 0
 
 
@@ -1341,6 +1454,49 @@ def build_parser() -> argparse.ArgumentParser:
         help="Space-separated semantic tags",
     )
     new_feature.set_defaults(func=cmd_new_feature)
+
+    strict_mode = sub.add_parser(
+        "strict-mode",
+        help="Run the Strict Mode QPU workflow.",
+    )
+    strict_mode.add_argument("--name", required=True, help="Workflow instance name.")
+    strict_mode.add_argument(
+        "--inverse-pairs",
+        nargs="+",
+        required=True,
+        help='Inverse pairs in the form "color:inverse".',
+    )
+    strict_mode.add_argument(
+        "--relay-segment",
+        nargs="+",
+        required=True,
+        help="Four-color contiguous relay segment.",
+    )
+    strict_mode.add_argument(
+        "--srl-values",
+        nargs="+",
+        required=True,
+        help="Four SRL values (x4 growth).",
+    )
+    strict_mode.add_argument(
+        "--tenses",
+        nargs="+",
+        required=True,
+        help="Temporal mapping: past present-past present-future future.",
+    )
+    strict_mode.add_argument(
+        "--btif-subjects",
+        nargs="+",
+        required=True,
+        help="BTIF subject lineage: Math Language Arts Science.",
+    )
+    strict_mode.add_argument(
+        "--semantic-tags",
+        nargs="+",
+        required=True,
+        help="Semantic tags for workflow classification.",
+    )
+    strict_mode.set_defaults(func=cmd_strict_mode)
 
     validate = sub.add_parser("validate", help="Validate workflow registry shape")
     validate.set_defaults(func=cmd_validate)
