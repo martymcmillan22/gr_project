@@ -2,8 +2,11 @@
 
 ## Project Middle Layer Platform Docs
 
+- [Project Middle Layer Platform Release Bulletin](project_middle_layer_platform_release_bulletin.md)
+- [Project Middle Layer Semantic OS Overview](project_middle_layer_semantic_os_overview.md)
 - [Project Middle Layer Platform Release Notes (Phase 1 to Phase 10)](project_middle_layer_platform_release_notes_phase1_to_phase10.md)
 - [Project Middle Layer Semantic Architecture Overview](project_middle_layer_semantic_architecture_overview.md)
+- [Project Middle Layer Operator Quickstart](../operations/project_middle_layer_operator_quickstart.md)
 - [Project Middle Layer Developer Onboarding Guide](../operations/project_middle_layer_developer_onboarding_guide.md)
 
 ## ERD: Feature Request Mapping

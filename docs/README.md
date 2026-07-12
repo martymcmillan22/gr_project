@@ -5,14 +5,20 @@ This index is the primary entry point for platform documentation under docs/.
 ## Start Here
 
 - [Architecture Overview](architecture/architecture.md)
+- [Project Middle Layer Platform Release Bulletin](architecture/project_middle_layer_platform_release_bulletin.md)
+- [Project Middle Layer Semantic OS Overview](architecture/project_middle_layer_semantic_os_overview.md)
 - [Project Middle Layer Semantic Architecture Overview](architecture/project_middle_layer_semantic_architecture_overview.md)
 - [Project Middle Layer Platform Release Notes (Phase 1 to Phase 10)](architecture/project_middle_layer_platform_release_notes_phase1_to_phase10.md)
+- [Project Middle Layer Operator Quickstart](operations/project_middle_layer_operator_quickstart.md)
 - [Project Middle Layer Developer Onboarding Guide](operations/project_middle_layer_developer_onboarding_guide.md)
 
 ## Project Middle Layer Platform Docs
 
+- [Platform Release Bulletin](architecture/project_middle_layer_platform_release_bulletin.md)
+- [Semantic OS Overview](architecture/project_middle_layer_semantic_os_overview.md)
 - [Semantic Architecture Overview](architecture/project_middle_layer_semantic_architecture_overview.md)
 - [Platform Release Notes (Phase 1 to Phase 10)](architecture/project_middle_layer_platform_release_notes_phase1_to_phase10.md)
+- [Operator Quickstart](operations/project_middle_layer_operator_quickstart.md)
 - [Developer Onboarding Guide](operations/project_middle_layer_developer_onboarding_guide.md)
 - [Phase 10 Roles and Capability Seeding](operations/project_middle_layer_phase10_roles.md)
 - [Environment Profiles](operations/environment_profiles.md)
@@ -35,6 +41,7 @@ This index is the primary entry point for platform documentation under docs/.
 
 ## Operations Docs
 
+- [Project Middle Layer Operator Quickstart](operations/project_middle_layer_operator_quickstart.md)
 - [Environment Profiles](operations/environment_profiles.md)
 - [Production Readiness Checklist](operations/production_readiness_checklist.md)
 - [Pre-Production Stability Checklist](operations/pre_production_stability_checklist.md)
