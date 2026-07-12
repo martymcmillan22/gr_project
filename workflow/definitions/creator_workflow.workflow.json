@@ -1,0 +1,52 @@
+{
+  "id": "creator-workflow",
+  "name": "Narrative Creator Workflow",
+  "description": "Deterministically transforms a validated QPU into a structured narrative arc, outline, and scene sequence.",
+  "nodes": [
+    {
+      "id": "creator_seed_node",
+      "type": "transformer",
+      "description": "Validates the source QPU and seeds the narrative generator.",
+      "inputs": ["qpu", "semantic"],
+      "outputs": ["seed_context"],
+      "config": {
+        "narrative_mode": "creator",
+        "story_seed": "validated-qpu"
+      }
+    },
+    {
+      "id": "creator_arc_node",
+      "type": "transformer",
+      "description": "Maps the validated QPU into a four-beat narrative arc.",
+      "inputs": ["seed_context"],
+      "outputs": ["story_beats"],
+      "config": {
+        "beat_titles": ["Setup", "Development", "Pivot", "Resolution"]
+      }
+    },
+    {
+      "id": "creator_outline_node",
+      "type": "transformer",
+      "description": "Expands the story beats into a structured outline.",
+      "inputs": ["story_beats"],
+      "outputs": ["outline"],
+      "config": {
+        "outline_sections": ["Premise", "Escalation", "Turning Point", "Closure"]
+      }
+    },
+    {
+      "id": "creator_render_node",
+      "type": "transformer",
+      "description": "Renders the outline into deterministic narrative output.",
+      "inputs": ["outline"],
+      "outputs": ["narrative"],
+      "config": {
+        "render_style": "concise",
+        "scene_labels": ["Scene 1", "Scene 2", "Scene 3", "Scene 4"]
+      }
+    }
+  ],
+  "entrypoint": "creator_seed_node",
+  "endpoint": "creator_render_node",
+  "tags": ["creator", "narrative", "transformer", "output", "workflow"]
+}

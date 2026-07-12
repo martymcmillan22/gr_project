@@ -1,0 +1,40 @@
+CREATOR_WORKFLOW_MANIFEST = {
+    "id": "creator-workflow",
+    "name": "Narrative Creator Workflow",
+    "version": "1.0",
+    "status": "active",
+    "definition": "workflow/definitions/creator_workflow.workflow.json",
+    "engine": "workflow/engine/creator_workflow_engine.py",
+    "schema": "workflow/semantic/creator_workflow_qpu_schema.py",
+    "metadata": "workflow/semantic/creator_workflow_metadata.py",
+    "propagation": "workflow/semantic/creator_workflow_propagation.py",
+    "documentation": "workflow/docs/creator_workflow.md",
+    "nodes": [
+        "workflow/nodes/creator_seed_node.py",
+        "workflow/nodes/creator_arc_node.py",
+        "workflow/nodes/creator_outline_node.py",
+        "workflow/nodes/creator_render_node.py",
+    ],
+    "semantic": {
+        "intent": "QPU-Creator-Output",
+        "tags": [
+            "creator",
+            "narrative",
+            "transformer",
+            "output",
+            "workflow",
+        ],
+        "btif_subjects": [
+            "Math",
+            "Language",
+            "Arts",
+            "Science",
+        ],
+        "classification": {
+            "type": "workflow",
+            "tier": "creator",
+            "category": "narrative-generation",
+            "engine": "BTPE",
+        },
+    },
+}

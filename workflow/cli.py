@@ -79,6 +79,8 @@ QUARTERLY_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "quarterly_semantic
 ANNUAL_STRATEGY_REPORT_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_strategy_report.json"
 ANNUAL_DRIFT_FORECAST_PATH = WORKFLOW_ROOT / "reports" / "annual_semantic_drift_forecast.json"
 STRICT_MODE_DEFINITION_PATH = WORKFLOW_ROOT / "definitions" / "strict_mode.workflow.json"
+CREATOR_WORKFLOW_DEFINITION_PATH = WORKFLOW_ROOT / "definitions" / "creator_workflow.workflow.json"
+_WORKFLOW_ENGINE_INSTANCE = None
 
 
 def cmd_new_feature(args: argparse.Namespace) -> int:
@@ -106,6 +108,285 @@ def cmd_new_feature(args: argparse.Namespace) -> int:
     add_feature(registry, feature)
     save_registry(REGISTRY_PATH, registry)
     print(f"OK: scaffolded feature '{args.name}' as '{slug}'")
+    return 0
+
+
+def _get_workflow_engine():
+    global _WORKFLOW_ENGINE_INSTANCE
+    if _WORKFLOW_ENGINE_INSTANCE is not None:
+        return _WORKFLOW_ENGINE_INSTANCE
+
+    try:
+        from workflow.engine.workflow_engine import WorkflowEngine
+    except ModuleNotFoundError:  # pragma: no cover - script execution path
+        from engine.workflow_engine import WorkflowEngine
+
+    _WORKFLOW_ENGINE_INSTANCE = WorkflowEngine()
+    return _WORKFLOW_ENGINE_INSTANCE
+
+
+def cmd_workflows(_: argparse.Namespace) -> int:
+    engine = _get_workflow_engine()
+    workflows = engine.list_workflows()
+    print("Registered Workflows:")
+    for workflow_id in workflows:
+        print(f" - {workflow_id}")
+    return 0
+
+
+def cmd_describe(args: argparse.Namespace) -> int:
+    engine = _get_workflow_engine()
+    entry = engine.get_workflow(args.workflow_id)
+    if not entry:
+        print(f"Workflow '{args.workflow_id}' not found.")
+        return 1
+
+    manifest = entry["manifest"]
+    print(f"Workflow: {manifest['name']} ({manifest['id']})")
+    print(f"Version: {manifest['version']}")
+    print(f"Status: {manifest['status']}")
+    print("")
+    print("Definition:", manifest["definition"])
+    print("Engine:", manifest["engine"])
+    print("Schema:", manifest["schema"])
+    print("Metadata:", manifest["metadata"])
+    print("Propagation:", manifest["propagation"])
+    print("Documentation:", manifest["documentation"])
+    print("")
+    print("Nodes:")
+    for node in manifest["nodes"]:
+        print(f" - {node}")
+    print("")
+    print("Semantic:")
+    for key, value in manifest["semantic"].items():
+        print(f" {key}: {value}")
+    return 0
+
+
+def cmd_introspect(args: argparse.Namespace) -> int:
+    engine = _get_workflow_engine()
+    entry = engine.get_workflow(args.workflow_id)
+    if not entry:
+        print(f"Workflow '{args.workflow_id}' not found.")
+        return 1
+
+    manifest = entry["manifest"]
+    schema_module = engine._import_engine(manifest["schema"])
+    metadata_module = engine._import_engine(manifest["metadata"])
+    propagation_module = engine._import_engine(manifest["propagation"])
+
+    workflow_prefix = args.workflow_id.replace("-", "_").upper()
+
+    def _resolve_attribute(module, candidates):
+        for candidate in candidates:
+            if hasattr(module, candidate):
+                return getattr(module, candidate)
+        return None
+
+    def _workflow_camel_name(workflow_id: str, suffix: str = "") -> str:
+        parts = [part for part in workflow_id.replace("-", "_").split("_") if part]
+        camel = "".join(part[:1].upper() + part[1:] for part in parts)
+        return f"{camel}{suffix}"
+
+    schema = _resolve_attribute(
+        schema_module,
+        [
+            f"{workflow_prefix}_QPU_SCHEMA",
+            f"{workflow_prefix}_SCHEMA",
+            "STRICT_MODE_QPU_SCHEMA",
+            "CREATOR_WORKFLOW_QPU_SCHEMA",
+            "GENRE_CLASSIFIER_SCHEMA",
+        ],
+    )
+    metadata = _resolve_attribute(
+        metadata_module,
+        [
+            f"{workflow_prefix}_METADATA",
+            "STRICT_MODE_METADATA",
+            "CREATOR_WORKFLOW_METADATA",
+        ],
+    )
+    propagation_class = _resolve_attribute(
+        propagation_module,
+        [
+            _workflow_camel_name(args.workflow_id, "Propagation"),
+            "StrictModePropagation",
+            "CreatorWorkflowPropagation",
+        ],
+    )
+
+    print("=== Workflow Introspection ===")
+    print(f"Workflow: {manifest['name']} ({manifest['id']})")
+    print("")
+    print("Schema:")
+    print(schema)
+    print("")
+    print("Metadata:")
+    print(metadata)
+    print("")
+    print("Propagation Class:")
+    print(propagation_class)
+    return 0
+
+
+def cmd_creator_workflow(args: argparse.Namespace) -> int:
+    if not CREATOR_WORKFLOW_DEFINITION_PATH.exists():
+        print(
+            f"ERROR: creator workflow definition not found: {CREATOR_WORKFLOW_DEFINITION_PATH.as_posix()}"
+        )
+        return 1
+
+    try:
+        from workflow.engine.creator_workflow_engine import CreatorWorkflowEngine
+    except ModuleNotFoundError:  # pragma: no cover - script execution path
+        from engine.creator_workflow_engine import CreatorWorkflowEngine
+
+    definition = json.loads(CREATOR_WORKFLOW_DEFINITION_PATH.read_text(encoding="utf-8"))
+    payload = json.loads(Path(args.input_file).read_text(encoding="utf-8"))
+
+    engine = CreatorWorkflowEngine(definition)
+    try:
+        result = engine.run(payload)
+    except Exception as exc:
+        print(str(exc))
+        return 1
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+def _extract_semantic_tags_from_text(text: str) -> list[str]:
+    words = []
+    for token in text.replace("\n", " ").split(" "):
+        cleaned = "".join(ch for ch in token.lower() if ch.isalpha() or ch == "-")
+        if cleaned:
+            words.append(cleaned)
+
+    tags = []
+    genre_markers = {
+        "action": "action",
+        "drama": "drama",
+        "comedy": "comedy",
+        "thriller": "thriller",
+        "romance": "romance",
+        "sci-fi": "sci-fi",
+        "scifi": "sci-fi",
+        "fantasy": "fantasy",
+        "mystery": "mystery",
+        "horror": "horror",
+    }
+    for word in words:
+        if word in genre_markers:
+            tags.append(genre_markers[word])
+
+    tags.extend(["genre", "classification", "semantic"])
+    return sorted(set(tags))
+
+
+def _text_to_strict_payload(text: str, name: str | None = None) -> dict:
+    title = name or "Genre Classifier Input"
+    snippet = " ".join(text.strip().split())[:48]
+    if snippet:
+        title = f"{title}: {snippet}"
+
+    return {
+        "name": title,
+        "inverse_pairs": [("red", "green"), ("blue", "yellow")],
+        "relay_segment": ["red", "blue", "yellow", "green"],
+        "srl_values": [4, 16, 64, 256],
+        "tenses": ["past", "present-past", "present-future", "future"],
+        "btif_subjects": ["Math", "Language", "Arts", "Science"],
+        "semantic_tags": _extract_semantic_tags_from_text(text),
+    }
+
+
+def _load_genre_classifier_input(args: argparse.Namespace) -> dict:
+    raw = None
+
+    if args.input_file:
+        raw = Path(args.input_file).read_text(encoding="utf-8")
+    elif args.input:
+        raw = args.input
+    elif args.stdin or not sys.stdin.isatty():
+        raw = sys.stdin.read()
+
+    if raw is None or not raw.strip():
+        raise ValueError("Genre Classifier Error: no input provided. Use positional input, --input-file, or --stdin.")
+
+    stripped = raw.strip()
+    if stripped.startswith("{"):
+        try:
+            parsed = json.loads(stripped)
+        except json.JSONDecodeError:
+            parsed = None
+
+        if isinstance(parsed, dict):
+            strict_keys = {"inverse_pairs", "relay_segment", "srl_values", "tenses", "btif_subjects", "semantic_tags"}
+            if strict_keys.issubset(set(parsed.keys())):
+                return parsed
+            if "text" in parsed and isinstance(parsed["text"], str):
+                return _text_to_strict_payload(parsed["text"], name=parsed.get("name"))
+
+    return _text_to_strict_payload(raw)
+
+
+def cmd_genre_classifier(args: argparse.Namespace) -> int:
+    engine = _get_workflow_engine()
+
+    def _json_safe(value):
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, list):
+            return [_json_safe(item) for item in value]
+        if isinstance(value, tuple):
+            return [_json_safe(item) for item in value]
+        if isinstance(value, dict):
+            return {str(key): _json_safe(item) for key, item in value.items()}
+        return str(value)
+
+    try:
+        strict_payload = _load_genre_classifier_input(args)
+    except Exception as exc:
+        print(str(exc))
+        return 1
+
+    try:
+        strict_output = engine.run("strict-mode", strict_payload)
+        genre_output = engine.run("genre-classifier", strict_output)
+    except Exception as exc:
+        print(str(exc))
+        return 1
+
+    result = {
+        "strict_mode": {
+            "workflow_id": strict_output.get("workflow_id"),
+            "name": strict_output.get("name"),
+            "schema": strict_output.get("schema"),
+        },
+        "genre_classifier": {
+            "genre": genre_output.get("genre"),
+            "confidence": genre_output.get("confidence"),
+            "signals_used": genre_output.get("signals_used"),
+            "semantic_summary": genre_output.get("semantic_summary"),
+            "full_output": genre_output,
+        },
+    }
+
+    if args.debug:
+        try:
+            from workflow.debug.workflow_debugger import WorkflowDebugger
+        except ModuleNotFoundError:  # pragma: no cover - script execution path
+            from debug.workflow_debugger import WorkflowDebugger
+        result["debug"] = _json_safe(WorkflowDebugger().debug("genre-classifier", strict_output))
+
+    if args.introspect:
+        try:
+            from workflow.introspection.workflow_introspect import WorkflowIntrospect
+        except ModuleNotFoundError:  # pragma: no cover - script execution path
+            from introspection.workflow_introspect import WorkflowIntrospect
+        result["introspection"] = _json_safe(WorkflowIntrospect().inspect("genre-classifier"))
+
+    print(json.dumps(result, indent=2))
     return 0
 
 
@@ -215,6 +496,53 @@ def cmd_validate(_: argparse.Namespace) -> int:
             print(f"- {error}")
         return 1
     print("OK: registry validation passed")
+    return 0
+
+
+def cmd_test_workflows(args: argparse.Namespace) -> int:
+    try:
+        from workflow.testing.workflow_test_harness import WorkflowTestHarness
+    except ModuleNotFoundError:  # pragma: no cover - script execution path
+        from testing.workflow_test_harness import WorkflowTestHarness
+
+    harness = WorkflowTestHarness()
+    targets = args.workflow_ids if args.workflow_ids else None
+    reports = harness.run_workflow_suite(targets)
+
+    def _json_safe(value):
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, list):
+            return [_json_safe(item) for item in value]
+        if isinstance(value, tuple):
+            return [_json_safe(item) for item in value]
+        if isinstance(value, dict):
+            return {str(key): _json_safe(item) for key, item in value.items()}
+        return str(value)
+
+    failures = [report for report in reports if not report.get("passed")]
+    print(json.dumps({"reports": _json_safe(reports)}, indent=2))
+    if failures:
+        print("ERROR: workflow test suite failed")
+        return 1
+    print("OK: workflow test suite passed")
+    return 0
+
+
+def cmd_validate_workflows(args: argparse.Namespace) -> int:
+    try:
+        from workflow.validation.workflow_validation_report import WorkflowValidationReport
+    except ModuleNotFoundError:  # pragma: no cover - script execution path
+        from validation.workflow_validation_report import WorkflowValidationReport
+
+    report = WorkflowValidationReport().generate_workflow_summary(args.workflow_ids if args.workflow_ids else None)
+    print(report)
+
+    lowered = report.lower()
+    if "status: failed" in lowered or "- failed" in lowered:
+        print("ERROR: workflow validation report contains failures")
+        return 1
+    print("OK: workflow validation report passed")
     return 0
 
 
@@ -1483,8 +1811,91 @@ def build_parser() -> argparse.ArgumentParser:
     )
     strict_mode.set_defaults(func=cmd_strict_mode)
 
+    creator_workflow = sub.add_parser(
+        "creator-workflow",
+        help="Run the Narrative Creator workflow on a validated QPU payload.",
+    )
+    creator_workflow.add_argument(
+        "--input-file",
+        required=True,
+        help="Path to a JSON payload from Strict Mode or an equivalent validated QPU.",
+    )
+    creator_workflow.set_defaults(func=cmd_creator_workflow)
+
+    genre_classifier = sub.add_parser(
+        "genre-classifier",
+        help="Run the Genre Classifier workflow on text, JSON input, or stdin.",
+    )
+    genre_classifier.add_argument(
+        "input",
+        nargs="?",
+        help="Raw input text or a JSON string with either Strict Mode payload fields or {'text': ...}.",
+    )
+    genre_classifier.add_argument(
+        "--input-file",
+        help="Path to a text or JSON file used as genre-classifier input.",
+    )
+    genre_classifier.add_argument(
+        "--stdin",
+        action="store_true",
+        help="Read input from stdin.",
+    )
+    genre_classifier.add_argument(
+        "--debug",
+        action="store_true",
+        help="Attach workflow debugger diagnostics for genre-classifier.",
+    )
+    genre_classifier.add_argument(
+        "--introspect",
+        action="store_true",
+        help="Attach introspection data for genre-classifier.",
+    )
+    genre_classifier.set_defaults(func=cmd_genre_classifier)
+
+    workflows_cmd = sub.add_parser(
+        "workflows",
+        help="List all registered workflows.",
+    )
+    workflows_cmd.set_defaults(func=cmd_workflows)
+
+    describe_cmd = sub.add_parser(
+        "describe",
+        help="Describe a workflow by ID.",
+    )
+    describe_cmd.add_argument("workflow_id", help="Workflow ID to describe.")
+    describe_cmd.set_defaults(func=cmd_describe)
+
+    introspect_cmd = sub.add_parser(
+        "introspect",
+        help="Deep inspection of workflow metadata, schema, and semantic layers.",
+    )
+    introspect_cmd.add_argument("workflow_id", help="Workflow ID to introspect.")
+    introspect_cmd.set_defaults(func=cmd_introspect)
+
     validate = sub.add_parser("validate", help="Validate workflow registry shape")
     validate.set_defaults(func=cmd_validate)
+
+    validate_workflows = sub.add_parser(
+        "validate-workflows",
+        help="Validate all registered workflows and print a deterministic summary report.",
+    )
+    validate_workflows.add_argument(
+        "workflow_ids",
+        nargs="*",
+        help="Optional workflow IDs to validate. Defaults to all registered workflows.",
+    )
+    validate_workflows.set_defaults(func=cmd_validate_workflows)
+
+    test_workflows = sub.add_parser(
+        "test-workflows",
+        help="Run deterministic workflow tests across registered workflows.",
+    )
+    test_workflows.add_argument(
+        "workflow_ids",
+        nargs="*",
+        help="Optional workflow IDs to test. Defaults to all registered workflows.",
+    )
+    test_workflows.set_defaults(func=cmd_test_workflows)
 
     validate_suite = sub.add_parser(
         "validate-suite",

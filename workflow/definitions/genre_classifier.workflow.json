@@ -1,0 +1,93 @@
+{
+  "id": "genre-classifier",
+  "name": "Genre Classifier Workflow",
+  "description": "Deterministically reads a Strict Mode QPU and classifies it into one of the canonical genres using structural and semantic signals.",
+  "version": "1.0.0",
+  "status": "active",
+  "category": "semantic-classification",
+  "nodes": [
+    {
+      "id": "signal_extraction_node",
+      "type": "extractor",
+      "description": "Extracts structural signals from the Strict Mode QPU.",
+      "inputs": ["qpu", "semantic"],
+      "outputs": ["signals"],
+      "config": {
+        "signals": [
+          "inverse_pair_tension",
+          "relay_geometry",
+          "srl_scaling_curve",
+          "temporal_bias",
+          "semantic_tags"
+        ]
+      }
+    },
+    {
+      "id": "genre_rule_engine_node",
+      "type": "classifier",
+      "description": "Applies deterministic genre rules to the extracted signals.",
+      "inputs": ["signals"],
+      "outputs": ["genre_result"],
+      "config": {
+        "genres": [
+          "Action",
+          "Drama",
+          "Comedy",
+          "Thriller",
+          "Romance",
+          "Sci-Fi",
+          "Fantasy",
+          "Mystery",
+          "Horror"
+        ]
+      }
+    },
+    {
+      "id": "classification_output_node",
+      "type": "output",
+      "description": "Builds the final genre classification payload.",
+      "inputs": ["genre_result"],
+      "outputs": ["classification"],
+      "config": {
+        "fields": ["genre", "confidence", "signals_used", "semantic_summary"]
+      }
+    }
+  ],
+  "entrypoint": "signal_extraction_node",
+  "endpoint": "classification_output_node",
+  "engine": "workflow/engine/genre_classifier_engine.py",
+  "schema": "workflow/schema/genre_classifier_schema.py",
+  "metadata": "workflow/metadata/genre_classifier_metadata.py",
+  "propagation": "workflow/propagation/genre_classifier_propagation.py",
+  "documentation": "workflow/docs/genre_classifier.md",
+  "tags": [
+    "genre",
+    "classification",
+    "semantic",
+    "workflow",
+    "storytelling-engine"
+  ],
+  "semantic": {
+    "intent": "Genre-Classification",
+    "tags": [
+      "genre",
+      "classification",
+      "semantic",
+      "storytelling-engine",
+      "strict-mode",
+      "creator-workflow"
+    ],
+    "btif_subjects": [
+      "Math",
+      "Language",
+      "Arts",
+      "Science"
+    ],
+    "classification": {
+      "type": "workflow",
+      "tier": "genre-classifier",
+      "category": "semantic-classification",
+      "engine": "BTPE"
+    }
+  }
+}

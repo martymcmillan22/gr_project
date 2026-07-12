@@ -1,0 +1,43 @@
+STRICT_MODE_MANIFEST = {
+    "id": "strict-mode",
+    "name": "QPU Strict Mode",
+    "version": "1.0",
+    "status": "active",
+    "definition": "workflow/definitions/strict_mode.workflow.json",
+    "engine": "workflow/engine/strict_mode_engine.py",
+    "schema": "workflow/semantic/strict_mode_qpu_schema.py",
+    "metadata": "workflow/semantic/strict_mode_metadata.py",
+    "propagation": "workflow/semantic/strict_mode_propagation.py",
+    "documentation": "workflow/docs/strict_mode.md",
+    "nodes": [
+        "workflow/nodes/inverse_pair_node.py",
+        "workflow/nodes/relay_alignment_node.py",
+        "workflow/nodes/srl_node.py",
+        "workflow/nodes/temporal_mapping_node.py",
+    ],
+    "semantic": {
+        "intent": "QPU-Strict-Validation",
+        "tags": [
+            "strict",
+            "qpu",
+            "relay",
+            "inverse",
+            "temporal",
+            "srl",
+            "workflow",
+            "validation",
+        ],
+        "btif_subjects": [
+            "Math",
+            "Language",
+            "Arts",
+            "Science",
+        ],
+        "classification": {
+            "type": "workflow",
+            "tier": "strict",
+            "category": "qpu-validation",
+            "engine": "BTPE",
+        },
+    },
+}
