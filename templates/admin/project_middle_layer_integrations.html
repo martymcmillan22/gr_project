@@ -1,0 +1,86 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Integrations</h1>
+    <p class="bt-brand-sub">Inbound and outbound semantic sync connectors</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<div style="display:grid;grid-template-columns:minmax(320px,1fr) minmax(420px,2fr);gap:14px;align-items:start;">
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Integration Catalog</h3>
+    {% if integrations %}
+      <div style="display:grid;gap:8px;">
+        {% for integration in integrations %}
+          <article class="bt-overview-card {% if selected_integration and selected_integration.slug == integration.slug %}bt-q-blue{% endif %}" style="padding:10px;">
+            <p style="margin:0 0 6px 0;"><strong>{{ integration.name }}</strong></p>
+            <p style="margin:0 0 6px 0;">{{ integration.direction }} | {{ integration.target_system }}</p>
+            <p style="margin:0 0 8px 0;">{{ integration.status }} | Last sync: {{ integration.last_synced_at|default:"never" }}</p>
+            <div class="bt-actions">
+              <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:integrations' %}?integration={{ integration.slug }}">Details</a>
+              <form method="post" action="{% url 'project_middle_layer:integration-sync-outbound' slug=integration.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="bt-action bt-q-green" type="submit">Sync Outbound</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No integrations configured.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Create or Update Integration</h3>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="has-text-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.name.label }}</span>{{ form.name }}{{ form.name.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.slug.label }}</span>{{ form.slug }}{{ form.slug.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.direction.label }}</span>{{ form.direction }}{{ form.direction.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.target_system.label }}</span>{{ form.target_system }}{{ form.target_system.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.endpoint_url.label }}</span>{{ form.endpoint_url }}{{ form.endpoint_url.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.api_key.label }}</span>{{ form.api_key }}{{ form.api_key.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.permissions_csv.label }}</span>{{ form.permissions_csv }}{{ form.permissions_csv.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.status.label }}</span>{{ form.status }}{{ form.status.errors }}</label>
+      <div class="bt-actions">
+        <button class="bt-action bt-q-green" type="submit">Save Integration</button>
+        <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+      </div>
+    </form>
+
+    {% if selected_integration %}
+      <hr style="margin:14px 0;">
+      <h4 style="margin:0 0 8px 0;">Selected: {{ selected_integration.name }}</h4>
+      <p style="margin:0 0 6px 0;">Slug: {{ selected_integration.slug }}</p>
+      <p style="margin:0 0 6px 0;">Direction: {{ selected_integration.direction }}</p>
+      <p style="margin:0 0 6px 0;">System: {{ selected_integration.target_system }}</p>
+      <p style="margin:0 0 6px 0;">API key: {{ selected_integration.api_key }}</p>
+      <p style="margin:0;">Permissions: {{ selected_integration.permissions|join:", " }}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Export</h1>
+    <p class="bt-brand-sub">Export deterministic semantic state snapshots</p>
+  </div>
+</div>
+
+<p>Use this view to export semantic state for all projects or a single project slug.</p>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bt-overview-card" style="padding:16px;max-width:760px;margin-bottom:16px;">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="has-text-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <label>
+      <span class="label">{{ form.scope.label }}</span>
+      {{ form.scope }}
+      {{ form.scope.errors }}
+    </label>
+    <label>
+      <span class="label">{{ form.project_slug.label }}</span>
+      {{ form.project_slug }}
+      {{ form.project_slug.errors }}
+    </label>
+    <label>
+      <span class="label">{{ form.max_items.label }}</span>
+      {{ form.max_items }}
+      {{ form.max_items.errors }}
+    </label>
+  </div>
+
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+    {{ form.include_history }}
+    <span>{{ form.include_history.label }}</span>
+    {{ form.include_history.errors }}
+  </label>
+
+  <label style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+    {{ form.download }}
+    <span>{{ form.download.label }}</span>
+    {{ form.download.errors }}
+  </label>
+
+  <div class="bt-actions" style="margin-top:18px;">
+    <button class="bt-action bt-q-green" type="submit">Run Semantic Export</button>
+    <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  </div>
+</form>
+
+{% if export_payload %}
+  <section class="bt-overview-card bt-q-blue" style="padding:14px; margin-bottom:12px;">
+    <h3 style="margin-top:0;">Export Summary</h3>
+    <p><strong>Generated At:</strong> {{ export_payload.generated_at }}</p>
+    <p><strong>Scope:</strong> {{ export_payload.filter.scope }}</p>
+    {% if export_payload.filter.project_slug %}
+      <p><strong>Project Slug:</strong> {{ export_payload.filter.project_slug }}</p>
+    {% endif %}
+    <p><strong>Projects:</strong> {{ export_payload.summary.project_count }}</p>
+    <p><strong>Snapshots:</strong> {{ export_payload.summary.snapshot_count }}</p>
+    <p><strong>Lineage Records:</strong> {{ export_payload.summary.lineage_record_count }}</p>
+    <p><strong>Alerts:</strong> {{ export_payload.summary.alert_count }}</p>
+  </section>
+
+  <details class="bt-overview-card" style="padding:14px;">
+    <summary><strong>Preview Export JSON</strong></summary>
+    <pre style="white-space:pre-wrap; margin-top:10px;">{{ export_payload }}</pre>
+  </details>
+{% endif %}
+{% endblock %}

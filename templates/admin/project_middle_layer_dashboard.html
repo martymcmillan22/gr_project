@@ -1,0 +1,84 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic System Dashboard</h1>
+    <p class="bt-brand-sub">Cockpit view of system-wide semantic intelligence</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:16px;">
+  <a class="bt-action bt-q-green" href="{% url 'project_middle_layer:analytics' %}">Analytics</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:search' %}">Search</a>
+  <a class="bt-action bt-q-yellow" href="{% url 'project_middle_layer:insights' %}">Insights</a>
+</div>
+
+<form method="get" class="bt-overview-card" style="padding:14px;margin-bottom:12px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+    <label>
+      <span class="label">Branch Filter</span>
+      <input type="text" name="branch_filter" list="dashboard-branches" value="{{ filters.branch }}">
+      <datalist id="dashboard-branches">
+        {% for branch in available_branches %}<option value="{{ branch }}"></option>{% endfor %}
+      </datalist>
+    </label>
+    <label>
+      <span class="label">Tier Filter</span>
+      <input type="text" name="tier_filter" list="dashboard-tiers" value="{{ filters.tier }}">
+      <datalist id="dashboard-tiers">
+        {% for tier in available_tiers %}<option value="{{ tier }}"></option>{% endfor %}
+      </datalist>
+    </label>
+  </div>
+  <div class="bt-actions" style="margin-top:10px;"><button class="bt-action bt-q-blue" type="submit">Apply Dashboard Filters</button></div>
+</form>
+
+<section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:12px;">
+  <h3 style="margin-top:0;">Latest Metrics</h3>
+  {% if latest %}
+    <p>Projects: {{ latest.project_count }}</p>
+    <p>Drift Mean: {{ latest.drift_mean }}</p>
+    <p>Confidence Mean: {{ latest.confidence_mean }}</p>
+    <p>Stability Mean: {{ latest.stability_mean }}</p>
+    <p>Branch Filter: {{ latest.branch_filter|default:"all" }}</p>
+    <p>Tier Filter: {{ latest.tier_filter|default:"all" }}</p>
+    <details>
+      <summary>Persisted Chart Series</summary>
+      <pre style="white-space:pre-wrap;">{{ latest.chart_series }}</pre>
+    </details>
+  {% else %}
+    <p>No analytics data yet.</p>
+  {% endif %}
+</section>
+
+<section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+  <h3 style="margin-top:0;">Overlays</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
+    {% for point in trend_points %}
+      <article class="bt-overview-card" style="padding:10px;">
+        <p style="margin:0 0 4px 0;"><strong>{{ point.created_at }}</strong></p>
+        <p style="margin:0 0 4px 0;">Drift {{ point.drift_mean }}</p>
+        <p style="margin:0 0 4px 0;">Confidence {{ point.confidence_mean }}</p>
+        <p style="margin:0;">Stability {{ point.stability_mean }}</p>
+      </article>
+    {% empty %}
+      <p>No timeline overlays yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Save Extension</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save Extension</button>
+</form>
+
+<h2>Extensions</h2>
+<ul>
+  {% for extension in extensions %}
+    <li>
+      <strong>{{ extension.slug }}</strong> - applied: {{ extension.is_applied }}
+      <form method="post" style="display:inline; margin-left: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="apply">
+        <input type="hidden" name="extension_slug" value="{{ extension.slug }}">
+        <button type="submit">Apply</button>
+      </form>
+      <form method="post" style="display:inline; margin-left: 6px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="rollback">
+        <input type="hidden" name="extension_slug" value="{{ extension.slug }}">
+        <button type="submit">Rollback</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No extensions defined.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

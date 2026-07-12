@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Alerts</h1>
+    <p class="bt-brand-sub">Threshold-based semantic notifications and trend signals</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:18px;">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:compile' %}">Compile Project</a>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
+  <section class="bt-overview-card bt-q-red" style="padding:14px;">
+    <h3 style="margin-top:0;">Totals</h3>
+    <p>Total alerts: {{ summary.total }}</p>
+    <p>High: {{ summary.high }}</p>
+    <p>Critical: {{ summary.critical }}</p>
+  </section>
+  <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+    <h3 style="margin-top:0;">Filters</h3>
+    <p>Severity: {{ selected_severity|default:"all" }}</p>
+    <p>Type: {{ selected_type|default:"all" }}</p>
+  </section>
+  <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+    <h3 style="margin-top:0;">Types</h3>
+    {% for alert_type, count in summary.types.items %}
+      <p>{{ alert_type }}: {{ count }}</p>
+    {% empty %}
+      <p>No alert types yet.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">
+  {% for alert in alerts %}
+    <section class="bt-overview-card bt-q-red" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ alert.project.name }}</h3>
+      <p><strong>Type:</strong> {{ alert.alert_type }}</p>
+      <p><strong>Severity:</strong> {{ alert.severity }}</p>
+      <p><strong>Message:</strong> {{ alert.message }}</p>
+      <p><strong>Created:</strong> {{ alert.created_at }}</p>
+      {% if alert.source_snapshot %}
+        <p><strong>Snapshot drift:</strong> {{ alert.source_snapshot.drift_risk }}</p>
+      {% endif %}
+      <details>
+        <summary>Metadata</summary>
+        <pre style="white-space:pre-wrap;">{{ alert.metadata }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No semantic alerts match the current filters.</div>
+    </article>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Analytics</h1>
+    <p class="bt-brand-sub">Cross-project metrics, trends, and semantic health indicators</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:16px;">
+  <form method="post" style="display:inline;">
+    {% csrf_token %}
+    <input type="hidden" name="branch_filter" value="{{ form.branch_filter.value|default:'' }}">
+    <input type="hidden" name="tier_filter" value="{{ form.tier_filter.value|default:'' }}">
+    <input type="hidden" name="limit" value="{{ form.limit.value|default:30 }}">
+    <button class="bt-action bt-q-green" type="submit">Generate Snapshot</button>
+  </form>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:dashboard' %}">System Dashboard</a>
+  <a class="bt-action bt-q-yellow" href="{% url 'project_middle_layer:insights' %}">Insights</a>
+</div>
+
+<form method="get" class="bt-overview-card" style="padding:14px;margin-bottom:12px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+    <label>
+      <span class="label">Branch Filter</span>
+      <input type="text" name="branch_filter" list="analytics-branches" value="{{ form.branch_filter.value|default:'' }}" placeholder="e.g. stabilization_branch">
+      <datalist id="analytics-branches">
+        {% for branch in available_branches %}<option value="{{ branch }}"></option>{% endfor %}
+      </datalist>
+    </label>
+    <label>
+      <span class="label">Tier Filter</span>
+      <input type="text" name="tier_filter" list="analytics-tiers" value="{{ form.tier_filter.value|default:'' }}" placeholder="e.g. public">
+      <datalist id="analytics-tiers">
+        {% for tier in available_tiers %}<option value="{{ tier }}"></option>{% endfor %}
+      </datalist>
+    </label>
+    <label>
+      <span class="label">Trend Limit</span>
+      <input type="number" name="limit" min="1" max="100" value="{{ form.limit.value|default:30 }}">
+    </label>
+  </div>
+  <div class="bt-actions" style="margin-top:10px;">
+    <button class="bt-action bt-q-blue" type="submit">Apply Filters</button>
+  </div>
+</form>
+
+{% if latest %}
+<section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:12px;">
+  <h3 style="margin-top:0;">Latest Snapshot</h3>
+  <p><strong>Created:</strong> {{ latest.created_at }}</p>
+  <p><strong>Projects:</strong> {{ latest.project_count }}</p>
+  <p><strong>Drift Mean / Std:</strong> {{ latest.drift_mean }} / {{ latest.drift_std }}</p>
+  <p><strong>Confidence Mean / Std:</strong> {{ latest.confidence_mean }} / {{ latest.confidence_std }}</p>
+  <p><strong>Stability Mean / Std:</strong> {{ latest.stability_mean }} / {{ latest.stability_std }}</p>
+  <p><strong>Branch Filter:</strong> {{ latest.branch_filter|default:"all" }}</p>
+  <p><strong>Tier Filter:</strong> {{ latest.tier_filter|default:"all" }}</p>
+  <details>
+    <summary>Persisted Chart Series</summary>
+    <pre style="white-space:pre-wrap;">{{ latest.chart_series }}</pre>
+  </details>
+</section>
+{% endif %}
+
+<section class="bt-overview-card bt-q-green" style="padding:14px;">
+  <h3 style="margin-top:0;">Trend Points</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
+    {% for point in trend_points %}
+      <article class="bt-overview-card" style="padding:10px;">
+        <p style="margin:0 0 4px 0;"><strong>{{ point.created_at }}</strong></p>
+        <p style="margin:0 0 4px 0;">Drift: {{ point.drift_mean }}</p>
+        <p style="margin:0 0 4px 0;">Confidence: {{ point.confidence_mean }}</p>
+        <p style="margin:0;">Stability: {{ point.stability_mean }}</p>
+      </article>
+    {% empty %}
+      <p>No analytics snapshots yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

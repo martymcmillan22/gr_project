@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Audit Logs</h1>
+<form method="get" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">
+  <label><span class="label">Actor</span>{{ filter_form.actor_username }}</label>
+  <label><span class="label">Action</span>{{ filter_form.action }}</label>
+  <label><span class="label">Project</span>{{ filter_form.project_slug }}</label>
+  <label><span class="label">Source</span>{{ filter_form.source }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-blue" type="submit">Apply Filters</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;">
+  {% for log in logs %}
+    <p>{{ log.created_at }} — {{ log.source }} — {{ log.action }} — {{ log.project.slug|default:"n/a" }} — {{ log.actor.username|default:"system" }}</p>
+  {% empty %}<p>No logs found.</p>{% endfor %}
+</section>
+{% endblock %}

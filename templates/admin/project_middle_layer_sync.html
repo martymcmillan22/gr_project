@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Cross-Instance Semantic Sync</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Sync Type</span>{{ form.sync_type }}</label>
+  <label><span class="label">Target Slug (optional)</span>{{ form.target_slug }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-green" type="submit">Run Manual Sync</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Sync Logs</h3>
+  {% for log in logs %}
+    <p>#{{ log.id }} {{ log.sync_type }} — {{ log.status }} — {{ log.started_at }}</p>
+  {% empty %}<p>No sync logs yet.</p>{% endfor %}
+</section>
+{% endblock %}

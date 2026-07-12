@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Cache</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <input type="hidden" name="action" value="inspect">
+  <label><span class="label">Target</span>{{ form.target }}</label>
+  <label><span class="label">Params JSON</span>{{ form.params_json }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-blue" type="submit">Inspect Cache</button></div>
+</form>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <input type="hidden" name="action" value="warm">
+  <button class="bt-action bt-q-green" type="submit">Run Cache Warmers</button>
+</form>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <input type="hidden" name="action" value="flush">
+  <button class="bt-action bt-q-red" type="submit">Flush Cache</button>
+</form>
+{% if cache_result %}
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Cache Result</h3>
+  <pre style="white-space:pre-wrap;">{{ cache_result }}</pre>
+</section>
+{% endif %}
+{% endblock %}

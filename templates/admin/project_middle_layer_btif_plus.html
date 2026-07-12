@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" name="action" value="export">Export BTIF+</button>
+  <button type="submit" name="action" value="validate">Validate Payload</button>
+</form>
+
+<h2>Compatibility</h2>
+<pre>{{ compatibility }}</pre>
+
+{% if validation %}
+  <h2>Validation</h2>
+  <pre>{{ validation }}</pre>
+{% endif %}
+
+{% if payload %}
+  <h2>Payload</h2>
+  <pre>{{ payload }}</pre>
+{% endif %}
+{% endblock %}

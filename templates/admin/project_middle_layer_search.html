@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Search</h1>
+    <p class="bt-brand-sub">Search across tags, lineage, snapshots, alerts, and orchestration entities</p>
+  </div>
+</div>
+
+<form method="get" class="bt-overview-card" style="padding:14px;margin-bottom:12px;">
+  <label>
+    <span class="label">Query</span>
+    <input type="text" name="q" value="{{ query }}" placeholder="Search semantic space...">
+  </label>
+  <div class="bt-actions" style="margin-top:10px;"><button class="bt-action bt-q-green" type="submit">Search</button></div>
+</form>
+
+{% if result %}
+<section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:12px;">
+  <h3 style="margin-top:0;">Summary</h3>
+  <p>Total results: {{ result.summary.total }}</p>
+  {% for key, count in result.facets.types.items %}
+    <p>{{ key }}: {{ count }}</p>
+  {% endfor %}
+</section>
+
+{% for bucket, items in result.results.items %}
+  <section class="bt-overview-card bt-q-yellow" style="padding:14px;margin-bottom:10px;">
+    <h3 style="margin-top:0;text-transform:capitalize;">{{ bucket }}</h3>
+    {% for item in items %}
+      <pre style="white-space:pre-wrap;">{{ item }}</pre>
+    {% empty %}
+      <p>No matches.</p>
+    {% endfor %}
+  </section>
+{% endfor %}
+{% endif %}
+{% endblock %}

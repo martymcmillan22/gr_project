@@ -1,0 +1,142 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Pipelines</h1>
+    <p class="bt-brand-sub">Define and run multi-step semantic workflows</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<div style="display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,2fr);gap:14px;align-items:start;">
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Pipeline Catalog</h3>
+    {% if pipelines %}
+      <div style="display:grid;gap:8px;">
+        {% for pipeline in pipelines %}
+          <article class="bt-overview-card {% if selected_pipeline and selected_pipeline.slug == pipeline.slug %}bt-q-blue{% endif %}" style="padding:10px;">
+            <p style="margin:0 0 6px 0;"><strong>{{ pipeline.name }}</strong></p>
+            <p style="margin:0 0 6px 0;"><code>{{ pipeline.slug }}</code></p>
+            <p style="margin:0 0 8px 0;">Status: {{ pipeline.status }} | Active: {{ pipeline.is_active }}</p>
+            <div class="bt-actions">
+              <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:pipelines' %}?pipeline={{ pipeline.slug }}">Details</a>
+              <form method="post" action="{% url 'project_middle_layer:pipeline-run' slug=pipeline.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="bt-action bt-q-green" type="submit">Run</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No pipelines yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Create or Update Pipeline</h3>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="has-text-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <label style="display:block;margin-bottom:10px;">
+        <span class="label">{{ form.name.label }}</span>
+        {{ form.name }}
+        {{ form.name.errors }}
+      </label>
+
+      <label style="display:block;margin-bottom:10px;">
+        <span class="label">{{ form.slug.label }}</span>
+        {{ form.slug }}
+        {{ form.slug.errors }}
+      </label>
+
+      <label style="display:block;margin-bottom:10px;">
+        <span class="label">{{ form.steps_json.label }}</span>
+        {{ form.steps_json }}
+        <p class="help">{{ form.steps_json.help_text }}</p>
+        {{ form.steps_json.errors }}
+      </label>
+
+      <label style="display:block;margin-bottom:10px;">
+        <span class="label">{{ form.triggers_json.label }}</span>
+        {{ form.triggers_json }}
+        <p class="help">{{ form.triggers_json.help_text }}</p>
+        {{ form.triggers_json.errors }}
+      </label>
+
+      <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        {{ form.is_active }}
+        <span>{{ form.is_active.label }}</span>
+      </label>
+
+      <div class="bt-actions">
+        <button class="bt-action bt-q-green" type="submit">Save Pipeline</button>
+        <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+      </div>
+    </form>
+
+    {% if selected_pipeline %}
+      <hr style="margin:14px 0;">
+      <h4 style="margin:0 0 8px 0;">Selected: {{ selected_pipeline.name }}</h4>
+      <p style="margin:0 0 8px 0;">Last Run: {{ selected_pipeline.last_run|default:"never" }}</p>
+      <h5 style="margin:0 0 8px 0;">Run History</h5>
+      {% if selected_pipeline_runs %}
+        <div style="display:grid;gap:8px;">
+          {% for run in selected_pipeline_runs %}
+            <article class="bt-overview-card {% if run.status == 'completed' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;">
+              <p style="margin:0 0 4px 0;"><strong>Run #{{ run.id }}</strong> | {{ run.status }}</p>
+              <p style="margin:0 0 4px 0;">Started: {{ run.started_at }}</p>
+              <p style="margin:0 0 4px 0;">Completed: {{ run.completed_at|default:"n/a" }}</p>
+              {% if run.error_message %}
+                <p style="margin:0;color:#8b0000;">Error: {{ run.error_message }}</p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No runs for this pipeline yet.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+
+<section class="bt-overview-card" style="padding:14px;margin-top:14px;">
+  <h3 style="margin-top:0;">Recent Pipeline Runs</h3>
+  {% if recent_runs %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
+      {% for run in recent_runs %}
+        <article class="bt-overview-card {% if run.status == 'completed' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;">
+          <p style="margin:0 0 4px 0;"><strong>{{ run.pipeline.name }}</strong></p>
+          <p style="margin:0 0 4px 0;">Run #{{ run.id }} | {{ run.status }}</p>
+          <p style="margin:0;">{{ run.started_at }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No pipeline runs recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

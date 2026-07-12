@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Recommendations</h1>
+    <p class="bt-brand-sub">Rule-based actions to improve semantic stability</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:18px;">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:compile' %}">Compile Project</a>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      {% for action in card.recommendation_actions %}
+        <p><strong>{{ action.label }}</strong></p>
+        <p>{{ action.rationale }}</p>
+        <a class="bt-action bt-q-yellow" href="{{ action.apply_url }}">Apply Recommendation</a>
+      {% empty %}
+        <p>No recommendations generated.</p>
+      {% endfor %}
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No projects available for recommendations.</div>
+    </article>
+  {% endfor %}
+</div>
+{% endblock %}

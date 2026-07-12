@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Compile Project</h1>
+    <p class="bt-brand-sub">Direct semantic project creation</p>
+  </div>
+</div>
+
+<p>Use this form to compile a project directly into the Project Middle Layer identity pipeline.</p>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bt-overview-card" style="padding:16px;max-width:760px;">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="has-text-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+    <label>
+      <span class="label">{{ form.title.label }}</span>
+      {{ form.title }}
+      {{ form.title.errors }}
+    </label>
+    <label>
+      <span class="label">{{ form.intent.label }}</span>
+      {{ form.intent }}
+      {{ form.intent.errors }}
+    </label>
+    <label>
+      <span class="label">{{ form.tier.label }}</span>
+      {{ form.tier }}
+      {{ form.tier.errors }}
+    </label>
+    <label style="grid-column:1 / -1;">
+      <span class="label">{{ form.description.label }}</span>
+      {{ form.description }}
+      {{ form.description.errors }}
+    </label>
+    <label style="grid-column:1 / -1;">
+      <span class="label">{{ form.tags.label }}</span>
+      {{ form.tags }}
+      <p class="help">{{ form.tags.help_text }}</p>
+      {{ form.tags.errors }}
+    </label>
+  </div>
+
+  <div class="bt-actions" style="margin-top:18px;">
+    <button class="bt-action bt-q-green" type="submit">Compile Project</button>
+    <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  </div>
+</form>
+{% endblock %}

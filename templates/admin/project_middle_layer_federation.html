@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Federation</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Name</span>{{ form.name }}</label>
+  <label><span class="label">Slug</span>{{ form.slug }}</label>
+  <label><span class="label">Peer Identity</span>{{ form.peer_identity }}</label>
+  <label><span class="label">Peer URL</span>{{ form.peer_url }}</label>
+  <label><span class="label">Capabilities</span>{{ form.capabilities_csv }}</label>
+  <label><span class="label">Sync Rules</span>{{ form.sync_rules_json }}</label>
+  <label style="display:flex;gap:8px;align-items:center;">{{ form.is_active }}<span>Active</span></label>
+  <div class="bt-actions"><button class="bt-action bt-q-green" type="submit">Save Federation Peer</button></div>
+</form>
+<form method="get" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">
+  <label><span class="label">Federated Search Query</span><input type="text" name="q" value="{{ query }}"></label>
+  <div class="bt-actions"><button class="bt-action bt-q-blue" type="submit">Run Federated Search</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;margin-bottom:10px;">
+  <h3>Federation Peers</h3>
+  {% for peer in peers %}<p>{{ peer.name }} — {{ peer.peer_identity }} — {{ peer.last_sync_status }}</p>{% empty %}<p>No peers configured.</p>{% endfor %}
+</section>
+<section class="bt-overview-card" style="padding:14px;margin-bottom:10px;">
+  <h3>Federated Insights</h3>
+  <pre style="white-space:pre-wrap;">{{ federated_insights }}</pre>
+</section>
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Federated Lineage Cluster Mapping</h3>
+  <pre style="white-space:pre-wrap;">{{ lineage_cluster_map }}</pre>
+  {% if federated_result %}
+    <h3>Federated Search Result</h3>
+    <pre style="white-space:pre-wrap;">{{ federated_result }}</pre>
+  {% endif %}
+</section>
+{% endblock %}

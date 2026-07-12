@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Roles</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Name</span>{{ role_form.name }}</label>
+  <label><span class="label">Slug</span>{{ role_form.slug }}</label>
+  <label><span class="label">Capabilities</span>{{ role_form.capabilities_csv }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-green" type="submit" name="action" value="create-role">Save Role</button></div>
+</form>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Username</span>{{ permission_form.username }}</label>
+  <label><span class="label">Role Slug</span>{{ permission_form.role_slug }}</label>
+  <label><span class="label">Project Slug</span>{{ permission_form.project_slug }}</label>
+  <label><span class="label">Tier</span>{{ permission_form.tier }}</label>
+  <label><span class="label">Branch</span>{{ permission_form.branch }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-blue" type="submit" name="action" value="assign-permission">Assign Permission</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Roles</h3>
+  {% for role in roles %}
+    <p><strong>{{ role.name }}</strong> ({{ role.slug }}) — {{ role.capabilities|join:", " }}</p>
+  {% empty %}<p>No roles configured.</p>{% endfor %}
+</section>
+{% endblock %}

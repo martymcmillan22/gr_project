@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Evolution Timeline</h1>
+    <p class="bt-brand-sub">Chronological snapshot history for compiled projects</p>
+  </div>
+</div>
+
+<p>This viewer shows the latest semantic evolution snapshots recorded at compile time.</p>
+
+<div class="bt-actions" style="margin-bottom:18px;">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:compile' %}">Compile Project</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:diff' %}">Open Diff Viewer</a>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">
+  {% for snapshot in snapshots %}
+    <section class="bt-overview-card bt-q-green" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ snapshot.project.name }}</h3>
+      <p><strong>Time:</strong> {{ snapshot.created_at }}</p>
+      <p><strong>Identity URI:</strong> {{ snapshot.identity_uri }}</p>
+      <p><strong>Branch:</strong> {{ snapshot.branch_name }}</p>
+      <p><strong>Drift Risk:</strong> {{ snapshot.drift_risk }}</p>
+      <p><strong>Confidence:</strong> {{ snapshot.confidence_score }} / {{ snapshot.confidence_label }}</p>
+      <p><strong>Tags:</strong> {{ snapshot.semantic_tags|join:", " }}</p>
+      <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:diff' %}?snapshot_b={{ snapshot.id }}">Compare Snapshot</a>
+      <details>
+        <summary>Identity Payload</summary>
+        <pre style="white-space:pre-wrap;">{{ snapshot.identity_payload }}</pre>
+      </details>
+      <details>
+        <summary>Branch Resolution</summary>
+        <pre style="white-space:pre-wrap;">{{ snapshot.branch_resolution }}</pre>
+      </details>
+      <details>
+        <summary>Specialized Path</summary>
+        <pre style="white-space:pre-wrap;">{{ snapshot.specialized_path }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No evolution snapshots have been recorded yet.</div>
+    </article>
+  {% endfor %}
+</div>
+{% endblock %}

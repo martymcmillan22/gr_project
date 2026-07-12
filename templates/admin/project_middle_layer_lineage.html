@@ -1,0 +1,79 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Lineage Explorer</h1>
+    <p class="bt-brand-sub">Ancestry, clusters, drift, and stabilization guidance</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:18px;">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:compile' %}">Compile Project</a>
+</div>
+
+<h2 class="bt-section bt-q-green">Explorer Summary</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:18px;">
+  {% for card in project_cards %}
+    <section class="bt-overview-card bt-q-green" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ card.node.name }}</h3>
+      <p><strong>Slug:</strong> {{ card.node.slug }}</p>
+      <p><strong>Parent Concepts:</strong> {{ card.lineage_explorer.parent_concepts|join:", " }}</p>
+      <p><strong>Sibling Concepts:</strong> {{ card.lineage_explorer.sibling_concepts|join:", " }}</p>
+      <p><strong>Clusters:</strong> {{ card.lineage_explorer.semantic_clusters|length }}</p>
+      <p><strong>Stability:</strong> {{ card.stability_analysis.stability_score }} / {{ card.stability_analysis.stability_label }}</p>
+      <p><strong>Top Drift:</strong> {{ card.drift_heatmap_data.top_drifting_tags.0.label|default:"none" }}</p>
+      <details>
+        <summary>Lineage Tree</summary>
+        <pre style="white-space:pre-wrap;">{{ card.lineage_explorer.lineage_tree }}</pre>
+      </details>
+      <details>
+        <summary>Heatmap</summary>
+        <pre style="white-space:pre-wrap;">{{ card.drift_heatmap_data.heatmap_grid }}</pre>
+      </details>
+      <details>
+        <summary>Recommendations</summary>
+        <pre style="white-space:pre-wrap;">{{ card.stability_analysis.recommended_actions }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No project lineage data has been compiled yet.</div>
+    </article>
+  {% endfor %}
+</div>
+
+<h2 class="bt-section bt-q-blue">Lineage Records</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">
+  {% for record in lineage_records %}
+    <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ record.project.name }}</h3>
+      <p><strong>Created:</strong> {{ record.created_at }}</p>
+      <p><strong>Clusters:</strong> {{ record.semantic_clusters|length }}</p>
+      <details>
+        <summary>Tree</summary>
+        <pre style="white-space:pre-wrap;">{{ record.lineage_tree }}</pre>
+      </details>
+    </section>
+  {% empty %}
+    <article class="message is-info">
+      <div class="message-body">No lineage records have been created yet.</div>
+    </article>
+  {% endfor %}
+</div>
+{% endblock %}

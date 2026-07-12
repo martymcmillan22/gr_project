@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Register Plugin</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save Plugin</button>
+</form>
+
+<h2>Plugin Registry</h2>
+<p>Total plugins: {{ registry.count }}</p>
+<ul>
+  {% for plugin in plugins %}
+    <li>
+      <strong>{{ plugin.slug }}</strong> - {{ plugin.plugin_type }} - enabled: {{ plugin.enabled }}
+      <form method="post" style="display:inline; margin-left: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle">
+        <input type="hidden" name="plugin_slug" value="{{ plugin.slug }}">
+        <input type="hidden" name="enabled" value="{% if plugin.enabled %}0{% else %}1{% endif %}">
+        <button type="submit">{% if plugin.enabled %}Disable{% else %}Enable{% endif %}</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No plugins registered.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

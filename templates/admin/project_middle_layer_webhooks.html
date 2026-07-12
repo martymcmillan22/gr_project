@@ -1,0 +1,109 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Webhooks</h1>
+    <p class="bt-brand-sub">Outbound semantic event notifications</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<div style="display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,2fr);gap:14px;align-items:start;">
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Webhook Catalog</h3>
+    {% if webhooks %}
+      <div style="display:grid;gap:8px;">
+        {% for webhook in webhooks %}
+          <article class="bt-overview-card {% if selected_webhook and selected_webhook.id == webhook.id %}bt-q-blue{% endif %}" style="padding:10px;">
+            <p style="margin:0 0 6px 0;"><strong>{{ webhook.name }}</strong></p>
+            <p style="margin:0 0 6px 0;">{{ webhook.event_type }}</p>
+            <p style="margin:0 0 8px 0;">{{ webhook.status }} | Last: {{ webhook.last_delivery|default:"never" }}</p>
+            <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:webhooks' %}?webhook={{ webhook.id }}">Details</a>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No webhooks configured.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Create or Update Webhook</h3>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="has-text-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.name.label }}</span>{{ form.name }}{{ form.name.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.target_url.label }}</span>{{ form.target_url }}{{ form.target_url.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.event_type.label }}</span>{{ form.event_type }}{{ form.event_type.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.secret_token.label }}</span>{{ form.secret_token }}{{ form.secret_token.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.status.label }}</span>{{ form.status }}{{ form.status.errors }}</label>
+      <div class="bt-actions">
+        <button class="bt-action bt-q-green" type="submit">Save Webhook</button>
+        <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+      </div>
+    </form>
+
+    {% if selected_webhook %}
+      <hr style="margin:14px 0;">
+      <h4 style="margin:0 0 8px 0;">Selected: {{ selected_webhook.name }}</h4>
+      <p style="margin:0 0 8px 0;">Event: {{ selected_webhook.event_type }}</p>
+      <p style="margin:0 0 8px 0;">Target: {{ selected_webhook.target_url }}</p>
+      <h5 style="margin:0 0 8px 0;">Delivery Log</h5>
+      {% if selected_deliveries %}
+        {% for delivery in selected_deliveries %}
+          <article class="bt-overview-card {% if delivery.status == 'delivered' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;margin-bottom:8px;">
+            <p style="margin:0 0 4px 0;"><strong>#{{ delivery.id }}</strong> {{ delivery.event_type }} | {{ delivery.status }}</p>
+            <p style="margin:0 0 4px 0;">Code: {{ delivery.response_code|default:"n/a" }} | At: {{ delivery.delivered_at|default:"pending" }}</p>
+            {% if delivery.error_message %}<p style="margin:0 0 6px 0;color:#8b0000;">{{ delivery.error_message }}</p>{% endif %}
+            {% if delivery.status != 'delivered' %}
+              <form method="post" action="{% url 'project_middle_layer:webhook-retry' delivery_id=delivery.id %}">
+                {% csrf_token %}
+                <button class="bt-action bt-q-red" type="submit">Retry Delivery</button>
+              </form>
+            {% endif %}
+          </article>
+        {% endfor %}
+      {% else %}
+        <p>No deliveries for this webhook yet.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+
+<section class="bt-overview-card" style="padding:14px;margin-top:14px;">
+  <h3 style="margin-top:0;">Recent Deliveries</h3>
+  {% if recent_deliveries %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
+      {% for delivery in recent_deliveries %}
+        <article class="bt-overview-card {% if delivery.status == 'delivered' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;">
+          <p style="margin:0 0 4px 0;"><strong>{{ delivery.webhook.name }}</strong></p>
+          <p style="margin:0 0 4px 0;">{{ delivery.event_type }} | {{ delivery.status }}</p>
+          <p style="margin:0;">{{ delivery.created_at }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No webhook deliveries recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Insights</h1>
+    <p class="bt-brand-sub">Higher-order patterns generated from analytics, search, and timeline data</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:12px;">
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:analytics' %}">Analytics</a>
+  <a class="bt-action bt-q-green" href="{% url 'project_middle_layer:agents' %}">Agents</a>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
+  {% for insight in insights %}
+    <section class="bt-overview-card {% if insight.severity == 'high' %}bt-q-red{% elif insight.severity == 'medium' %}bt-q-yellow{% else %}bt-q-green{% endif %}" style="padding:14px;">
+      <h3 style="margin-top:0;">{{ insight.title }}</h3>
+      <p><strong>Severity:</strong> {{ insight.severity }}</p>
+      <p>{{ insight.detail }}</p>
+      <p><small>Code: {{ insight.code }}</small></p>
+    </section>
+  {% empty %}
+    <p>No insights generated.</p>
+  {% endfor %}
+</div>
+{% endblock %}

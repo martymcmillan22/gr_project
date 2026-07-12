@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Install Item</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Install</button>
+</form>
+
+<h2>Items</h2>
+<ul>
+  {% for item in items %}
+    <li>{{ item.slug }} ({{ item.item_type }}) - current {{ item.current_version }}</li>
+  {% empty %}
+    <li>No marketplace items found.</li>
+  {% endfor %}
+</ul>
+
+<h2>Installs</h2>
+<ul>
+  {% for install in installs %}
+    <li>{{ install.item.slug }} @ {{ install.installed_version }} - {{ install.status }}</li>
+  {% empty %}
+    <li>No installs yet.</li>
+  {% endfor %}
+</ul>
+
+<h2>Update Notifications</h2>
+<ul>
+  {% for notice in update_notifications %}
+    <li>{{ notice.item_slug }} installed {{ notice.installed_version }} latest {{ notice.latest_version }}</li>
+  {% empty %}
+    <li>No updates pending.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

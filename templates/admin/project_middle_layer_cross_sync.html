@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Run Cross-Platform Sync</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Run Sync</button>
+</form>
+
+<h2>Recent Logs</h2>
+<ul>
+  {% for log in logs %}
+    <li>{{ log.started_at }} - {{ log.sync_type }} to {{ log.target_platform }} - {{ log.status }}</li>
+  {% empty %}
+    <li>No sync logs found.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

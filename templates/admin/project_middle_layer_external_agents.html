@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Register Agent</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save Agent</button>
+</form>
+
+<h2>Agents</h2>
+<ul>
+  {% for agent in agents %}
+    <li>
+      <strong>{{ agent.slug }}</strong> ({{ agent.status }}) - {{ agent.endpoint }}
+      <form method="post" style="display:inline; margin-left: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run">
+        <input type="hidden" name="agent_slug" value="{{ agent.slug }}">
+        <input type="text" name="operation" value="analyze" style="width:120px;">
+        <button type="submit">Run</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No external agents registered.</li>
+  {% endfor %}
+</ul>
+
+{% if run_result %}
+  <h2>Last Run Result</h2>
+  <pre>{{ run_result }}</pre>
+{% endif %}
+{% endblock %}

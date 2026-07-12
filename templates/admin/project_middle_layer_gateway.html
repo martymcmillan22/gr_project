@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p><a href="{{ quick_action_back_url }}">Back to Project Middle Layer Admin</a></p>
+
+<h2>Dispatch Probe</h2>
+<form method="get">
+  {{ form.as_p }}
+  <button type="submit">Dispatch</button>
+</form>
+
+{% if dispatch %}
+  <h3>Dispatch Result</h3>
+  <pre>{{ dispatch }}</pre>
+{% endif %}
+
+<h2>Gateway Health</h2>
+<pre>{{ health }}</pre>
+
+<h2>Gateway Schema</h2>
+<pre>{{ schema }}</pre>
+
+<h2>Route Map</h2>
+<pre>{{ route_map }}</pre>
+{% endblock %}

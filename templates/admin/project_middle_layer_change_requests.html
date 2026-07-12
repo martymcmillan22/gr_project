@@ -1,0 +1,28 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Change Requests</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Project Slug</span>{{ change_form.project_slug }}</label>
+  <label><span class="label">Proposed Changes JSON</span>{{ change_form.proposed_changes_json }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-green" type="submit" name="action" value="create-change-request">Create Request</button></div>
+</form>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Change Request ID</span>{{ review_form.change_request_id }}</label>
+  <label style="display:flex;gap:8px;align-items:center;">{{ review_form.approve }}<span>Approve</span></label>
+  <label><span class="label">Notes</span>{{ review_form.notes }}</label>
+  <div class="bt-actions"><button class="bt-action bt-q-blue" type="submit" name="action" value="review-change-request">Submit Review</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Requests</h3>
+  {% for item in change_requests %}
+    <p>#{{ item.id }} {{ item.project.slug }} — {{ item.status }} — author {{ item.author.username }}</p>
+  {% empty %}<p>No change requests.</p>{% endfor %}
+</section>
+{% endblock %}

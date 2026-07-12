@@ -1,0 +1,87 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Batch Compile</h1>
+    <p class="bt-brand-sub">Compile multiple project payloads in one run</p>
+  </div>
+</div>
+
+<p>Paste JSON payloads as an array or object with <strong>projects</strong>. Each project uses the same shape as one-shot compile.</p>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bt-overview-card" style="padding:16px;max-width:920px;margin-bottom:18px;">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="has-text-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <label style="display:block;margin-bottom:12px;">
+    <span class="label">{{ form.payload_json.label }}</span>
+    {{ form.payload_json }}
+    <p class="help">{{ form.payload_json.help_text }}</p>
+    {{ form.payload_json.errors }}
+  </label>
+
+  <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+    {{ form.atomic }}
+    <span>{{ form.atomic.label }}</span>
+    {{ form.atomic.errors }}
+  </label>
+
+  <div class="bt-actions" style="margin-top:10px;">
+    <button class="bt-action bt-q-green" type="submit">Run Batch Compile</button>
+    <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  </div>
+</form>
+
+{% if batch_result %}
+  <section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:14px;">
+    <h3 style="margin-top:0;">Batch Summary</h3>
+    <p><strong>Status:</strong> {{ batch_result.status }}</p>
+    <p><strong>Requested:</strong> {{ batch_result.summary.requested }}</p>
+    <p><strong>Compiled:</strong> {{ batch_result.summary.compiled }}</p>
+    <p><strong>Failed:</strong> {{ batch_result.summary.failed }}</p>
+    <p><strong>Average Drift:</strong> {{ batch_result.summary.average_drift_risk }}</p>
+    <p><strong>Average Confidence:</strong> {{ batch_result.summary.average_confidence_score }}</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">
+    {% for item in batch_result.results %}
+      <section class="bt-overview-card {% if item.status == 'compiled' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:14px;">
+        <h3 style="margin-top:0;">Item {{ item.index }}</h3>
+        <p><strong>Status:</strong> {{ item.status }}</p>
+        {% if item.slug %}
+          <p><strong>Slug:</strong> {{ item.slug }}</p>
+        {% endif %}
+        {% if item.errors %}
+          <details>
+            <summary>Errors</summary>
+            <pre style="white-space:pre-wrap;">{{ item.errors }}</pre>
+          </details>
+        {% endif %}
+      </section>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

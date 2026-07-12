@@ -1,0 +1,120 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Schedules</h1>
+    <p class="bt-brand-sub">Run semantic actions on recurring cadence</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message is-{{ message.tags }}"><div class="message-body">{{ message }}</div></div>
+  {% endfor %}
+{% endif %}
+
+<div style="display:grid;grid-template-columns:minmax(300px,1fr) minmax(420px,2fr);gap:14px;align-items:start;">
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Schedule Catalog</h3>
+    {% if schedules %}
+      <div style="display:grid;gap:8px;">
+        {% for schedule in schedules %}
+          <article class="bt-overview-card {% if selected_schedule and selected_schedule.slug == schedule.slug %}bt-q-blue{% endif %}" style="padding:10px;">
+            <p style="margin:0 0 6px 0;"><strong>{{ schedule.name }}</strong></p>
+            <p style="margin:0 0 6px 0;">{{ schedule.slug }} | {{ schedule.action }}</p>
+            <p style="margin:0 0 8px 0;">Status: {{ schedule.status }} | Paused: {{ schedule.is_paused }}</p>
+            <div class="bt-actions">
+              <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:schedules' %}?schedule={{ schedule.slug }}">Details</a>
+              <form method="post" action="{% url 'project_middle_layer:schedule-run' slug=schedule.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="bt-action bt-q-green" type="submit">Run Now</button>
+              </form>
+              <form method="post" action="{% url 'project_middle_layer:schedule-pause' slug=schedule.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="bt-action bt-q-red" type="submit">{% if schedule.is_paused %}Resume{% else %}Pause{% endif %}</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No schedules yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="bt-overview-card" style="padding:14px;">
+    <h3 style="margin-top:0;">Create or Update Schedule</h3>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="has-text-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.name.label }}</span>{{ form.name }}{{ form.name.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.slug.label }}</span>{{ form.slug }}{{ form.slug.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.cron_expression.label }}</span>{{ form.cron_expression }}{{ form.cron_expression.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.action.label }}</span>{{ form.action }}{{ form.action.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.pipeline_slug.label }}</span>{{ form.pipeline_slug }}{{ form.pipeline_slug.errors }}</label>
+      <label style="display:block;margin-bottom:10px;"><span class="label">{{ form.payload_json.label }}</span>{{ form.payload_json }}{{ form.payload_json.errors }}</label>
+      <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">{{ form.is_paused }}<span>{{ form.is_paused.label }}</span></label>
+
+      <div class="bt-actions">
+        <button class="bt-action bt-q-green" type="submit">Save Schedule</button>
+        <a class="bt-action bt-q-blue" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+      </div>
+    </form>
+
+    {% if selected_schedule %}
+      <hr style="margin:14px 0;">
+      <h4 style="margin:0 0 8px 0;">Selected: {{ selected_schedule.name }}</h4>
+      <p style="margin:0 0 8px 0;">Last Run: {{ selected_schedule.last_run|default:"never" }}</p>
+      <p style="margin:0 0 8px 0;">Next Run: {{ selected_schedule.next_run|default:"pending" }}</p>
+      <h5 style="margin:0 0 8px 0;">Run History</h5>
+      {% if selected_schedule_runs %}
+        {% for run in selected_schedule_runs %}
+          <article class="bt-overview-card {% if run.status == 'completed' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;margin-bottom:8px;">
+            <p style="margin:0 0 4px 0;"><strong>Run #{{ run.id }}</strong> | {{ run.status }}</p>
+            <p style="margin:0 0 4px 0;">Started: {{ run.started_at }}</p>
+            <p style="margin:0 0 4px 0;">Completed: {{ run.completed_at|default:"n/a" }}</p>
+            {% if run.error_message %}<p style="margin:0;color:#8b0000;">Error: {{ run.error_message }}</p>{% endif %}
+          </article>
+        {% endfor %}
+      {% else %}
+        <p>No runs for this schedule yet.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+
+<section class="bt-overview-card" style="padding:14px;margin-top:14px;">
+  <h3 style="margin-top:0;">Recent Schedule Runs</h3>
+  {% if recent_schedule_runs %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
+      {% for run in recent_schedule_runs %}
+        <article class="bt-overview-card {% if run.status == 'completed' %}bt-q-green{% else %}bt-q-red{% endif %}" style="padding:10px;">
+          <p style="margin:0 0 4px 0;"><strong>{{ run.schedule.name }}</strong></p>
+          <p style="margin:0 0 4px 0;">Run #{{ run.id }} | {{ run.status }}</p>
+          <p style="margin:0;">{{ run.started_at }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No schedule runs recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

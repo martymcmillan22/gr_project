@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Agents</h1>
+    <p class="bt-brand-sub">Autonomous semantic workers for monitoring, analysis, and action</p>
+  </div>
+</div>
+
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:12px;">
+  {% csrf_token %}
+  <label>
+    <span class="label">Agent</span>
+    <select name="agent_name">
+      {% for name in agent_names %}
+        <option value="{{ name }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <div class="bt-actions" style="margin-top:10px;"><button class="bt-action bt-q-green" type="submit">Run Agent</button></div>
+</form>
+
+{% if latest_run %}
+<section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:12px;">
+  <h3 style="margin-top:0;">Latest Run</h3>
+  <p><strong>Agent:</strong> {{ latest_run.agent_name }}</p>
+  <p><strong>Status:</strong> {{ latest_run.status }}</p>
+  <p><strong>Created:</strong> {{ latest_run.created_at }}</p>
+</section>
+{% endif %}
+
+<section class="bt-overview-card bt-q-yellow" style="padding:14px;">
+  <h3 style="margin-top:0;">Run History</h3>
+  {% for run in runs %}
+    <article class="bt-overview-card" style="padding:10px;margin-bottom:8px;">
+      <p style="margin:0 0 4px 0;"><strong>{{ run.agent_name }}</strong> | {{ run.status }}</p>
+      <p style="margin:0 0 4px 0;">{{ run.created_at }}</p>
+      <p style="margin:0;">Insights generated: {{ run.insights_generated|length }}</p>
+    </article>
+  {% empty %}
+    <p>No agent runs yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

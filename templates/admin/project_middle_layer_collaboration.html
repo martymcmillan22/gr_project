@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Semantic Collaboration</h1>
+<form method="post" class="bt-overview-card" style="padding:14px;margin-bottom:10px;">{% csrf_token %}
+  <label><span class="label">Project Slug</span>{{ session_form.project_slug }}</label>
+  <label style="display:flex;gap:8px;align-items:center;">{{ session_form.force_takeover }}<span>Force Takeover</span></label>
+  <div class="bt-actions"><button class="bt-action bt-q-green" type="submit" name="action" value="acquire-session">Acquire Session</button></div>
+</form>
+<section class="bt-overview-card" style="padding:14px;">
+  <h3>Active Sessions</h3>
+  {% for session in sessions %}
+    <p>{{ session.project.slug }} — {{ session.user.username }} — {{ session.status }} — lease {{ session.lease_expires_at }}</p>
+  {% empty %}<p>No sessions.</p>{% endfor %}
+</section>
+{% endblock %}

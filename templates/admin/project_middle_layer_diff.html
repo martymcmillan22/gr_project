@@ -1,0 +1,91 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bt-brand-header">
+  <a class="bt-wheel-link" href="{% url 'admin:project-middle-layer-admin' %}" title="Back to Project Middle Layer Admin">
+    <span class="bt-wheel" aria-hidden="true">
+      <span class="bt-wheel-q bt-wheel-q-red is-active"></span>
+      <span class="bt-wheel-q bt-wheel-q-blue"></span>
+      <span class="bt-wheel-q bt-wheel-q-yellow"></span>
+      <span class="bt-wheel-q bt-wheel-q-green"></span>
+    </span>
+  </a>
+  <div class="bt-brand-text">
+    <h1 id="bt-top">Semantic Diff Viewer</h1>
+    <p class="bt-brand-sub">Compare snapshots or projects</p>
+  </div>
+</div>
+
+<div class="bt-actions" style="margin-bottom:18px;">
+  <a class="bt-action bt-q-green" href="{% url 'admin:project-middle-layer-admin' %}">Back to Admin</a>
+  <a class="bt-action bt-q-blue" href="{% url 'project_middle_layer:timeline' %}">Timeline</a>
+</div>
+
+<section class="bt-overview-card bt-q-yellow" style="padding:14px;margin-bottom:18px;">
+  <h3 style="margin-top:0;">Compare Two Projects</h3>
+  <form method="get">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+      <label>
+        <span class="label">Project A</span>
+        <select name="project_a">
+          {% for project in projects %}
+            <option value="{{ project.slug }}">{{ project.name }} ({{ project.slug }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span class="label">Project B</span>
+        <select name="project_b">
+          {% for project in projects %}
+            <option value="{{ project.slug }}">{{ project.name }} ({{ project.slug }})</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="bt-actions" style="margin-top:10px;">
+      <button class="bt-action bt-q-yellow" type="submit">Compare Projects</button>
+    </div>
+  </form>
+</section>
+
+{% if diff_result %}
+  <section class="bt-overview-card bt-q-blue" style="padding:14px;margin-bottom:12px;">
+    <h3 style="margin-top:0;">Selection</h3>
+    <p><strong>Source:</strong> {{ source_label }}</p>
+    <p><strong>Target:</strong> {{ target_label }}</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
+    <section class="bt-overview-card bt-q-green" style="padding:14px;">
+      <h3 style="margin-top:0;">Tag Changes</h3>
+      <p><strong>Added:</strong> {{ diff_result.tag_changes.added|join:", "|default:"none" }}</p>
+      <p><strong>Removed:</strong> {{ diff_result.tag_changes.removed|join:", "|default:"none" }}</p>
+      <p><strong>Unchanged Count:</strong> {{ diff_result.tag_changes.unchanged_count }}</p>
+    </section>
+
+    <section class="bt-overview-card bt-q-blue" style="padding:14px;">
+      <h3 style="margin-top:0;">Metric Deltas</h3>
+      <p><strong>Drift Delta:</strong> {{ diff_result.drift_delta }}</p>
+      <p><strong>Confidence Delta:</strong> {{ diff_result.confidence_delta }}</p>
+      <p><strong>Stability Delta:</strong> {{ diff_result.stability_delta }}</p>
+    </section>
+
+    <section class="bt-overview-card bt-q-red" style="padding:14px;">
+      <h3 style="margin-top:0;">Branch and Identity</h3>
+      <p><strong>Branch:</strong> {{ diff_result.branch_changes.from }} -> {{ diff_result.branch_changes.to }}</p>
+      <p><strong>Identity URI:</strong> {{ diff_result.identity_changes.from }} -> {{ diff_result.identity_changes.to }}</p>
+      <p><strong>Final URI:</strong> {{ diff_result.specialized_path_changes.from }} -> {{ diff_result.specialized_path_changes.to }}</p>
+    </section>
+  </div>
+{% else %}
+  <article class="message is-info">
+    <div class="message-body">No diff target selected yet. Choose two projects above or open this page with snapshot parameters.</div>
+  </article>
+{% endif %}
+{% endblock %}
