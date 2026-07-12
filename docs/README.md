@@ -59,6 +59,8 @@ Use this docs set to operate, integrate, and scale semantic capabilities with co
 ## Release Drafts
 
 - [Project Middle Layer v1.0.0 Release Draft](releases/project_middle_layer_v1.0.0_release_draft.md)
+- [Project Middle Layer v1.0.0 GitHub Release Body](releases/project_middle_layer_v1.0.0_github_release_body.md)
+- [Project Middle Layer v1.0.0 Internal Launch Post](releases/project_middle_layer_v1.0.0_internal_launch_post.md)
 
 ## Conventions
 
