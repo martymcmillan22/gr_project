@@ -48,3 +48,6 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
     },
 }
+
+# Enforce strict semantic ACL behavior in production by default.
+PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS = os.getenv("PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS", "true").lower() == "true"

@@ -243,3 +243,7 @@ _stripe_price_tier_map_raw = {
     os.getenv("BILLING_STRIPE_PRICE_PREMIUM_ENTERPRISE", ""): "premium_enterprise",
 }
 BILLING_STRIPE_PRICE_TIER_MAP = {key: value for key, value in _stripe_price_tier_map_raw.items() if key}
+
+# Project Middle Layer permission rollout toggle.
+# Default keeps compatibility mode in non-production environments.
+PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS = os.getenv("PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS", "false").lower() == "true"
