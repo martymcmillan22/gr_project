@@ -1,5 +1,11 @@
 # Intro to Django
 
+## Project Middle Layer Announcement
+
+Project Middle Layer is now complete as the semantic operating system for GrassRoots: a deterministic, capability-gated platform that unifies compile, identity-aware routing, lineage, governance, orchestration, and external interoperability into one production-ready control plane.
+
+With plugins, extensions, marketplace packaging, BTIF+ export and validation, federation, gateway integration, and external agents fully in place, the platform is built for safe scale, auditable operations, and long-term semantic evolution.
+
 ![CPINDCNO Constitutional Guardrail](https://img.shields.io/badge/CPINDCNO-Constitutional_Guardrail_PASS-2ea44f?style=for-the-badge)
 
 This is the code for the *O'Reilly Video* - **Intro to Django** presented by Arianne Dee.
@@ -11,6 +17,18 @@ You can download a PDF of the slides [here](https://drive.google.com/file/d/1F-F
 This repository uses a deterministic AI workflow for UI and semantic work.
 
 See [GRASSROOTS_AI_WORKFLOW.md](GRASSROOTS_AI_WORKFLOW.md) for the Penpot to MDX to React to MLAS BTIF directive that all AI assistants should follow.
+
+## Environment Recommendations
+
+Recommended baseline values for local, staging, and production are documented in:
+
+- [docs/operations/environment_profiles.md](docs/operations/environment_profiles.md)
+
+For Project Middle Layer rollout, the key toggle is:
+
+- `PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS=false` in local dev
+- `PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS=true` in staging
+- `PROJECT_MIDDLE_LAYER_STRICT_PERMISSIONS=true` in production
 
 ## Workflow Platform (Canonical)
 

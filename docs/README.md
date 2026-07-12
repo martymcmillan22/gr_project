@@ -2,6 +2,10 @@
 
 This index is the primary entry point for platform documentation under docs/.
 
+Project Middle Layer is the completed semantic OS foundation for GrassRoots.
+Deterministic, governed, and auditable workflows now span compile through platform interoperability.
+Use this docs set to operate, integrate, and scale semantic capabilities with confidence.
+
 ## Start Here
 
 - [Architecture Overview](architecture/architecture.md)
@@ -42,6 +46,7 @@ This index is the primary entry point for platform documentation under docs/.
 ## Operations Docs
 
 - [Project Middle Layer Operator Quickstart](operations/project_middle_layer_operator_quickstart.md)
+- [Project Middle Layer Production Readiness Pass (2026-07-11)](operations/project_middle_layer_production_readiness_pass_2026_07_11.md)
 - [Environment Profiles](operations/environment_profiles.md)
 - [Production Readiness Checklist](operations/production_readiness_checklist.md)
 - [Pre-Production Stability Checklist](operations/pre_production_stability_checklist.md)
@@ -50,6 +55,10 @@ This index is the primary entry point for platform documentation under docs/.
 - [Static Delivery Plan](operations/static_delivery_plan.md)
 - [Billing Automation Scheduler](operations/billing_automation_scheduler.md)
 - [AWS Operations Docs](operations/aws/README.md)
+
+## Release Drafts
+
+- [Project Middle Layer v1.0.0 Release Draft](releases/project_middle_layer_v1.0.0_release_draft.md)
 
 ## Conventions
 
