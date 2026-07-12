@@ -1,3 +1,9 @@
+try:
+    from workflow.errors.strict_mode_errors import InverseCountError, InverseMissingError
+except ModuleNotFoundError:  # pragma: no cover - script execution path
+    from errors.strict_mode_errors import InverseCountError, InverseMissingError
+
+
 class InversePairNode:
     """
     Validates that the QPU contains two complete inverse color pairs.
@@ -15,9 +21,7 @@ class InversePairNode:
         for color in colors:
             inverse = self.inverse_map.get(color)
             if inverse not in colors:
-                raise ValueError(
-                    f"Strict Mode Error: {color} appears without its inverse {inverse}."
-                )
+                raise InverseMissingError(color, inverse)
             pairs.append((color, inverse))
 
         # Deduplicate pairs (color <-> inverse)
@@ -27,6 +31,6 @@ class InversePairNode:
                 unique_pairs.append((a, b))
 
         if len(unique_pairs) != 2:
-            raise ValueError("Strict Mode Error: QPU must contain exactly two inverse pairs.")
+            raise InverseCountError()
 
         return unique_pairs

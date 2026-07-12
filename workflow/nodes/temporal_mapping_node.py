@@ -1,3 +1,9 @@
+try:
+    from workflow.errors.strict_mode_errors import TemporalCountError, TemporalMappingError
+except ModuleNotFoundError:  # pragma: no cover - script execution path
+    from errors.strict_mode_errors import TemporalCountError, TemporalMappingError
+
+
 class TemporalMappingNode:
     """
     Maps the 4 colors to Past -> Present-Past -> Present-Future -> Future.
@@ -12,10 +18,12 @@ class TemporalMappingNode:
         returns: final QPU structure
         """
         if len(self.tenses) != 4:
-            raise ValueError("Strict Mode Error: Temporal mapping requires exactly 4 tenses.")
+            raise TemporalCountError()
 
         qpu = []
         for tense, srl in zip(self.tenses, srl_values):
+            if not tense:
+                raise TemporalMappingError(self.tenses)
             qpu.append({"tense": tense, "srl": srl})
 
         return qpu

@@ -1,3 +1,9 @@
+try:
+    from workflow.errors.strict_mode_errors import RelaySegmentError
+except ModuleNotFoundError:  # pragma: no cover - script execution path
+    from errors.strict_mode_errors import RelaySegmentError
+
+
 class RelayAlignmentNode:
     """
     Ensures the 4 colors form a contiguous segment of the Linear Relay.
@@ -23,8 +29,6 @@ class RelayAlignmentNode:
                 break
 
         if not segment:
-            raise ValueError(
-                "Strict Mode Error: Colors do not form a contiguous Linear Relay segment."
-            )
+            raise RelaySegmentError(sorted(colors))
 
         return segment

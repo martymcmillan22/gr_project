@@ -144,13 +144,14 @@ def cmd_strict_mode(args: argparse.Namespace) -> int:
         )
         return 1
 
-    from nodes.inverse_pair_node import InversePairNode
-    from nodes.relay_alignment_node import RelayAlignmentNode
-    from nodes.srl_node import SRLNode
-    from nodes.temporal_mapping_node import TemporalMappingNode
+    try:
+        from workflow.engine.strict_mode_engine import StrictModeEngine
+        from workflow.errors.strict_mode_errors import StrictModeError
+    except ModuleNotFoundError:  # pragma: no cover - script execution path
+        from engine.strict_mode_engine import StrictModeEngine
+        from errors.strict_mode_errors import StrictModeError
 
     definition = json.loads(STRICT_MODE_DEFINITION_PATH.read_text(encoding="utf-8"))
-    node_map = {node.get("id"): node for node in definition.get("nodes", [])}
 
     inverse_pairs_arg = _parse_inverse_pairs(args.inverse_pairs)
     relay_segment_arg = [v.lower() for v in _normalize_four_tokens(args.relay_segment, field_name="relay-segment")]
@@ -160,63 +161,47 @@ def cmd_strict_mode(args: argparse.Namespace) -> int:
 
     inverse_colors = {c for pair in inverse_pairs_arg for c in pair}
     if len(inverse_colors) != 4:
-        raise ValueError("Strict Mode Error: inverse pairs must contain four unique colors.")
+        print("Strict Mode Error: inverse pairs must contain four unique colors.")
+        return 1
     if set(relay_segment_arg) != inverse_colors:
-        raise ValueError(
-            "Strict Mode Error: relay segment colors must match colors from inverse pairs."
-        )
+        print("Strict Mode Error: relay segment colors must match colors from inverse pairs.")
+        return 1
 
-    inverse_cfg = node_map.get("inverse_pair_node", {}).get("config", {})
-    relay_cfg = node_map.get("relay_alignment_node", {}).get("config", {})
-    srl_cfg = node_map.get("srl_node", {}).get("config", {})
-    temporal_cfg = dict(node_map.get("temporal_mapping_node", {}).get("config", {}))
-    temporal_cfg["tenses"] = tenses_arg
+    # Bind runtime tenses from CLI to keep semantic mapping deterministic.
+    for node in definition.get("nodes", []):
+        if node.get("id") == "temporal_mapping_node":
+            node.setdefault("config", {})["tenses"] = tenses_arg
+            break
+
+    engine = StrictModeEngine(definition)
+    payload = {
+        "name": args.name,
+        "inverse_pairs": inverse_pairs_arg,
+        "relay_segment": relay_segment_arg,
+        "srl_values": srl_values_arg,
+        "tenses": tenses_arg,
+        "btif_subjects": btif_subjects_arg,
+        "semantic_tags": sorted(set(args.semantic_tags)),
+    }
+
+    # Guardrail: user-provided inverse pairs must align with strict definition mapping.
+    strict_inverse_map = {}
+    for node in definition.get("nodes", []):
+        if node.get("id") == "inverse_pair_node":
+            strict_inverse_map = node.get("config", {}).get("inverse_map", {})
+            break
+    for left, right in inverse_pairs_arg:
+        if strict_inverse_map.get(left) != right:
+            print(f"Strict Mode Error: inverse pair {left}:{right} conflicts with strict inverse map.")
+            return 1
 
     try:
-        inverse_node = InversePairNode(inverse_cfg)
-        inverse_pairs = inverse_node.run(relay_segment_arg)
-
-        for left, right in inverse_pairs_arg:
-            if inverse_cfg.get("inverse_map", {}).get(left) != right:
-                raise ValueError(
-                    f"Strict Mode Error: inverse pair {left}:{right} conflicts with strict inverse map."
-                )
-
-        relay_node = RelayAlignmentNode(relay_cfg)
-        relay_segment = relay_node.run(inverse_pairs)
-        if relay_segment != relay_segment_arg:
-            raise ValueError(
-                "Strict Mode Error: provided relay segment does not match strict relay alignment."
-            )
-
-        srl_node = SRLNode(srl_cfg)
-        srl_values = srl_node.run(relay_segment)
-        if srl_values != srl_values_arg:
-            raise ValueError(
-                f"Strict Mode Error: provided SRL values {srl_values_arg} do not match computed values {srl_values}."
-            )
-
-        temporal_node = TemporalMappingNode(temporal_cfg)
-        qpu = temporal_node.run(srl_values)
-    except ValueError as exc:
+        result = engine.run(payload)
+    except StrictModeError as exc:
         print(str(exc))
         return 1
 
-    qpu_with_subjects = []
-    for index, item in enumerate(qpu):
-        enriched = dict(item)
-        enriched["subject"] = btif_subjects_arg[index]
-        qpu_with_subjects.append(enriched)
-
-    result = {
-        "workflow_id": definition.get("id"),
-        "name": args.name,
-        "semantic_tags": sorted(set(args.semantic_tags)),
-        "inverse_pairs": [list(pair) for pair in inverse_pairs],
-        "relay_segment": relay_segment,
-        "srl_values": srl_values,
-        "qpu": qpu_with_subjects,
-    }
+    result["workflow_id"] = definition.get("id")
     print(json.dumps(result, indent=2))
     return 0
 
