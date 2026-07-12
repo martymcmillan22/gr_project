@@ -43,6 +43,7 @@ from .views import (
     ProjectMiddleLayerBtifPlusView,
     ProjectMiddleLayerExternalAgentsView,
     ProjectMiddleLayerCrossSyncView,
+    ProjectMiddleLayerSeedDemoDataView,
 )
 
 app_name = "project_middle_layer"
@@ -90,5 +91,6 @@ urlpatterns = [
     path("btif-plus/", ProjectMiddleLayerBtifPlusView.as_view(), name="btif-plus"),
     path("external-agents/", ProjectMiddleLayerExternalAgentsView.as_view(), name="external-agents"),
     path("cross-sync/", ProjectMiddleLayerCrossSyncView.as_view(), name="cross-sync"),
+    path("seed-demo-data/", ProjectMiddleLayerSeedDemoDataView.as_view(), name="seed-demo-data"),
     path("api/", include("project_middle_layer.api.routes")),
 ]

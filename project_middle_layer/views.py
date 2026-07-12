@@ -1,6 +1,8 @@
 import json
+from io import StringIO
 
 from django.contrib import admin, messages
+from django.core.management import call_command
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
@@ -174,6 +176,17 @@ def _audit_request(request, *, action: str, project: ProjectNode | None = None, 
         payload=payload or {},
         source=source,
     )
+
+
+def _is_phase10_platform_operator(user) -> bool:
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return True
+
+    if SemanticUserProfile.objects.filter(user=user, default_role__slug="phase10-platform-operator").exists():
+        return True
+    return SemanticPermission.objects.filter(user=user, is_active=True, role__slug="phase10-platform-operator").exists()
 
 
 class ProjectMiddleLayerStatusView(View):
@@ -2066,3 +2079,24 @@ class ProjectMiddleLayerCrossSyncView(ProjectMiddleLayerAdminRequiredMixin, View
             "logs": list(SemanticCrossSyncLog.objects.order_by("-started_at")[:100]),
         }
         return TemplateResponse(request, self.template_name, context)
+
+
+class ProjectMiddleLayerSeedDemoDataView(ProjectMiddleLayerAdminRequiredMixin, View):
+    def post(self, request):
+        if not has_semantic_capability(request.user, "manage.marketplace") and not _is_phase10_platform_operator(request.user):
+            raise PermissionDenied
+
+        output = StringIO()
+        try:
+            call_command("project_middle_layer_seed_phase10", stdout=output)
+            raw = output.getvalue().strip()
+            summary = json.loads(raw) if raw else {}
+            _audit_request(request, action="seed.phase10.demo_data", payload={"summary": summary})
+
+            demo_data = summary.get("demo_data", {}) if isinstance(summary, dict) else {}
+            seeded_count = len(demo_data)
+            messages.success(request, f"Seed demo data completed ({seeded_count} sections).")
+        except Exception as exc:
+            messages.error(request, f"Seed demo data failed: {exc}")
+
+        return redirect(reverse("admin:project-middle-layer-admin"))

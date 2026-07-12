@@ -4,9 +4,133 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/platform_dashboard.css' %}">
+<style>
+  #pm-admin-root.density-compact .bt-overview-card,
+  #pm-admin-root.density-compact .bt-card {
+    padding: 10px !important;
+  }
+
+  #pm-admin-root.density-compact .bt-actions .bt-action {
+    padding: 5px 10px;
+    font-size: 0.84rem;
+  }
+
+  #pm-admin-root.density-compact p {
+    margin: 0.18rem 0;
+  }
+
+  .bt-rail.bt-rail-inline {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 0 14px auto;
+    width: fit-content;
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+    z-index: 1 !important;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed {
+    display: block;
+    padding: 8px 10px;
+    max-height: none;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #bfd0e6;
+    background: #edf4fd;
+    color: #23466b;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed summary::after {
+    content: "Open";
+    font-size: 0.72rem;
+    opacity: 0.85;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed[open] summary::after {
+    content: "Close";
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed:not([open]) a,
+  .bt-rail.bt-rail-inline.bt-rail-collapsed:not([open]) button,
+  .bt-rail.bt-rail-inline.bt-rail-collapsed:not([open]) p {
+    display: none;
+  }
+
+  .bt-rail.bt-rail-inline.bt-rail-collapsed[open] {
+    max-height: min(62vh, 620px);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 1100px) {
+    .bt-rail.bt-rail-inline {
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      margin: 0 0 12px;
+    }
+  }
+
+  .pm-health-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .pm-sparkline {
+    width: 110px;
+    height: 26px;
+    display: block;
+  }
+
+  .pm-sparkline path {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
+<div id="pm-admin-root" class="density-comfortable">
+<details class="bt-rail bt-rail-inline bt-rail-collapsed" id="pm-shortcuts-rail" aria-label="Project Middle Layer shortcuts">
+  <summary>Project Layer Shortcuts</summary>
+  <a href="#bt-top">Top</a>
+  <a href="#pm-health">Health</a>
+  <a href="#pm-quick-actions">Quick Actions</a>
+  <a href="#pm-recommendations">Recommendations</a>
+  <a href="#pm-alerts">Alerts</a>
+  <a href="#pm-lineage">Lineage</a>
+  <a href="#pm-heatmap">Heatmap</a>
+  <a href="#pm-stability">Stability</a>
+  <a href="#pm-snapshots">Snapshots</a>
+  <a href="#pm-project-nodes">Project Nodes</a>
+  <a href="{% url 'task-manager-admin:index' %}">Task Manager</a>
+  <a href="{% url 'admin:basetrue-insights' %}">BaseTrue Insights</a>
+  <button type="button" id="bt-theme-toggle">Theme</button>
+  <button type="button" id="pm-density-toggle">Density: Comfortable</button>
+  <form method="post" action="{{ seed_demo_data_url }}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit">Seed Demo Data</button>
+  </form>
+</details>
+
 <div class="bt-brand-header">
   <a class="bt-wheel-link" href="{% url 'admin:index' %}" title="Open Admin Home">
     <span class="bt-wheel" aria-hidden="true">
@@ -27,13 +151,19 @@
 <h2 class="bt-section bt-q-green" id="pm-health">Semantic Health Dashboard</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
   <section class="bt-overview-card bt-q-green" style="padding:14px;">
-    <h3 style="margin-top:0;">Health Score</h3>
+    <div class="pm-health-head">
+      <h3 style="margin-top:0;">Health Score</h3>
+      <svg class="pm-sparkline" id="pm-spark-health" viewBox="0 0 110 26" preserveAspectRatio="none" aria-label="Health trend"></svg>
+    </div>
     <p><strong>{{ semantic_health.label }}</strong></p>
     <p>Score: {{ semantic_health.score }}</p>
     <p>Status: {{ semantic_health.status }}</p>
   </section>
   <section class="bt-overview-card bt-q-blue" style="padding:14px;">
-    <h3 style="margin-top:0;">Drift</h3>
+    <div class="pm-health-head">
+      <h3 style="margin-top:0;">Drift</h3>
+      <svg class="pm-sparkline" id="pm-spark-drift" viewBox="0 0 110 26" preserveAspectRatio="none" aria-label="Drift trend"></svg>
+    </div>
     <p>Average risk: {{ semantic_health.average_drift_risk }}</p>
     <p>Schema issue projects: {{ semantic_health.projects_with_schema_issues }}</p>
   </section>
@@ -47,7 +177,10 @@
     {% endfor %}
   </section>
   <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
-    <h3 style="margin-top:0;">Branch Mix</h3>
+    <div class="pm-health-head">
+      <h3 style="margin-top:0;">Branch Mix</h3>
+      <svg class="pm-sparkline" id="pm-spark-stability" viewBox="0 0 110 26" preserveAspectRatio="none" aria-label="Stability trend"></svg>
+    </div>
     {% for branch, count in semantic_health.branch_distribution.items %}
       <p>{{ branch }}: {{ count }}</p>
     {% empty %}
@@ -100,7 +233,7 @@
   <a class="bt-action bt-q-yellow" href="{% url 'task-manager-admin:index' %}">Task Manager Admin</a>
 </div>
 
-<h2 class="bt-section bt-q-yellow">Semantic Recommendations</h2>
+<h2 class="bt-section bt-q-yellow" id="pm-recommendations">Semantic Recommendations</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:18px;">
   <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
     <h3 style="margin-top:0;">Recommendation Mix</h3>
@@ -130,7 +263,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-red">Semantic Alerts</h2>
+<h2 class="bt-section bt-q-red" id="pm-alerts">Semantic Alerts</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px;">
   <section class="bt-overview-card bt-q-red" style="padding:14px;">
     <h3 style="margin-top:0;">Alert Summary</h3>
@@ -168,7 +301,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-green">Lineage Explorer</h2>
+<h2 class="bt-section bt-q-green" id="pm-lineage">Lineage Explorer</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
   {% for card in project_cards %}
     <section class="bt-overview-card bt-q-green" style="padding:14px;">
@@ -188,7 +321,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-blue">Drift Heatmap</h2>
+<h2 class="bt-section bt-q-blue" id="pm-heatmap">Drift Heatmap</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
   {% for card in project_cards %}
     <section class="bt-overview-card bt-q-blue" style="padding:14px;">
@@ -214,7 +347,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-red">Stability Analyzer</h2>
+<h2 class="bt-section bt-q-red" id="pm-stability">Stability Analyzer</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
   {% for card in project_cards %}
     <section class="bt-overview-card bt-q-red" style="padding:14px;">
@@ -239,7 +372,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-blue">Recent Evolution Snapshots</h2>
+<h2 class="bt-section bt-q-blue" id="pm-snapshots">Recent Evolution Snapshots</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
   {% for snapshot in recent_snapshots %}
     <section class="bt-overview-card bt-q-blue" style="padding:14px;">
@@ -258,7 +391,7 @@
   {% endfor %}
 </div>
 
-<h2 class="bt-section bt-q-blue">Project Nodes</h2>
+<h2 class="bt-section bt-q-blue" id="pm-project-nodes">Project Nodes</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">
   {% for card in project_cards %}
     <section class="bt-overview-card bt-q-blue" style="padding:14px;">
@@ -284,5 +417,146 @@
       <div class="message-body">No Project Middle Layer nodes have been compiled yet.</div>
     </article>
   {% endfor %}
+</div>
+{{ semantic_health_trends|json_script:"pm-health-trends-data" }}
+<script src="{% static 'admin/platform_dashboard.js' %}"></script>
+<script>
+  (function () {
+    var root = document.getElementById("pm-admin-root");
+    var rail = document.getElementById("pm-shortcuts-rail");
+    var densityBtn = document.getElementById("pm-density-toggle");
+    if (!root) {
+      return;
+    }
+
+    var pageKey = "pm.admin:" + window.location.pathname;
+    var densityKey = pageKey + ":density";
+    var sectionKey = pageKey + ":last-section";
+    var railKey = pageKey + ":rail-open";
+
+    function applyDensity(mode) {
+      var density = mode === "compact" ? "compact" : "comfortable";
+      root.classList.remove("density-compact", "density-comfortable");
+      root.classList.add(density === "compact" ? "density-compact" : "density-comfortable");
+      if (densityBtn) {
+        densityBtn.textContent = density === "compact" ? "Density: Compact" : "Density: Comfortable";
+      }
+      localStorage.setItem(densityKey, density);
+    }
+
+    var savedDensity = localStorage.getItem(densityKey) || "comfortable";
+    applyDensity(savedDensity);
+    if (densityBtn) {
+      densityBtn.addEventListener("click", function () {
+        var current = root.classList.contains("density-compact") ? "compact" : "comfortable";
+        applyDensity(current === "compact" ? "comfortable" : "compact");
+      });
+    }
+
+    if (rail) {
+      var savedRailOpen = localStorage.getItem(railKey);
+      if (savedRailOpen === "1") {
+        rail.open = true;
+      }
+      rail.addEventListener("toggle", function () {
+        localStorage.setItem(railKey, rail.open ? "1" : "0");
+      });
+    }
+
+    function storeSection(id) {
+      if (id) {
+        localStorage.setItem(sectionKey, id);
+      }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+      anchor.addEventListener("click", function () {
+        var id = (anchor.getAttribute("href") || "").replace("#", "");
+        if (id) {
+          storeSection(id);
+        }
+      });
+    });
+
+    if (!window.location.hash) {
+      var savedSection = localStorage.getItem(sectionKey);
+      if (savedSection) {
+        var target = document.getElementById(savedSection);
+        if (target) {
+          setTimeout(function () {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 90);
+        }
+      }
+    }
+
+    var observed = [
+      "bt-top",
+      "pm-health",
+      "pm-quick-actions",
+      "pm-recommendations",
+      "pm-alerts",
+      "pm-lineage",
+      "pm-heatmap",
+      "pm-stability",
+      "pm-snapshots",
+      "pm-project-nodes",
+    ]
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
+
+    if ("IntersectionObserver" in window && observed.length) {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && entry.target && entry.target.id) {
+            storeSection(entry.target.id);
+          }
+        });
+      }, { threshold: 0.45 });
+      observed.forEach(function (node) { observer.observe(node); });
+    }
+
+    function drawSparkline(svgId, values, color) {
+      var svg = document.getElementById(svgId);
+      if (!svg || !Array.isArray(values) || !values.length) {
+        return;
+      }
+
+      var width = 110;
+      var height = 26;
+      var min = Math.min.apply(null, values);
+      var max = Math.max.apply(null, values);
+      var range = Math.max(0.0001, max - min);
+
+      var points = values.map(function (value, index) {
+        var x = values.length === 1 ? 0 : (index * (width / (values.length - 1)));
+        var y = height - (((value - min) / range) * (height - 2)) - 1;
+        return x.toFixed(2) + "," + y.toFixed(2);
+      }).join(" ");
+
+      svg.innerHTML = "";
+      var polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      polyline.setAttribute("points", points);
+      polyline.setAttribute("fill", "none");
+      polyline.setAttribute("stroke", color);
+      polyline.setAttribute("stroke-width", "2");
+      polyline.setAttribute("stroke-linecap", "round");
+      polyline.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(polyline);
+    }
+
+    var trendsNode = document.getElementById("pm-health-trends-data");
+    if (trendsNode) {
+      try {
+        var trends = JSON.parse(trendsNode.textContent || "{}");
+        drawSparkline("pm-spark-health", trends.health || [], "#2f855a");
+        drawSparkline("pm-spark-drift", trends.drift || [], "#2b6cb0");
+        drawSparkline("pm-spark-stability", trends.stability || [], "#b7791f");
+      } catch (err) {
+        // Keep dashboard resilient when trend payload is absent or malformed.
+      }
+    }
+  })();
+</script>
 </div>
 {% endblock %}

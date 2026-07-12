@@ -397,6 +397,12 @@ class ProjectMiddleLayerRouteTests(SimpleTestCase):
             "/project-middle-layer/cross-sync/",
         )
 
+    def test_seed_demo_data_route_resolves(self):
+        self.assertEqual(
+            reverse("project_middle_layer:seed-demo-data"),
+            "/project-middle-layer/seed-demo-data/",
+        )
+
     def test_api_marketplace_install_route_resolves(self):
         self.assertEqual(
             reverse("project_middle_layer:project-middle-layer-marketplace-install"),
@@ -1229,6 +1235,19 @@ class ProjectMiddleLayerAdminTests(TestCase):
         self.assertContains(response, "Cache")
         self.assertContains(response, "Sync")
         self.assertContains(response, "Distributed Agents")
+        self.assertContains(response, "Density: Comfortable")
+        self.assertContains(response, "Seed Demo Data")
+        self.assertContains(response, "pm-health-trends-data")
+
+    def test_project_middle_layer_seed_demo_data_action_runs_command(self):
+        response = self.client.post(
+            reverse("project_middle_layer:seed-demo-data"),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Seed demo data completed")
+        self.assertTrue(MarketplaceItem.objects.filter(slug="semantic-starter-plugin-pack").exists())
 
     def test_project_middle_layer_roles_page_creates_role_and_permission(self):
         role_response = self.client.post(

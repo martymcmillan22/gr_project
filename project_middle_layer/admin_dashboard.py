@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from django.contrib import admin
 from django.template.response import TemplateResponse
 
-from project_middle_layer.models import ProjectEvolutionSnapshot, ProjectNode, SemanticAlert, SemanticLineageRecord
+from project_middle_layer.models import ProjectEvolutionSnapshot, ProjectNode, SemanticAlert, SemanticAnalyticsSnapshot, SemanticLineageRecord
 from project_middle_layer.pipelines import build_project_creation_payload
 
 
@@ -138,6 +138,34 @@ def _build_recommendation_apply_url(node: ProjectNode, recommendation: dict[str,
     return f"/project-middle-layer/compile/?{urlencode(query)}"
 
 
+def _build_semantic_health_trends(*, limit: int = 10) -> dict[str, object]:
+    snapshots = list(SemanticAnalyticsSnapshot.objects.order_by("-created_at")[:limit])
+    snapshots.reverse()
+
+    labels = [item.created_at.strftime("%m-%d") for item in snapshots]
+    drift = [round(float(item.drift_mean or 0.0), 4) for item in snapshots]
+    stability = [round(float(item.stability_mean or 0.0), 2) for item in snapshots]
+
+    # Derived health score from existing analytics fields (no new engine work).
+    health = [
+        max(
+            0,
+            min(
+                100,
+                round(((100.0 - (float(item.drift_mean or 0.0) * 100.0)) * 0.45) + (float(item.stability_mean or 0.0) * 0.55), 2),
+            ),
+        )
+        for item in snapshots
+    ]
+
+    return {
+        "labels": labels,
+        "health": health,
+        "drift": drift,
+        "stability": stability,
+    }
+
+
 def project_middle_layer_admin_view(request):
     nodes = list(ProjectNode.objects.order_by("-updated_at")[:25])
     project_cards = []
@@ -187,6 +215,7 @@ def project_middle_layer_admin_view(request):
     recent_alerts = list(SemanticAlert.objects.select_related("project", "source_snapshot")[:10])
 
     semantic_health = _build_semantic_health_summary(project_cards)
+    semantic_health_trends = _build_semantic_health_trends(limit=10)
 
     context = {
         **admin.site.each_context(request),
@@ -227,11 +256,13 @@ def project_middle_layer_admin_view(request):
         "btif_plus_url": "/project-middle-layer/btif-plus/",
         "external_agents_url": "/project-middle-layer/external-agents/",
         "cross_sync_url": "/project-middle-layer/cross-sync/",
+        "seed_demo_data_url": "/project-middle-layer/seed-demo-data/",
         "project_cards": project_cards,
         "project_count": len(project_cards),
         "recent_snapshots": recent_snapshots,
         "recent_lineage_records": recent_lineage_records,
         "recent_alerts": recent_alerts,
         "semantic_health": semantic_health,
+        "semantic_health_trends": semantic_health_trends,
     }
     return TemplateResponse(request, "admin/project_middle_layer_admin.html", context)
