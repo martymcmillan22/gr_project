@@ -969,82 +969,95 @@ body.dark-mode .studio-disabled-command {
 
 .enterprise-workspace {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .enterprise-header-panel {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(229, 239, 248, 0.84)),
     var(--card);
+  box-shadow:
+    0 10px 30px rgba(18, 60, 96, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
 }
 
 body.dark-mode .enterprise-header-panel {
   background:
     linear-gradient(145deg, rgba(23, 36, 31, 0.94), rgba(20, 46, 57, 0.88)),
     var(--card);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .enterprise-header-badge-row,
 .enterprise-badge-row,
 .enterprise-command-row {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
 .enterprise-header-badge-row {
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.62rem;
 }
 
 .enterprise-status-line {
-  margin: 0.3rem 0 0;
+  margin: 0.36rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.42;
 }
 
 .enterprise-summary-grid {
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.58rem;
 }
 
 .enterprise-summary-card {
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.6rem 0.72rem;
+  border-radius: 13px;
+  padding: 0.68rem 0.78rem;
   background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 22px rgba(14, 40, 62, 0.09);
 }
 
 body.dark-mode .enterprise-summary-card {
   background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
 .enterprise-summary-card h4 {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .enterprise-summary-keyline {
-  margin: 0.35rem 0 0;
+  margin: 0.38rem 0 0;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .enterprise-summary-detail {
-  margin: 0.35rem 0 0;
+  margin: 0.38rem 0 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.79rem;
+  line-height: 1.35;
 }
 
 .enterprise-owner-pill {
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   display: inline-flex;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.16rem 0.62rem;
+  padding: 0.18rem 0.66rem;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.77rem;
+  letter-spacing: 0.03em;
 }
 
 .enterprise-owner-pill.owner-qc {
@@ -1067,16 +1080,18 @@ body.dark-mode .enterprise-summary-card {
 
 .enterprise-zone-rail {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  margin-top: 0.7rem;
+  margin-top: 0.8rem;
 }
 
 .enterprise-zone-pill {
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.25rem 0.62rem;
-  font-size: 0.76rem;
+  padding: 0.3rem 0.68rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.68);
 }
@@ -1087,25 +1102,30 @@ body.dark-mode .enterprise-zone-pill {
 
 .enterprise-zone-pill.is-active {
   border-color: #3c7ec0;
-  background: rgba(58, 124, 191, 0.14);
+  background: rgba(58, 124, 191, 0.18);
   color: #275889;
+  box-shadow: 0 0 0 1px rgba(58, 124, 191, 0.22);
 }
 
 .enterprise-chain-panel {
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   border: 1px dashed var(--line);
-  border-radius: 12px;
-  padding: 0.62rem 0.7rem;
+  border-radius: 13px;
+  padding: 0.7rem 0.78rem;
   background: rgba(255, 255, 255, 0.54);
+  box-shadow: 0 8px 20px rgba(19, 49, 76, 0.07);
 }
 
 body.dark-mode .enterprise-chain-panel {
   background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
 }
 
 .enterprise-chain-panel h4 {
-  margin: 0 0 0.45rem;
-  font-size: 0.86rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .enterprise-chain-list {
@@ -1113,25 +1133,27 @@ body.dark-mode .enterprise-chain-panel {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.35rem;
+  gap: 0.42rem;
 }
 
 .enterprise-chain-list li {
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.45rem 0.55rem;
+  border-radius: 11px;
+  padding: 0.5rem 0.6rem;
   display: grid;
-  gap: 0.18rem;
+  gap: 0.22rem;
   background: var(--card);
 }
 
 .enterprise-chain-list li strong {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
 }
 
 .enterprise-chain-list li span {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  line-height: 1.32;
 }
 
 .enterprise-chain-list li.is-active {
@@ -1142,49 +1164,53 @@ body.dark-mode .enterprise-chain-panel {
 .commands-badge.enterprise-badge {
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.16rem 0.62rem;
-  font-size: 0.76rem;
+  padding: 0.18rem 0.66rem;
+  font-size: 0.74rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .commands-badge.enterprise-badge.is-allowed {
   border-color: #7fc9a1;
-  background: rgba(38, 138, 91, 0.12);
+  background: rgba(38, 138, 91, 0.16);
   color: #1d7b4e;
 }
 
 .commands-badge.enterprise-badge.is-blocked {
   border-color: #d0a87d;
-  background: rgba(198, 124, 39, 0.12);
+  background: rgba(198, 124, 39, 0.16);
   color: #8a5413;
 }
 
 .enterprise-command-row {
-  margin-top: 0.6rem;
+  margin-top: 0.7rem;
 }
 
 .enterprise-panel {
   border-left: 4px solid rgba(30, 120, 181, 0.32);
+  box-shadow: 0 10px 20px rgba(16, 44, 72, 0.05);
 }
 
 .enterprise-tower-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
-  gap: 0.75rem;
+  gap: 0.85rem;
   align-items: start;
 }
 
 .enterprise-tower-aside {
   border: 1px dashed var(--line);
-  border-radius: 12px;
-  padding: 0.62rem;
+  border-radius: 13px;
+  padding: 0.7rem;
   background: rgba(255, 255, 255, 0.56);
   display: grid;
-  gap: 0.35rem;
+  gap: 0.42rem;
+  box-shadow: 0 8px 20px rgba(18, 50, 80, 0.08);
 }
 
 body.dark-mode .enterprise-tower-aside {
   background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
 }
 
 .enterprise-tower-aside h4 {
@@ -1193,25 +1219,26 @@ body.dark-mode .enterprise-tower-aside {
 
 .enterprise-floor-slice-grid {
   display: grid;
-  gap: 0.42rem;
-  margin: 0.5rem 0;
+  gap: 0.46rem;
+  margin: 0.55rem 0;
 }
 
 .enterprise-floor-slice-row {
   display: grid;
-  gap: 0.24rem;
+  gap: 0.28rem;
 }
 
 .enterprise-floor-slice-head {
   display: flex;
   justify-content: space-between;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .enterprise-floor-slice-track {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .enterprise-floor-slice-fill {
@@ -1223,32 +1250,33 @@ body.dark-mode .enterprise-tower-aside {
 
 .enterprise-floor-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
 }
 
 .enterprise-preview-grid {
   display: grid;
-  gap: 0.42rem;
-  margin-top: 0.5rem;
+  gap: 0.46rem;
+  margin-top: 0.56rem;
 }
 
 .enterprise-tower-stats {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
 .enterprise-floor-preview {
   border: 1px solid #6f8298;
-  border-radius: 10px;
-  padding: 0.5rem;
+  border-radius: 11px;
+  padding: 0.54rem;
   margin-bottom: 0.6rem;
   background: rgba(255, 255, 255, 0.03);
 }
 
 .enterprise-floor-preview p {
-  margin: 0.2rem 0;
+  margin: 0.22rem 0;
+  font-size: 0.82rem;
 }
 
 .tower-floor-selector {
@@ -1259,12 +1287,12 @@ body.dark-mode .enterprise-tower-aside {
 .enterprise-floor-button {
   position: relative;
   overflow: hidden;
-  border-radius: 10px;
-  padding: 0.56rem 0.62rem;
+  border-radius: 11px;
+  padding: 0.6rem 0.66rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.58rem;
 }
 
 .enterprise-floor-button.is-active .enterprise-floor-label {
@@ -1280,7 +1308,7 @@ body.dark-mode .enterprise-tower-aside {
 .enterprise-floor-badges {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.34rem;
 }
 
 .enterprise-floor-id,
@@ -1288,8 +1316,10 @@ body.dark-mode .enterprise-tower-aside {
 .enterprise-rr-id {
   border: 1px solid #7a8ea4;
   border-radius: 999px;
-  padding: 0.08rem 0.45rem;
-  font-size: 0.68rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   background: rgba(255, 255, 255, 0.2);
 }
 
