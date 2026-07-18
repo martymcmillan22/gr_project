@@ -32,7 +32,7 @@ import QuickActions from "./ui/QuickActions";
 import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
-import { DeterministicErrorBoundary } from "./ui/DeterministicBoundary";
+import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
 import { TemplateGroupInspectorPanel } from "../../ui/diagnostics/TemplateGroupInspectorPanel";
 import CompartmentPage from "../../basetrue/components/CompartmentPage";
 import EnterpriseWorkspace from "../../basetrue/workspaces/EnterpriseWorkspace";
@@ -1839,11 +1839,18 @@ export default function App() {
         </section>
 
         {baseTrueCompartmentRoute.error ? (
-          <section className="panel">
-            <h2>Invalid BaseTrue Route</h2>
-            <p className="status-line">{baseTrueCompartmentRoute.error}</p>
-            <p className="status-line">Example: /basetrue/public/bos/1/novice</p>
-          </section>
+          <DeterministicGuardedSurface
+            tier="novice"
+            surface="route-error"
+            shellClassName="det-surface-stable det-surface-stable--novice"
+            loading={false}
+          >
+            <section className="panel">
+              <h2>Invalid BaseTrue Route</h2>
+              <p className="status-line">{baseTrueCompartmentRoute.error}</p>
+              <p className="status-line">Example: /basetrue/public/bos/1/novice</p>
+            </section>
+          </DeterministicGuardedSurface>
         ) : (
           <DeterministicErrorBoundary
             tier={baseTrueCompartmentRoute.tier}
@@ -1895,14 +1902,21 @@ export default function App() {
     if (!enterpriseRouteAllowed) {
       return (
         <main className="homepage-wrap basetrue-route">
-          <section className="panel basetrue-route-hero">
-            <p className="eyebrow">BaseTrue Route</p>
-            <h1>Enterprise Tower Workspace</h1>
-            <p className="status-line">Enterprise route is disabled because governed apply mode is not available.</p>
-            <a href="/" className="action-btn basetrue-route-back">
-              Back to dashboard
-            </a>
-          </section>
+          <DeterministicGuardedSurface
+            tier="enterprise"
+            surface="route-gate"
+            shellClassName="det-surface-stable det-surface-stable--enterprise"
+            loading={false}
+          >
+            <section className="panel basetrue-route-hero">
+              <p className="eyebrow">BaseTrue Route</p>
+              <h1>Enterprise Tower Workspace</h1>
+              <p className="status-line">Enterprise route is disabled because governed apply mode is not available.</p>
+              <a href="/" className="action-btn basetrue-route-back">
+                Back to dashboard
+              </a>
+            </section>
+          </DeterministicGuardedSurface>
         </main>
       );
     }
@@ -2651,7 +2665,16 @@ export default function App() {
           </div>
         ) : null}
 
-        {isRouteLoading ? <p className="status-line">Loading resolved route...</p> : null}
+        {isRouteLoading ? (
+          <DeterministicGuardedSurface
+            tier="novice"
+            surface="pipeline-loading"
+            shellClassName="det-surface-stable det-surface-stable--novice"
+            loading={true}
+            loadingTitle="Resolved Route Loading"
+            loadingMessage="Deterministic route preview is loading while preserving pipeline surface stability."
+          />
+        ) : null}
         {routeError ? <p className="routing-error">{routeError}</p> : null}
         {routeSlide ? <RoutingLayoutPreview slide={routeSlide} /> : null}
 

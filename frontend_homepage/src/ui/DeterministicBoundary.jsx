@@ -103,3 +103,30 @@ export function DeterministicLoadingSurface({ tier, surface, title, message }) {
     />
   );
 }
+
+export function DeterministicGuardedSurface({ tier, surface, shellClassName, loading, loadingTitle, loadingMessage, children }) {
+  if (loading) {
+    return (
+      <DeterministicLoadingSurface
+        tier={tier}
+        surface={surface}
+        title={loadingTitle || "Deterministic loading surface"}
+        message={loadingMessage || "Deterministic loading state is active while preserving surface stability."}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={joinClassNames(
+        "det-guard-shell",
+        `det-guard-shell--${tier}`,
+        shellClassName,
+      )}
+      data-tier={tier}
+      data-surface={surface}
+    >
+      {children}
+    </div>
+  );
+}
