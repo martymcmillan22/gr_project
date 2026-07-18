@@ -21,6 +21,8 @@ export function DeterministicSurfaceFallback({
   releaseMetadata,
   deploymentPolicy,
   rollbackPolicy,
+  packagingMetadata,
+  artifactManifest,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -54,6 +56,9 @@ export function DeterministicSurfaceFallback({
       data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
       data-release-rollback-allowed={rollbackPolicy?.rollbackAllowed ? "true" : "false"}
       data-release-previous-build={rollbackPolicy?.previousBuildId || ""}
+      data-package-bundle-id={packagingMetadata?.bundleId || ""}
+      data-package-signature={packagingMetadata?.buildSignature || ""}
+      data-artifact-manifest-id={artifactManifest?.manifestId || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -102,6 +107,8 @@ export class DeterministicErrorBoundary extends React.Component {
       releaseMetadata,
       deploymentPolicy,
       rollbackPolicy,
+      packagingMetadata,
+      artifactManifest,
     } = this.props;
 
     if (this.state.hasError) {
@@ -116,6 +123,8 @@ export class DeterministicErrorBoundary extends React.Component {
           releaseMetadata={releaseMetadata}
           deploymentPolicy={deploymentPolicy}
           rollbackPolicy={rollbackPolicy}
+          packagingMetadata={packagingMetadata}
+          artifactManifest={artifactManifest}
         />
       );
     }
@@ -136,6 +145,9 @@ export class DeterministicErrorBoundary extends React.Component {
         data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
         data-release-rollback-allowed={rollbackPolicy?.rollbackAllowed ? "true" : "false"}
         data-release-previous-build={rollbackPolicy?.previousBuildId || ""}
+        data-package-bundle-id={packagingMetadata?.bundleId || ""}
+        data-package-signature={packagingMetadata?.buildSignature || ""}
+        data-artifact-manifest-id={artifactManifest?.manifestId || ""}
       >
         {children}
       </div>
@@ -151,6 +163,8 @@ export function DeterministicLoadingSurface({
   releaseMetadata,
   deploymentPolicy,
   rollbackPolicy,
+  packagingMetadata,
+  artifactManifest,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -162,6 +176,8 @@ export function DeterministicLoadingSurface({
       releaseMetadata={releaseMetadata}
       deploymentPolicy={deploymentPolicy}
       rollbackPolicy={rollbackPolicy}
+      packagingMetadata={packagingMetadata}
+      artifactManifest={artifactManifest}
     />
   );
 }
@@ -177,6 +193,8 @@ export function DeterministicGuardedSurface({
   releaseMetadata,
   deploymentPolicy,
   rollbackPolicy,
+  packagingMetadata,
+  artifactManifest,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -218,6 +236,8 @@ export function DeterministicGuardedSurface({
         releaseMetadata={releaseMetadata}
         deploymentPolicy={deploymentPolicy}
         rollbackPolicy={rollbackPolicy}
+        packagingMetadata={packagingMetadata}
+        artifactManifest={artifactManifest}
       />
     );
   }
@@ -238,6 +258,9 @@ export function DeterministicGuardedSurface({
         data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
         data-release-rollback-allowed={rollbackPolicy?.rollbackAllowed ? "true" : "false"}
         data-release-previous-build={rollbackPolicy?.previousBuildId || ""}
+        data-package-bundle-id={packagingMetadata?.bundleId || ""}
+        data-package-signature={packagingMetadata?.buildSignature || ""}
+        data-artifact-manifest-id={artifactManifest?.manifestId || ""}
     >
       {children}
     </div>

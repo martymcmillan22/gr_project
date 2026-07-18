@@ -38,6 +38,8 @@ import { getTierDeploymentRules } from "./config/tierDeploymentRules";
 import { DETERMINISTIC_RELEASE_GATES } from "./config/deterministicReleaseGates";
 import { getDeterministicRollbackPolicy } from "./config/releaseRollbackPolicy";
 import { buildDeterministicReleaseReport } from "./config/deterministicReleaseReport";
+import { getDeterministicArtifactManifest } from "./config/deterministicArtifactManifest";
+import { getDeterministicPackagingMetadata } from "./config/deterministicPackagingMetadata";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -191,6 +193,8 @@ export default function App() {
   const releaseMetadata = useMemo(() => getDeterministicReleaseMetadata(), []);
   const tierDeploymentRules = useMemo(() => getTierDeploymentRules(), []);
   const rollbackPolicy = useMemo(() => getDeterministicRollbackPolicy(), []);
+  const artifactManifest = useMemo(() => getDeterministicArtifactManifest(), []);
+  const packagingMetadata = useMemo(() => getDeterministicPackagingMetadata(), []);
   const deterministicReleaseReport = useMemo(
     () =>
       buildDeterministicReleaseReport({
@@ -501,6 +505,31 @@ export default function App() {
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };
   }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.packaging.metadata.loaded",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        bundleId: packagingMetadata.bundleId,
+        buildSignature: packagingMetadata.buildSignature,
+        releaseChannel: packagingMetadata.releaseChannel,
+      },
+    });
+  }, [activeRouteTier, packagingMetadata]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.artifact.manifest.loaded",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        manifestId: artifactManifest.manifestId,
+        appBundleId: artifactManifest.appBundle?.id || "",
+      },
+    });
+  }, [activeRouteTier, artifactManifest]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -2022,6 +2051,8 @@ export default function App() {
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.novice}
             rollbackPolicy={rollbackPolicy}
+            packagingMetadata={packagingMetadata}
+            artifactManifest={artifactManifest}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -2037,6 +2068,8 @@ export default function App() {
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.[baseTrueCompartmentRoute.tier]}
             rollbackPolicy={rollbackPolicy}
+            packagingMetadata={packagingMetadata}
+            artifactManifest={artifactManifest}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2072,6 +2105,8 @@ export default function App() {
           releaseMetadata={releaseMetadata}
           deploymentPolicy={tierDeploymentRules.byTier?.studio}
           rollbackPolicy={rollbackPolicy}
+          packagingMetadata={packagingMetadata}
+          artifactManifest={artifactManifest}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2094,6 +2129,8 @@ export default function App() {
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.enterprise}
             rollbackPolicy={rollbackPolicy}
+            packagingMetadata={packagingMetadata}
+            artifactManifest={artifactManifest}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2125,6 +2162,8 @@ export default function App() {
           releaseMetadata={releaseMetadata}
           deploymentPolicy={tierDeploymentRules.byTier?.enterprise}
           rollbackPolicy={rollbackPolicy}
+          packagingMetadata={packagingMetadata}
+          artifactManifest={artifactManifest}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."
