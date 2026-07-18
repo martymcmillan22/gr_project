@@ -137,7 +137,7 @@ These Mermaid files define the Penpot to MDX to React to MLAS BTIF pipeline and 
 
 ## Set up instructions
 Feel free to email me at
-[arianne.dee.studios@gmail.com](mailto:arianne.dee.studios@gmail.com)
+[basetruegrassroots@gmail.com](mailto:basetruegrassroots@gmail.com)
 if you are having any problems getting set up for the course.
 
 ### 1. Install Python 3.11
@@ -312,7 +312,7 @@ Please let me know if you have any suggestions/updates/questions about these ins
 ## Questions or comments?
 
 Email me at  
-[**arianne.dee.studios@gmail.com**](mailto:arianne.dee.studios@gmail.com) 
+[**basetruegrassroots@gmail.com**](mailto:basetruegrassroots@gmail.com) 
 or submit an issue or pull request to this repository.
 
 ---

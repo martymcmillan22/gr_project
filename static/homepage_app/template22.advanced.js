@@ -1,0 +1,1 @@
+import{j as t}from"./main.js";import{D as e}from"./DiagnosticsTabSwitcher.js";const o=function({profile:r}){return t.jsx(e,{profile:r})};function s(n){return t.jsx(t.Fragment,{})}function c(n={}){return t.jsx(o,{...n,children:t.jsx(s,{...n})})}export{c as default};
