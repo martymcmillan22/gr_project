@@ -41,6 +41,13 @@ const TEMPORAL_FLOOR_PURPOSE: Record<TemporalGroup, string> = {
   future: "execution",
 };
 
+const ENTERPRISE_CHAIN_HINTS: Record<(typeof STUDIO_ENTERPRISE_GUIDED_CHAIN)[number], string> = {
+  Monuments: "Prepare monument-safe artifacts before transactional handoff.",
+  Checkout: "Validate governed release packets and execution readiness.",
+  Surveys: "Collect semantic signal and confidence feedback.",
+  Polls: "Aggregate comparative outcomes for routing decisions.",
+};
+
 function buildEnterpriseProjects(profile: "public" | "personal"): ProjectRecord[] {
   const planIndices = [9, 10, 11, 12];
 
@@ -154,6 +161,10 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
     const floorsPerZone = STUDIO_ENTERPRISE_TOWER.floors_per_zone;
     return Math.max(1, Math.min(STUDIO_ENTERPRISE_TOWER.zones, Math.ceil(effectiveFloor / floorsPerZone)));
   }, [effectiveFloor]);
+  const guidedChainIndex = useMemo(
+    () => Math.max(0, Math.min(STUDIO_ENTERPRISE_GUIDED_CHAIN.length - 1, activeZone - 1)),
+    [activeZone],
+  );
   const activeGardenRoute = useMemo(
     () => STUDIO_ENTERPRISE_GARDEN_MAINTENANCE[(activeZone - 1) % STUDIO_ENTERPRISE_GARDEN_MAINTENANCE.length],
     [activeZone],
@@ -218,37 +229,86 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
 
   return (
     <section className="enterprise-workspace">
-      <header className="panel">
+      <header className="panel enterprise-header-panel">
         <p className="eyebrow">BaseTrue Enterprise Workspace</p>
         <h2>Tower Control Room</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+        <div className="enterprise-header-badge-row">
           <span className="tier-badge">tier enterprise</span>
           <span className="temporal-badge">workspace enterprise</span>
           <span className="commands-badge">project {activeProject?.project_id || "none"}</span>
           <span className="commands-badge">tower height {activeProject?.qpu_plan.tower_floors || 0}</span>
           <span className="commands-badge">active floor {effectiveFloor || "-"}</span>
         </div>
-        <p className="status-line">
+        <p className="status-line enterprise-status-line">
           Full enterprise orchestration across all tower floors. Temporal view: {activeProject?.temporal_group || "-"} ({
           activeProject ? TEMPORAL_FLOOR_PURPOSE[activeProject.temporal_group] : "-"
           })
         </p>
-        <p className="status-line">
+        <p className="status-line enterprise-status-line">
           Governance profiles: {governanceProfiles.join(", ")} | Temporal overlay owner: {temporalOwner} | Active zone: {activeZone}
         </p>
-        <p className="status-line">
+        <p className="status-line enterprise-status-line">
           Garden maintenance route: {activeGardenRoute} | Guided chain: {STUDIO_ENTERPRISE_GUIDED_CHAIN.join(" -> ")}
         </p>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+
+        <div className="enterprise-summary-grid">
+          <article className="enterprise-summary-card">
+            <h4>Active Floor Context</h4>
+            <p className="enterprise-summary-keyline">Floor {effectiveFloor || "-"}</p>
+            <p className="enterprise-summary-detail">Zone {activeZone} · Route {rrRoute}</p>
+          </article>
+          <article className="enterprise-summary-card">
+            <h4>Zone & Garden Path</h4>
+            <p className="enterprise-summary-keyline">Zone {activeZone}</p>
+            <p className="enterprise-summary-detail">Garden route: {activeGardenRoute}</p>
+          </article>
+          <article className="enterprise-summary-card">
+            <h4>Temporal Owner</h4>
+            <p className={`enterprise-owner-pill owner-${temporalOwner.toLowerCase()}`}>{temporalOwner}</p>
+            <p className="enterprise-summary-detail">Owner derived from temporal group governance.</p>
+          </article>
+        </div>
+
+        <div className="enterprise-zone-rail" aria-label="Enterprise tower zones">
+          {Array.from({ length: STUDIO_ENTERPRISE_TOWER.zones }, (_, index) => {
+            const zone = index + 1;
+            const floorStart = (zone - 1) * STUDIO_ENTERPRISE_TOWER.floors_per_zone + 1;
+            const floorEnd = zone * STUDIO_ENTERPRISE_TOWER.floors_per_zone;
+            return (
+              <span key={zone} className={`enterprise-zone-pill${zone === activeZone ? " is-active" : ""}`}>
+                Zone {zone} · Floors {floorStart}-{floorEnd}
+              </span>
+            );
+          })}
+        </div>
+
+        <section className="enterprise-chain-panel" aria-label="Monuments to Polls guided chain">
+          <h4>Monuments -&gt; Checkout -&gt; Surveys -&gt; Polls</h4>
+          <ol className="enterprise-chain-list">
+            {STUDIO_ENTERPRISE_GUIDED_CHAIN.map((stage, index) => (
+              <li key={stage} className={index === guidedChainIndex ? "is-active" : ""}>
+                <strong>{stage}</strong>
+                <span>{ENTERPRISE_CHAIN_HINTS[stage]}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div className="enterprise-badge-row">
           {profileBadges.map((item) => (
-            <span key={item.profile} className="commands-badge">
+            <span key={item.profile} className={`commands-badge enterprise-badge ${item.allowed ? "is-allowed" : "is-blocked"}`}>
               {item.profile}:{item.allowed ? "allowed" : "blocked"}
             </span>
           ))}
-          <span className="commands-badge">governed apply:{canRunGovernedApply ? "enabled" : "disabled"}</span>
-          <span className="commands-badge">release workflows:{canRunGovernedApply ? "enabled" : "disabled"}</span>
+          <span className={`commands-badge enterprise-badge ${canRunGovernedApply ? "is-allowed" : "is-blocked"}`}>
+            governed apply:{canRunGovernedApply ? "enabled" : "disabled"}
+          </span>
+          <span className={`commands-badge enterprise-badge ${canRunGovernedApply ? "is-allowed" : "is-blocked"}`}>
+            release workflows:{canRunGovernedApply ? "enabled" : "disabled"}
+          </span>
         </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+
+        <div className="enterprise-command-row">
           <button type="button" disabled={!canRunGovernedApply}>
             improve-all --apply
           </button>
@@ -259,8 +319,8 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
             release-notes
           </button>
         </div>
-        <p className="status-line">RR route: {rrRoute} | QPU plan: {activeProject?.qpu_plan.qpu_plan_id || "none"}</p>
-        <p className="status-line">Tower-wide slice summary: {towerSummary}</p>
+        <p className="status-line enterprise-status-line">RR route: {rrRoute} | QPU plan: {activeProject?.qpu_plan.qpu_plan_id || "none"}</p>
+        <p className="status-line enterprise-status-line">Tower-wide slice summary: {towerSummary}</p>
         <ArtifactTagDisplay
           label="Enterprise Header Tags"
           tags={activeProject?.artifact_tags}
@@ -269,7 +329,7 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
         />
       </header>
 
-      <section className="panel">
+      <section className="panel enterprise-panel">
         <h3>1. Project Selection Panel</h3>
         <p className="status-line">Enterprise-eligible projects with deterministic tower plans.</p>
         <div className="action-grid">
@@ -296,24 +356,31 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
         />
       </section>
 
-      <section className="panel">
+      <section className="panel enterprise-panel">
         <h3>2. Tower Overview Panel</h3>
         <p className="status-line">
           Full tower interaction with floor selection and hover summaries. View mode: {activeProject ? getViewType(activeProject.temporal_group) : "-"}
         </p>
-        <QPUTower
-          compartmentIndex={activeProject?.artifact_tags.compartment_index || 9}
-          project={activeProject}
-          selectedFloor={effectiveFloor}
-          onFloorSelect={setActiveFloor}
-          onFloorHover={setHoveredFloor}
-          workspaceMode="enterprise"
-          interactive={true}
-        />
-        {hoveredFloorSummary ? <p className="status-line">Hover: {hoveredFloorSummary}</p> : null}
+        <div className="enterprise-tower-layout">
+          <QPUTower
+            compartmentIndex={activeProject?.artifact_tags.compartment_index || 9}
+            project={activeProject}
+            selectedFloor={effectiveFloor}
+            onFloorSelect={setActiveFloor}
+            onFloorHover={setHoveredFloor}
+            workspaceMode="enterprise"
+            interactive={true}
+          />
+          <aside className="enterprise-tower-aside">
+            <h4>Zone Snapshot</h4>
+            <p className="status-line">Zone {activeZone} governs floors around {effectiveFloor}.</p>
+            <p className="status-line">Garden route: {activeGardenRoute}</p>
+            {hoveredFloorSummary ? <p className="status-line">Hover: {hoveredFloorSummary}</p> : <p className="status-line">Hover a floor for preview.</p>}
+          </aside>
+        </div>
       </section>
 
-      <section className="panel">
+      <section className="panel enterprise-panel">
         <h3>3. Floor Detail Panel</h3>
         {activeFloorPlan ? (
           <>
@@ -325,23 +392,20 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
               {activeProject?.qpu_plan.rr_influence?.subnode || "-"}.
               {activeProject?.qpu_plan.rr_influence?.logic_mode || "-"}
             </p>
-            <div style={{ display: "grid", gap: "6px", margin: "8px 0" }}>
+            <div className="enterprise-floor-slice-grid">
               {activeFloorPlan.slices.map((slice) => {
                 const widthPct = activeFloorPlan.total_count > 0 ? Math.round((slice.count / activeFloorPlan.total_count) * 100) : 0;
                 return (
-                  <div key={`${activeFloorPlan.floor}-${slice.slice}`}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div key={`${activeFloorPlan.floor}-${slice.slice}`} className="enterprise-floor-slice-row">
+                    <div className="enterprise-floor-slice-head">
                       <span>{slice.slice}</span>
                       <span>{slice.count}</span>
                     </div>
-                    <div style={{ height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "999px" }}>
+                    <div className="enterprise-floor-slice-track">
                       <div
+                        className="enterprise-floor-slice-fill"
                         style={{
                           width: `${widthPct}%`,
-                          height: "6px",
-                          borderRadius: "999px",
-                          background: "rgba(93, 157, 255, 0.8)",
-                          transition: "width 250ms ease",
                         }}
                       />
                     </div>
@@ -365,11 +429,11 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
                 </li>
               ))}
             </ul>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div className="enterprise-floor-links">
               <a href="#enterprise-timeline">Jump to timeline</a>
               <a href="#enterprise-tower">Jump to tower</a>
             </div>
-            <div style={{ display: "grid", gap: "6px", marginTop: "8px" }}>
+            <div className="enterprise-preview-grid">
               <strong>Floor-level artifact previews</strong>
               {activeFloorPlan.steps.slice(0, 3).map((step, index) => (
                 <ArtifactTagDisplay
@@ -402,7 +466,7 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel enterprise-panel" id="enterprise-timeline">
         <h3>4. Work Execution Panel</h3>
         <p className="status-line">Multi-floor execution list with floor, temporal, and RR quadrant filters.</p>
         <TowerExecutionTimeline

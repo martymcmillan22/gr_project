@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import ArtifactTagDisplay from "./ArtifactTagDisplay";
 import { buildQpuFloorPlans } from "../logic/qpuEngine";
 import { getQPUCount } from "../logic/qpuGrowth";
+import { STUDIO_ENTERPRISE_TOWER } from "../logic/baseTrueConstants";
 import type { ProjectRecord, RRQuadrant, TemporalGroup, WorkspaceMode } from "../types";
 
 const TEMPORAL_RING: Record<TemporalGroup, string> = {
@@ -60,6 +61,7 @@ export default function QPUTower({
   const rr = project?.qpu_plan.rr_influence;
   const hoverFloor = typeof selectedFloor === "number" ? selectedFloor : null;
   const hoverPlan = hoverFloor ? floorPlans.find((floor) => floor.floor === hoverFloor) : null;
+  const floorsPerZone = STUDIO_ENTERPRISE_TOWER.floors_per_zone;
 
   const renderSemanticOverlay = (floor: number) => {
     const plan = floorPlans.find((item) => item.floor === floor);
@@ -105,9 +107,11 @@ export default function QPUTower({
           @keyframes bt-floor-pulse-rise { 0% { transform: translateY(8px) scale(0.98); opacity: 0.55; } 50% { transform: translateY(0) scale(1.01); opacity: 1; } 100% { transform: translateY(8px) scale(0.98); opacity: 0.55; } }`}
       </style>
       <h3>QPU Tower</h3>
-      <p>Shape: vertical stack</p>
-      <p>QPU count: {qpuCount}</p>
-      <p>Floors: {floors}</p>
+      <div className="enterprise-tower-stats">
+        <p>Shape: vertical stack</p>
+        <p>QPU count: {qpuCount}</p>
+        <p>Floors: {floors}</p>
+      </div>
       {project?.qpu_plan ? <p>QPU plan id: {project.qpu_plan.qpu_plan_id}</p> : null}
       {workspaceMode === "enterprise" ? <p>Workspace mode: enterprise tower control</p> : null}
       {typeof selectedFloor === "number" ? <p>Selected floor: {selectedFloor}</p> : null}
@@ -118,36 +122,30 @@ export default function QPUTower({
         semanticMix={project?.qpu_plan.slices.map((slice) => `${slice.slice}:${slice.count}`)}
       />
       {hoverPlan && rr ? (
-        <div
-          style={{
-            border: "1px solid #6f8298",
-            borderRadius: "10px",
-            padding: "8px",
-            marginBottom: "10px",
-            background: "rgba(255,255,255,0.03)",
-          }}
-        >
+        <div className="enterprise-floor-preview">
           <strong>Floor {hoverPlan.floor} Preview</strong>
-          <p style={{ margin: "4px 0" }}>Units: {hoverPlan.total_count}</p>
-          <p style={{ margin: "4px 0" }}>
+          <p>Units: {hoverPlan.total_count}</p>
+          <p>
             Semantic: {hoverPlan.slices.map((slice) => `${slice.slice}:${slice.count}`).join(" | ")}
           </p>
-          <p style={{ margin: "4px 0" }}>
+          <p>
             RR: {rr.quadrant}.{rr.subnode}.{rr.logic_mode} | Temporal: {rr.temporal_group}
           </p>
         </div>
       ) : null}
       {floors > 0 ? (
-        <div className="tower-floor-selector" id="enterprise-tower" style={{ display: "grid", gap: "6px" }}>
+        <div className="tower-floor-selector" id="enterprise-tower">
           {Array.from({ length: floors }, (_, index) => {
             const floor = index + 1;
             const active = selectedFloor === floor;
+            const zone = Math.max(1, Math.ceil(floor / floorsPerZone));
             const haloColor = LOGIC_HALO[rr?.logic_mode || "hierarchical"];
             const temporalColor = temporalGroup ? TEMPORAL_RING[temporalGroup] : "#6f8298";
             return (
               <button
                 type="button"
                 key={floor}
+                className={`enterprise-floor-button${active ? " is-active" : ""}`}
                 ref={(node) => {
                   floorRefs.current[floor] = node;
                 }}
@@ -170,48 +168,21 @@ export default function QPUTower({
                 aria-pressed={selectedFloor === floor}
                 disabled={!interactiveTower}
                 style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  borderRadius: "10px",
                   border: active ? `2px solid ${temporalColor}` : "1px solid #70859c",
                   boxShadow: active ? `0 0 16px ${haloColor}` : "none",
-                  padding: "9px 10px",
                   background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.02)",
                   animation: temporalGroup ? TEMPORAL_ANIMATION[temporalGroup] : undefined,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "8px",
                 }}
               >
                 {renderSemanticOverlay(floor)}
-                <span style={{ position: "relative", zIndex: 1 }}>Floor {floor}</span>
-                <span
-                  style={{
-                    position: "relative",
-                    zIndex: 1,
-                    fontSize: "11px",
-                    border: `1px solid ${temporalColor}`,
-                    borderRadius: "999px",
-                    padding: "1px 7px",
-                  }}
-                >
-                  #{String(floor).padStart(2, "0")}
-                </span>
-                {rr ? (
-                  <span
-                    style={{
-                      position: "relative",
-                      zIndex: 1,
-                      fontSize: "11px",
-                      border: "1px solid #7a8ea4",
-                      borderRadius: "999px",
-                      padding: "1px 7px",
-                    }}
-                  >
-                    {rr.subnode}.{rr.logic_mode}
+                <span className="enterprise-floor-label">Floor {floor}</span>
+                <div className="enterprise-floor-badges">
+                  <span className="enterprise-floor-id" style={{ borderColor: temporalColor }}>
+                    #{String(floor).padStart(2, "0")}
                   </span>
-                ) : null}
+                  <span className="enterprise-zone-id">Z{zone}</span>
+                  {rr ? <span className="enterprise-rr-id">{rr.subnode}.{rr.logic_mode}</span> : null}
+                </div>
               </button>
             );
           })}
