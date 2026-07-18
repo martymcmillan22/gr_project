@@ -51,3 +51,13 @@ workflow/reports/cycle_plan_annual.json
 workflow/reports/semantic_scorecard_annual.json
 workflow/reports/annual_semantic_strategy_report.json
 workflow/reports/annual_semantic_drift_forecast.json
+
+# JavaScript dependency and cache artifacts
+node_modules/
+frontend_homepage/node_modules/
+node_modules/.vite/
+frontend_homepage/node_modules/.vite/
+
+# Playwright outputs
+frontend_homepage/test-results/
+frontend_homepage/playwright-report/
