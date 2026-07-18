@@ -19,6 +19,7 @@ export function DeterministicSurfaceFallback({
   mode = "error",
   details,
   releaseMetadata,
+  deploymentPolicy,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -48,6 +49,8 @@ export function DeterministicSurfaceFallback({
       data-release-version={releaseMetadata?.semanticVersion || ""}
       data-release-build={releaseMetadata?.buildId || ""}
       data-release-channel={releaseMetadata?.channel || ""}
+      data-release-deploy-enabled={deploymentPolicy?.enabled ? "true" : "false"}
+      data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -94,6 +97,7 @@ export class DeterministicErrorBoundary extends React.Component {
       fallbackDetails,
       shellClassName,
       releaseMetadata,
+      deploymentPolicy,
     } = this.props;
 
     if (this.state.hasError) {
@@ -106,6 +110,7 @@ export class DeterministicErrorBoundary extends React.Component {
           details={fallbackDetails}
           mode="error"
           releaseMetadata={releaseMetadata}
+          deploymentPolicy={deploymentPolicy}
         />
       );
     }
@@ -122,6 +127,8 @@ export class DeterministicErrorBoundary extends React.Component {
         data-release-version={releaseMetadata?.semanticVersion || ""}
         data-release-build={releaseMetadata?.buildId || ""}
         data-release-channel={releaseMetadata?.channel || ""}
+        data-release-deploy-enabled={deploymentPolicy?.enabled ? "true" : "false"}
+        data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
       >
         {children}
       </div>
@@ -129,7 +136,7 @@ export class DeterministicErrorBoundary extends React.Component {
   }
 }
 
-export function DeterministicLoadingSurface({ tier, surface, title, message, releaseMetadata }) {
+export function DeterministicLoadingSurface({ tier, surface, title, message, releaseMetadata, deploymentPolicy }) {
   return (
     <DeterministicSurfaceFallback
       tier={tier}
@@ -138,6 +145,7 @@ export function DeterministicLoadingSurface({ tier, surface, title, message, rel
       message={message}
       mode="loading"
       releaseMetadata={releaseMetadata}
+      deploymentPolicy={deploymentPolicy}
     />
   );
 }
@@ -151,6 +159,7 @@ export function DeterministicGuardedSurface({
   loadingMessage,
   children,
   releaseMetadata,
+  deploymentPolicy,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -190,6 +199,7 @@ export function DeterministicGuardedSurface({
         title={loadingTitle || "Deterministic loading surface"}
         message={loadingMessage || "Deterministic loading state is active while preserving surface stability."}
         releaseMetadata={releaseMetadata}
+        deploymentPolicy={deploymentPolicy}
       />
     );
   }
@@ -206,6 +216,8 @@ export function DeterministicGuardedSurface({
         data-release-version={releaseMetadata?.semanticVersion || ""}
         data-release-build={releaseMetadata?.buildId || ""}
         data-release-channel={releaseMetadata?.channel || ""}
+        data-release-deploy-enabled={deploymentPolicy?.enabled ? "true" : "false"}
+        data-release-deploy-channel={deploymentPolicy?.defaultChannel || ""}
     >
       {children}
     </div>
