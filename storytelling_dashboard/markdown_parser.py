@@ -32,6 +32,8 @@ class StoryEntry:
         self.title = title
         self.status = status  # "complete", "pending", "in_progress"
         self.format = "movie"  # default
+        self.created_at = ""
+        self.last_updated = ""
         
         # 13 Sections
         self.talking_points = []
@@ -56,6 +58,8 @@ class StoryEntry:
             'title': self.title,
             'status': self.status,
             'format': self.format,
+            'created_at': self.created_at,
+            'last_updated': self.last_updated,
             'talking_points': self.talking_points,
             'core_concept': self.core_concept,
             'synopsis': self.synopsis,
@@ -195,6 +199,8 @@ class StoryMarkdownParser:
         entry_content = '\n'.join(lines[:end_offset])
         
         # Extract sections
+        story.created_at = StoryMarkdownParser._extract_metadata_line(entry_content, 'Created')
+        story.last_updated = StoryMarkdownParser._extract_metadata_line(entry_content, 'Last Updated')
         story.talking_points = StoryMarkdownParser._extract_section(entry_content, 'Talking Points')
         story.core_concept = StoryMarkdownParser._extract_text_section(entry_content, 'Core Concept')
         story.synopsis = StoryMarkdownParser._extract_text_section(entry_content, 'Synopsis')
@@ -223,6 +229,14 @@ class StoryMarkdownParser:
             if text.startswith('*') and text.endswith('*'):
                 return ""
             return text
+        return ""
+
+    @staticmethod
+    def _extract_metadata_line(entry_content: str, label: str) -> str:
+        pattern = rf'^\*\*{re.escape(label)}:\*\*\s*(.+?)\s*$'
+        match = re.search(pattern, entry_content, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
         return ""
     
     @staticmethod
@@ -378,6 +392,22 @@ class StoryMarkdownParser:
             return True
         except Exception as e:
             print(f"Error saving entry: {e}")
+            return False
+
+    @staticmethod
+    def create_entry(story: StoryEntry) -> bool:
+        """Append a new story entry to MASTER_DOCUMENT.md."""
+        if not MASTER_DOCUMENT_PATH.exists():
+            return False
+
+        try:
+            content = MASTER_DOCUMENT_PATH.read_text(encoding='utf-8').rstrip()
+            new_entry = StoryMarkdownParser._build_entry_markdown(story)
+            MASTER_DOCUMENT_PATH.write_text(f"{content}\n\n{new_entry}\n", encoding='utf-8')
+            StoryMarkdownParser._append_story_index(story)
+            return True
+        except Exception as e:
+            print(f"Error creating entry: {e}")
             return False
 
     @staticmethod
@@ -551,15 +581,79 @@ class StoryMarkdownParser:
                     break
 
             STORY_INDEX_PATH.write_text('\n'.join(lines), encoding='utf-8')
+
+    @staticmethod
+    def _append_story_index(story: StoryEntry) -> None:
+        """Append a new row to STORY_INDEX.md for a newly created entry."""
+        if not STORY_INDEX_PATH.exists():
+            return
+
+        content = STORY_INDEX_PATH.read_text(encoding='utf-8').rstrip()
+        if f'| {story.entry_id} | {story.title} |' in content:
+            return
+
+        today = str(os.getenv('STORY_INDEX_DATE_OVERRIDE') or '') or datetime.now().strftime('%Y-%m-%d')
+        status_symbol = StoryMarkdownParser._status_symbol(story.status)
+        core_concept_preview = StoryMarkdownParser._compact_core_concept(story.core_concept)
+
+        completed_marker = '## **COMPLETED ENTRIES (7)**'
+        placeholder_marker = '## **PLACEHOLDER ENTRIES (10) — Ready for Expansion**'
+        atlas_marker = '## **SEMANTIC ANCHOR ATLAS (Phase 7D)**'
+
+        if placeholder_marker not in content or atlas_marker not in content:
+            STORY_INDEX_PATH.write_text(f"{content}\n", encoding='utf-8')
+            return
+
+        placeholder_row = (
+            f"| {story.entry_id} | {story.title} | {status_symbol} | {core_concept_preview} | Low | Fill Talking Points |"
+        )
+        atlas_row = (
+            f"| {story.entry_id} | {story.title} | — | — | — | — | — | — |"
+        )
+
+        lines = content.split('\n')
+        def insert_row_before_separator(marker: str, row: str) -> bool:
+            try:
+                start_index = next(index for index, line in enumerate(lines) if line.strip() == marker)
+            except StopIteration:
+                return False
+
+            for index in range(start_index + 1, len(lines)):
+                if lines[index].strip() == '---':
+                    lines.insert(index, row)
+                    return True
+            return False
+
+        insert_row_before_separator(placeholder_marker, placeholder_row)
+        insert_row_before_separator(atlas_marker, atlas_row)
+
+        for index, line in enumerate(lines):
+            if line.startswith('## **COMPLETED ENTRIES ('):
+                lines[index] = '## **COMPLETED ENTRIES (7)**'
+            if line.startswith('## **PLACEHOLDER ENTRIES ('):
+                lines[index] = '## **PLACEHOLDER ENTRIES (10) — Ready for Expansion**'
+            if line.startswith('**Last Synced:**'):
+                suffix = line.split('|', 1)[1] if '|' in line else ' **Next Review:** [To be set]'
+                lines[index] = f'**Last Synced:** {today} |{suffix}'
+
+        STORY_INDEX_PATH.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     
     @staticmethod
     def _build_entry_markdown(story: StoryEntry) -> str:
         """Build markdown content for a story entry."""
+        timestamp_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        created_at = (story.created_at or '').strip() or timestamp_now
+        last_updated = timestamp_now
+        story.created_at = created_at
+        story.last_updated = last_updated
+
         lines = [
             f'## **ENTRY {story.entry_id} — {story.title}**',
             '',
             f'**Status:** {story.status}',
             f'**Format:** {story.format}',
+            f'**Created:** {created_at}',
+            f'**Last Updated:** {last_updated}',
             '',
         ]
         

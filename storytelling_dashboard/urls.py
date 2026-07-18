@@ -6,6 +6,7 @@ app_name = 'storytelling_dashboard'
 urlpatterns = [
     # Web Views
     path('', views.dashboard, name='dashboard'),
+    path('story/create/', views.story_create, name='story_create'),
     path('story/<int:entry_id>/', views.story_detail, name='story_detail'),
     
     # API Endpoints

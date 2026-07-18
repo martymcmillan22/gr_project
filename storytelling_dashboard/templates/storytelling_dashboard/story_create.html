@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Start New Outline{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 820px;">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'storytelling_dashboard:dashboard' %}" class="btn btn-outline-secondary mb-3">← Back to Dashboard</a>
+            <h1>Start New Outline</h1>
+            <p class="text-muted">Create a new story outline and return to the dashboard after it is saved.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.title.label_tag }}
+                    {{ form.title }}
+                    {% if form.title.help_text %}<small class="form-text text-muted">{{ form.title.help_text }}</small>{% endif %}
+                    {{ form.title.errors }}
+                </div>
+                <div class="mb-4">
+                    {{ form.format.label_tag }}
+                    {{ form.format }}
+                    {% if form.format.help_text %}<small class="form-text text-muted">{{ form.format.help_text }}</small>{% endif %}
+                    {{ form.format.errors }}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Create Outline</button>
+                    <a href="{% url 'storytelling_dashboard:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

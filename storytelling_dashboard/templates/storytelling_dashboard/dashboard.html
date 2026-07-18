@@ -5,9 +5,12 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row mb-4">
-        <div class="col">
+        <div class="col-md-8">
             <h1>📘 Story-Telling Engine Dashboard</h1>
-            <p class="text-muted">Manage all 17 story entries from your master document</p>
+            <p class="text-muted">Manage your owned story entries from the master document</p>
+        </div>
+        <div class="col-md-4 text-md-end d-flex align-items-start justify-content-md-end">
+            <a class="btn btn-primary btn-lg" href="{% url 'storytelling_dashboard:story_create' %}">Create Outline</a>
         </div>
     </div>
 
@@ -67,18 +70,19 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>All Stories</h5>
+                    <h5>Your Stories</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th style="width: 5%">#</th>
-                                <th style="width: 30%">Title</th>
+                                <th style="width: 24%">Title</th>
+                                <th style="width: 14%">Created</th>
                                 <th style="width: 12%">Status</th>
-                                <th style="width: 15%">Format</th>
-                                <th style="width: 20%">Progress</th>
-                                <th style="width: 18%">Actions</th>
+                                <th style="width: 12%">Format</th>
+                                <th style="width: 18%">Progress</th>
+                                <th style="width: 15%">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,6 +90,7 @@
                             <tr>
                                 <td><strong>{{ story.entry_id }}</strong></td>
                                 <td>{{ story.title }}</td>
+                                <td>{{ story.created_display }}</td>
                                 <td>
                                     {% if story.status == 'complete' %}
                                         <span class="badge bg-success">✅ Complete</span>

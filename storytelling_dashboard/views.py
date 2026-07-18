@@ -1,14 +1,16 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 import json
 import re
 from collections import defaultdict
 
 from .markdown_parser import StoryMarkdownParser, StoryEntry, FORMAT_CHOICES
 from .models import StorySession, SemanticPreset
+from .forms import StoryCreateForm
 from .git_integration import get_git_integration
 
 
@@ -100,10 +102,50 @@ def _semantic_anchor_for_story(story: StoryEntry) -> dict:
     }
 
 
+def _story_sessions_visible_to_user(user):
+    if getattr(user, 'is_superuser', False):
+        return StorySession.objects.all()
+
+    return StorySession.objects.filter(
+        owner=user
+    )
+
+
+def _visible_story_entry_ids(user) -> set:
+    return set(_story_sessions_visible_to_user(user).values_list('entry_id', flat=True))
+
+
+def _get_accessible_story_session(*, entry_id: int, user, create: bool = False, story: StoryEntry | None = None):
+    session = StorySession.objects.filter(entry_id=entry_id).first()
+    if session is not None:
+        if not getattr(user, 'is_superuser', False) and session.owner_id != user.id:
+            return None
+        return session
+
+    if not create or story is None:
+        return None
+
+    return StorySession.objects.create(
+        entry_id=entry_id,
+        title=story.title,
+        status=story.status,
+        format=story.format,
+        progress=story.calculate_progress(),
+        owner=user,
+        last_edited_by=user,
+    )
+
+
 @login_required
 def dashboard(request):
     """Display all stories with status overview."""
-    stories = StoryMarkdownParser.load_all_stories()
+    visible_entry_ids = _visible_story_entry_ids(request.user)
+    stories = [story for story in StoryMarkdownParser.load_all_stories() if story.entry_id in visible_entry_ids]
+    session_map = {session.entry_id: session for session in _story_sessions_visible_to_user(request.user)}
+
+    for story in stories:
+        session = session_map.get(story.entry_id)
+        story.created_display = session.created.strftime('%m-%d-%Y') if session else '—'
     
     # Calculate summary stats
     total = len(stories)
@@ -127,23 +169,46 @@ def dashboard(request):
 
 
 @login_required
+def story_create(request):
+    """Create a new story outline and return the user to the dashboard."""
+    if request.method == 'POST':
+        form = StoryCreateForm(request.POST)
+        if form.is_valid():
+            next_entry_id = max((story.entry_id for story in StoryMarkdownParser.load_all_stories()), default=0) + 1
+            story = StoryEntry(next_entry_id, form.cleaned_data['title'], 'pending')
+            story.format = form.cleaned_data['format']
+
+            if StoryMarkdownParser.create_entry(story):
+                StorySession.objects.update_or_create(
+                    entry_id=story.entry_id,
+                    defaults={
+                        'title': story.title,
+                        'status': story.status,
+                        'format': story.format,
+                        'progress': story.calculate_progress(),
+                        'owner': request.user,
+                        'last_edited_by': request.user,
+                    },
+                )
+                return redirect('storytelling_dashboard:dashboard')
+    else:
+        form = StoryCreateForm()
+
+    return render(request, 'storytelling_dashboard/story_create.html', {'form': form})
+
+
+@login_required
 def story_detail(request, entry_id):
     """Display and edit a single story."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
-    
+
     if not story:
         return HttpResponse('Story not found', status=404)
-    
-    # Get or create session
-    session, created = StorySession.objects.get_or_create(
-        entry_id=entry_id,
-        defaults={
-            'title': story.title,
-            'status': story.status,
-            'format': story.format,
-            'progress': story.calculate_progress(),
-        }
-    )
+
+    session = _get_accessible_story_session(entry_id=entry_id, user=request.user)
+
+    if not session:
+        return HttpResponse('Story not found', status=404)
     
     context = {
         'story': story,
@@ -159,7 +224,8 @@ def story_detail(request, entry_id):
 @login_required
 def api_stories(request):
     """API endpoint: Get all stories."""
-    stories = StoryMarkdownParser.load_all_stories()
+    visible_entry_ids = _visible_story_entry_ids(request.user)
+    stories = [story for story in StoryMarkdownParser.load_all_stories() if story.entry_id in visible_entry_ids]
     return JsonResponse({
         'success': True,
         'count': len(stories),
@@ -172,8 +238,8 @@ def api_stories(request):
 def api_story(request, entry_id):
     """API endpoint: Get single story."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
-    
-    if not story:
+
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     return JsonResponse({
@@ -196,6 +262,11 @@ def api_story_save(request, entry_id):
     
     if not story:
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
+
+    session = _get_accessible_story_session(entry_id=entry_id, user=request.user)
+
+    if session is None:
+        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, create=True, story=story)
     
     # Update story fields
     if 'title' in data:
@@ -238,7 +309,7 @@ def api_story_save(request, entry_id):
     
     if success:
         # Update session
-        session, _ = StorySession.objects.get_or_create(entry_id=entry_id)
+        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, create=True, story=story)
         session.title = story.title
         session.status = story.status
         session.format = story.format
@@ -246,6 +317,8 @@ def api_story_save(request, entry_id):
         session.core_concept = story.core_concept
         session.synopsis = story.synopsis
         session.progress = story.calculate_progress()
+        if session.owner_id is None:
+            session.owner = request.user
         session.last_edited_by = request.user
         session.save()
         
@@ -268,14 +341,14 @@ def api_story_save(request, entry_id):
         }, status=500)
 
 
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 @login_required
 @csrf_exempt
 def api_story_validate(request, entry_id):
     """API endpoint: Validate story against ENGINE_SCHEMA.md rules."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
-    
-    if not story:
+
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     # Validation checks
@@ -320,8 +393,8 @@ def api_story_validate(request, entry_id):
 def api_git_history(request, entry_id: int):
     """API endpoint: Get git commit history for story."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
-    
-    if not story:
+
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     git = get_git_integration()

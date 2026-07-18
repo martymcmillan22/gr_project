@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from polish.views import TaskManagerAdminView, task_manager_activity_api, task_manager_metrics_api
+from homepage_backend.views import HomepageAppView
 
 
 urlpatterns = [
@@ -50,6 +51,7 @@ urlpatterns = [
     path('contracts/', include('platform_core.urls')),
     path('storytelling-dashboard/', include('storytelling_dashboard.urls')),
     path('baseture-engine/', include('baseture_engine.urls')),
+    path('diagnostics/', HomepageAppView.as_view(), name='diagnostics'),
     path('btif/api/', include(('ontology.urls', 'ontology'), namespace='btif')),
     path('', include('twist.urls')),
     path('', include('povs.urls')),

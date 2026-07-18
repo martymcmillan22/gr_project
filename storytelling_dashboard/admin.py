@@ -4,7 +4,7 @@ from .models import StorySession
 
 @admin.register(StorySession)
 class StorySessionAdmin(admin.ModelAdmin):
-    list_display = ('entry_id', 'title', 'status', 'format', 'progress', 'last_edited', 'last_edited_by')
+    list_display = ('entry_id', 'title', 'owner', 'status', 'format', 'progress', 'last_edited', 'last_edited_by')
     list_filter = ('status', 'format', 'created', 'last_edited')
     search_fields = ('title', 'entry_id')
     readonly_fields = ('entry_id', 'created', 'last_edited')
@@ -20,7 +20,7 @@ class StorySessionAdmin(admin.ModelAdmin):
             'fields': ('progress',)
         }),
         ('Metadata', {
-            'fields': ('last_edited_by', 'last_edited', 'created'),
+            'fields': ('owner', 'last_edited_by', 'last_edited', 'created'),
             'classes': ('collapse',)
         }),
     )
