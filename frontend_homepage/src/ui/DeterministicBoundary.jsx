@@ -23,6 +23,7 @@ export function DeterministicSurfaceFallback({
   rollbackPolicy,
   packagingMetadata,
   artifactManifest,
+  distributionProfile,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -59,6 +60,8 @@ export function DeterministicSurfaceFallback({
       data-package-bundle-id={packagingMetadata?.bundleId || ""}
       data-package-signature={packagingMetadata?.buildSignature || ""}
       data-artifact-manifest-id={artifactManifest?.manifestId || ""}
+      data-distribution-profile={distributionProfile?.profileId || ""}
+      data-distribution-mode={distributionProfile?.packagingMode || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -109,6 +112,7 @@ export class DeterministicErrorBoundary extends React.Component {
       rollbackPolicy,
       packagingMetadata,
       artifactManifest,
+      distributionProfile,
     } = this.props;
 
     if (this.state.hasError) {
@@ -125,6 +129,7 @@ export class DeterministicErrorBoundary extends React.Component {
           rollbackPolicy={rollbackPolicy}
           packagingMetadata={packagingMetadata}
           artifactManifest={artifactManifest}
+          distributionProfile={distributionProfile}
         />
       );
     }
@@ -148,6 +153,8 @@ export class DeterministicErrorBoundary extends React.Component {
         data-package-bundle-id={packagingMetadata?.bundleId || ""}
         data-package-signature={packagingMetadata?.buildSignature || ""}
         data-artifact-manifest-id={artifactManifest?.manifestId || ""}
+        data-distribution-profile={distributionProfile?.profileId || ""}
+        data-distribution-mode={distributionProfile?.packagingMode || ""}
       >
         {children}
       </div>
@@ -165,6 +172,7 @@ export function DeterministicLoadingSurface({
   rollbackPolicy,
   packagingMetadata,
   artifactManifest,
+  distributionProfile,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -178,6 +186,7 @@ export function DeterministicLoadingSurface({
       rollbackPolicy={rollbackPolicy}
       packagingMetadata={packagingMetadata}
       artifactManifest={artifactManifest}
+      distributionProfile={distributionProfile}
     />
   );
 }
@@ -195,6 +204,7 @@ export function DeterministicGuardedSurface({
   rollbackPolicy,
   packagingMetadata,
   artifactManifest,
+  distributionProfile,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -238,6 +248,7 @@ export function DeterministicGuardedSurface({
         rollbackPolicy={rollbackPolicy}
         packagingMetadata={packagingMetadata}
         artifactManifest={artifactManifest}
+        distributionProfile={distributionProfile}
       />
     );
   }
@@ -261,6 +272,8 @@ export function DeterministicGuardedSurface({
         data-package-bundle-id={packagingMetadata?.bundleId || ""}
         data-package-signature={packagingMetadata?.buildSignature || ""}
         data-artifact-manifest-id={artifactManifest?.manifestId || ""}
+        data-distribution-profile={distributionProfile?.profileId || ""}
+        data-distribution-mode={distributionProfile?.packagingMode || ""}
     >
       {children}
     </div>
