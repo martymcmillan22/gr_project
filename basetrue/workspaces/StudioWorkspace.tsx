@@ -121,19 +121,20 @@ export default function StudioWorkspace({
   };
 
   return (
-    <section className="studio-workspace">
-      <header className="panel studio-header-panel">
+    <section className="studio-workspace" role="region" aria-labelledby="studio-workspace-heading">
+      <header className="panel studio-header-panel" role="region" aria-labelledby="studio-workspace-heading">
         <p className="eyebrow">BaseTrue Studio Workspace</p>
-        <h2>Controlled Creative Workstation</h2>
+        <h2 id="studio-workspace-heading">Controlled Creative Workstation</h2>
         <p className="status-line studio-status-line">
           Linear flow: Idea -&gt; Seed -&gt; Project -&gt; Work. Studio enforces scaled QPU with no tower floors.
         </p>
 
-        <div className="studio-stage-rail" aria-label="Studio stage progression">
+        <div className="studio-stage-rail" role="list" aria-label="Studio stage progression">
           {STUDIO_STAGES.map((stage, index) => (
             <span
               key={stage.key}
               className={`studio-stage-pill${activeStage === stage.key ? " is-active" : ""}`}
+              role="listitem"
               aria-current={activeStage === stage.key ? "step" : undefined}
             >
               {index + 1}. {stage.label}
@@ -141,18 +142,18 @@ export default function StudioWorkspace({
           ))}
         </div>
 
-        <div className="studio-summary-grid">
-          <article className="studio-summary-card">
+        <div className="studio-summary-grid" role="list" aria-label="Studio workspace summary">
+          <article className="studio-summary-card" role="listitem">
             <h4>Temporal Owner</h4>
             <p className={`studio-owner-pill owner-${temporalOwner.toLowerCase()}`}>{temporalOwner}</p>
             <p className="studio-summary-detail">Compartment group drives QC/QA overlay ownership.</p>
           </article>
-          <article className="studio-summary-card">
+          <article className="studio-summary-card" role="listitem">
             <h4>View Context</h4>
             <p className="studio-summary-keyline">Temporal: {temporalGroup}</p>
             <p className="studio-summary-keyline">View: {view}</p>
           </article>
-          <article className="studio-summary-card">
+          <article className="studio-summary-card" role="listitem">
             <h4>Route Preview</h4>
             <p className="studio-summary-route">{rrRoutePreview}</p>
             <p className="studio-summary-detail">Preview only; Studio remains deterministic and gated.</p>
@@ -185,7 +186,7 @@ export default function StudioWorkspace({
           </label>
         </div>
 
-        <p className="status-line studio-status-line">
+        <p className="status-line studio-status-line" role="status" aria-live="polite">
           Stage: {activeStage} | Temporal: {temporalGroup} | View: {view} | RR route preview: {rrRoutePreview}
         </p>
         <p className="status-line studio-status-line">

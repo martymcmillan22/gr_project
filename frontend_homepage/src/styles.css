@@ -1072,6 +1072,10 @@ body.dark-mode .studio-stage-pill {
   transform: translateY(-1px);
 }
 
+.studio-stage-pill[aria-current="step"] {
+  box-shadow: 0 0 0 2px rgba(20, 111, 75, 0.24);
+}
+
 .studio-stage-pill:hover {
   transform: translateY(-1px);
 }
@@ -1186,6 +1190,12 @@ body.dark-mode .studio-summary-card {
 .studio-workspace button:focus-visible {
   outline: 2px solid rgba(20, 111, 75, 0.5);
   outline-offset: 2px;
+}
+
+.studio-workspace a:focus-visible {
+  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .studio-workspace button:active:not(:disabled) {

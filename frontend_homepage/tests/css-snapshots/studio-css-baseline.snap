@@ -2,7 +2,7 @@
   <header class="panel studio-header-panel">
     <p class="eyebrow">
     </p>
-    <h2>
+    <h2 id="studio-workspace-heading">
     </h2>
     <p class="status-line studio-status-line">
     </p>
@@ -16,7 +16,7 @@
       <span class="studio-stage-pill">
       </span>
     </div>
-    <div class="studio-summary-grid">
+    <div class="studio-summary-grid" aria-label="Studio workspace summary">
       <article class="studio-summary-card">
         <h4>
         </h4>
