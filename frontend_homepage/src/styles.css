@@ -777,40 +777,48 @@ body.dark-mode .basetrue-demo-chips span {
 
 .studio-workspace {
   display: grid;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .studio-header-panel {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(232, 248, 239, 0.82)),
     var(--card);
+  box-shadow:
+    0 10px 28px rgba(20, 71, 49, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 body.dark-mode .studio-header-panel {
   background:
     linear-gradient(145deg, rgba(23, 36, 31, 0.94), rgba(24, 51, 41, 0.88)),
     var(--card);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .studio-status-line {
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  line-height: 1.42;
 }
 
 .studio-stage-rail {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.7rem;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
 }
 
 .studio-stage-pill {
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.3rem 0.66rem;
-  font-size: 0.79rem;
-  font-weight: 600;
+  padding: 0.34rem 0.72rem;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.7);
 }
@@ -822,30 +830,33 @@ body.dark-mode .studio-stage-pill {
 .studio-stage-pill.is-active {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(20, 111, 75, 0.12);
+  background: rgba(20, 111, 75, 0.16);
+  box-shadow: 0 0 0 1px rgba(20, 111, 75, 0.18);
 }
 
 .studio-summary-grid {
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.58rem;
 }
 
 .studio-summary-card {
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.6rem 0.72rem;
+  border-radius: 13px;
+  padding: 0.68rem 0.78rem;
   background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 8px 20px rgba(15, 43, 30, 0.08);
 }
 
 body.dark-mode .studio-summary-card {
   background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
 .studio-summary-card h4 {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -853,8 +864,9 @@ body.dark-mode .studio-summary-card {
 
 .studio-summary-keyline,
 .studio-summary-route {
-  margin: 0.35rem 0 0;
-  font-weight: 600;
+  margin: 0.38rem 0 0;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .studio-summary-route {
@@ -862,19 +874,21 @@ body.dark-mode .studio-summary-card {
 }
 
 .studio-summary-detail {
-  margin: 0.35rem 0 0;
+  margin: 0.38rem 0 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.79rem;
+  line-height: 1.35;
 }
 
 .studio-owner-pill {
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   display: inline-flex;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.16rem 0.62rem;
+  padding: 0.18rem 0.66rem;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.77rem;
+  letter-spacing: 0.03em;
 }
 
 .studio-owner-pill.owner-qc {
@@ -896,45 +910,46 @@ body.dark-mode .studio-summary-card {
 }
 
 .studio-routing-controls {
-  margin: 0.7rem 0 0.35rem;
+  margin: 0.82rem 0 0.4rem;
 }
 
 .studio-badge-row,
 .studio-command-row {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  margin-top: 0.6rem;
+  margin-top: 0.68rem;
 }
 
 .commands-badge.studio-badge {
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.16rem 0.62rem;
-  font-size: 0.76rem;
+  padding: 0.18rem 0.66rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .commands-badge.studio-badge.is-allowed {
   border-color: #7fc9a1;
-  background: rgba(38, 138, 91, 0.12);
+  background: rgba(38, 138, 91, 0.16);
   color: #1d7b4e;
 }
 
 .commands-badge.studio-badge.is-blocked {
   border-color: #d0a87d;
-  background: rgba(198, 124, 39, 0.12);
+  background: rgba(198, 124, 39, 0.16);
   color: #8a5413;
 }
 
 .studio-disabled-command {
   border: 1px dashed var(--line);
   border-radius: 10px;
-  padding: 0.36rem 0.6rem;
+  padding: 0.4rem 0.64rem;
   background: rgba(255, 255, 255, 0.65);
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 body.dark-mode .studio-disabled-command {
@@ -943,6 +958,7 @@ body.dark-mode .studio-disabled-command {
 
 .studio-panel {
   border-left: 4px solid rgba(20, 111, 75, 0.35);
+  box-shadow: 0 10px 20px rgba(15, 51, 35, 0.05);
 }
 
 @media (max-width: 980px) {
