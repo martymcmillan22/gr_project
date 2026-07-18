@@ -33,6 +33,7 @@ import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
 import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
+import { getDeterministicReleaseMetadata } from "./config/deterministicRelease";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -183,6 +184,7 @@ function resolveTimelineCellByIndex(index) {
 }
 
 export default function App() {
+  const releaseMetadata = useMemo(() => getDeterministicReleaseMetadata(), []);
   const noticeTimerRef = useRef(null);
   const presetInitRef = useRef(false);
   const qpcPanelRef = useRef(null);
@@ -480,14 +482,29 @@ export default function App() {
 
   useEffect(() => {
     emitDeterministicTelemetry({
+      eventName: "app.release.metadata.loaded",
+      tier: "novice",
+      surface: "workspace",
+      payload: {
+        semanticVersion: releaseMetadata.semanticVersion,
+        buildId: releaseMetadata.buildId,
+        channel: releaseMetadata.channel,
+      },
+    });
+  }, [releaseMetadata]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
       eventName: "app.route.context.loaded",
       tier: "novice",
       surface: "workspace",
       payload: {
         pathname,
+        releaseVersion: releaseMetadata.semanticVersion,
+        releaseBuildId: releaseMetadata.buildId,
       },
     });
-  }, [pathname]);
+  }, [pathname, releaseMetadata]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -1940,6 +1957,7 @@ export default function App() {
             surface="route-error"
             shellClassName="det-surface-stable det-surface-stable--novice"
             loading={false}
+            releaseMetadata={releaseMetadata}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -1952,6 +1970,7 @@ export default function App() {
             tier={baseTrueCompartmentRoute.tier}
             surface="compartment-pipeline"
             shellClassName={`det-surface-stable det-surface-stable--${baseTrueCompartmentRoute.tier}`}
+            releaseMetadata={releaseMetadata}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -1984,6 +2003,7 @@ export default function App() {
           tier="studio"
           surface="workspace-panel"
           shellClassName="det-surface-stable det-surface-stable--studio"
+          releaseMetadata={releaseMetadata}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2003,6 +2023,7 @@ export default function App() {
             surface="route-gate"
             shellClassName="det-surface-stable det-surface-stable--enterprise"
             loading={false}
+            releaseMetadata={releaseMetadata}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2031,6 +2052,7 @@ export default function App() {
           tier="enterprise"
           surface="tower-workspace"
           shellClassName="det-surface-stable det-surface-stable--enterprise"
+          releaseMetadata={releaseMetadata}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."

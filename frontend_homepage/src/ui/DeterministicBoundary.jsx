@@ -18,6 +18,7 @@ export function DeterministicSurfaceFallback({
   message,
   mode = "error",
   details,
+  releaseMetadata,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -44,6 +45,9 @@ export function DeterministicSurfaceFallback({
       )}
       data-tier={tier}
       data-surface={surface}
+      data-release-version={releaseMetadata?.semanticVersion || ""}
+      data-release-build={releaseMetadata?.buildId || ""}
+      data-release-channel={releaseMetadata?.channel || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -89,6 +93,7 @@ export class DeterministicErrorBoundary extends React.Component {
       fallbackMessage,
       fallbackDetails,
       shellClassName,
+      releaseMetadata,
     } = this.props;
 
     if (this.state.hasError) {
@@ -100,6 +105,7 @@ export class DeterministicErrorBoundary extends React.Component {
           message={fallbackMessage}
           details={fallbackDetails}
           mode="error"
+          releaseMetadata={releaseMetadata}
         />
       );
     }
@@ -113,6 +119,9 @@ export class DeterministicErrorBoundary extends React.Component {
         )}
         data-tier={tier}
         data-surface={surface}
+        data-release-version={releaseMetadata?.semanticVersion || ""}
+        data-release-build={releaseMetadata?.buildId || ""}
+        data-release-channel={releaseMetadata?.channel || ""}
       >
         {children}
       </div>
@@ -120,7 +129,7 @@ export class DeterministicErrorBoundary extends React.Component {
   }
 }
 
-export function DeterministicLoadingSurface({ tier, surface, title, message }) {
+export function DeterministicLoadingSurface({ tier, surface, title, message, releaseMetadata }) {
   return (
     <DeterministicSurfaceFallback
       tier={tier}
@@ -128,11 +137,21 @@ export function DeterministicLoadingSurface({ tier, surface, title, message }) {
       title={title}
       message={message}
       mode="loading"
+      releaseMetadata={releaseMetadata}
     />
   );
 }
 
-export function DeterministicGuardedSurface({ tier, surface, shellClassName, loading, loadingTitle, loadingMessage, children }) {
+export function DeterministicGuardedSurface({
+  tier,
+  surface,
+  shellClassName,
+  loading,
+  loadingTitle,
+  loadingMessage,
+  children,
+  releaseMetadata,
+}) {
   const loadingTimerRef = React.useRef("");
 
   React.useEffect(() => {
@@ -170,6 +189,7 @@ export function DeterministicGuardedSurface({ tier, surface, shellClassName, loa
         surface={surface}
         title={loadingTitle || "Deterministic loading surface"}
         message={loadingMessage || "Deterministic loading state is active while preserving surface stability."}
+        releaseMetadata={releaseMetadata}
       />
     );
   }
@@ -183,6 +203,9 @@ export function DeterministicGuardedSurface({ tier, surface, shellClassName, loa
       )}
       data-tier={tier}
       data-surface={surface}
+        data-release-version={releaseMetadata?.semanticVersion || ""}
+        data-release-build={releaseMetadata?.buildId || ""}
+        data-release-channel={releaseMetadata?.channel || ""}
     >
       {children}
     </div>
