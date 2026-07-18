@@ -34,6 +34,13 @@ interface StudioWorkspaceProps {
   initialCompartmentIndex?: number;
 }
 
+const STUDIO_STAGES: Array<{ key: StudioStage; label: string }> = [
+  { key: "idea", label: "Idea" },
+  { key: "seed", label: "Seed" },
+  { key: "project", label: "Project" },
+  { key: "work", label: "Work" },
+];
+
 function clampStudioCompartmentIndex(value: number): number {
   if (!Number.isFinite(value)) {
     return 5;
@@ -115,13 +122,44 @@ export default function StudioWorkspace({
 
   return (
     <section className="studio-workspace">
-      <header className="panel">
+      <header className="panel studio-header-panel">
         <p className="eyebrow">BaseTrue Studio Workspace</p>
         <h2>Controlled Creative Workstation</h2>
-        <p className="status-line">
+        <p className="status-line studio-status-line">
           Linear flow: Idea -&gt; Seed -&gt; Project -&gt; Work. Studio enforces scaled QPU with no tower floors.
         </p>
-        <div className="routing-controls">
+
+        <div className="studio-stage-rail" aria-label="Studio stage progression">
+          {STUDIO_STAGES.map((stage, index) => (
+            <span
+              key={stage.key}
+              className={`studio-stage-pill${activeStage === stage.key ? " is-active" : ""}`}
+              aria-current={activeStage === stage.key ? "step" : undefined}
+            >
+              {index + 1}. {stage.label}
+            </span>
+          ))}
+        </div>
+
+        <div className="studio-summary-grid">
+          <article className="studio-summary-card">
+            <h4>Temporal Owner</h4>
+            <p className={`studio-owner-pill owner-${temporalOwner.toLowerCase()}`}>{temporalOwner}</p>
+            <p className="studio-summary-detail">Compartment group drives QC/QA overlay ownership.</p>
+          </article>
+          <article className="studio-summary-card">
+            <h4>View Context</h4>
+            <p className="studio-summary-keyline">Temporal: {temporalGroup}</p>
+            <p className="studio-summary-keyline">View: {view}</p>
+          </article>
+          <article className="studio-summary-card">
+            <h4>Route Preview</h4>
+            <p className="studio-summary-route">{rrRoutePreview}</p>
+            <p className="studio-summary-detail">Preview only; Studio remains deterministic and gated.</p>
+          </article>
+        </div>
+
+        <div className="routing-controls studio-routing-controls">
           <label>
             Access Tier
             <select value={accessTier} onChange={() => setAccessTier("studio")}>
@@ -146,35 +184,38 @@ export default function StudioWorkspace({
             />
           </label>
         </div>
-        <p className="status-line">
+
+        <p className="status-line studio-status-line">
           Stage: {activeStage} | Temporal: {temporalGroup} | View: {view} | RR route preview: {rrRoutePreview}
         </p>
-        <p className="status-line">
+        <p className="status-line studio-status-line">
           Governance profiles: {governanceProfiles.join(", ")} | Temporal overlay owner: {temporalOwner}
         </p>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
+
+        <div className="studio-badge-row">
           {profileBadges.map((item) => (
-            <span key={item.profile} className="commands-badge">
+            <span key={item.profile} className={`commands-badge studio-badge ${item.allowed ? "is-allowed" : "is-blocked"}`}>
               {item.profile}:{item.allowed ? "allowed" : "blocked"}
             </span>
           ))}
-          <span className="commands-badge">governed apply:{canRunGovernedApply ? "enabled" : "disabled"}</span>
-          <span className="commands-badge">release workflows:disabled</span>
+          <span className="commands-badge studio-badge is-blocked">governed apply:{canRunGovernedApply ? "enabled" : "disabled"}</span>
+          <span className="commands-badge studio-badge is-blocked">release workflows:disabled</span>
         </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
-          <button type="button" disabled>
+
+        <div className="studio-command-row" aria-label="Studio disabled enterprise actions">
+          <button type="button" className="studio-disabled-command" disabled>
             improve-all --apply (enterprise only)
           </button>
-          <button type="button" disabled>
+          <button type="button" className="studio-disabled-command" disabled>
             release --bump patch (enterprise only)
           </button>
-          <button type="button" disabled>
+          <button type="button" className="studio-disabled-command" disabled>
             release-notes (enterprise only)
           </button>
         </div>
       </header>
 
-      <section className="panel phase-section phase-create" data-color={getPhaseColor("create", temporalGroup)}>
+      <section className="panel studio-panel phase-section phase-create" data-color={getPhaseColor("create", temporalGroup)}>
         <h3>1. Idea Panel</h3>
         <p>Non-interactive RR preview for initial ideation context.</p>
         <IdeaEditor
@@ -203,7 +244,7 @@ export default function StudioWorkspace({
         </button>
       </section>
 
-      <section className="panel phase-section phase-create" data-color={getPhaseColor("create", temporalGroup)}>
+      <section className="panel studio-panel phase-section phase-create" data-color={getPhaseColor("create", temporalGroup)}>
         <h3>2. Seed Panel</h3>
         <SeedEditor
           profile={profile}
@@ -241,7 +282,7 @@ export default function StudioWorkspace({
         </button>
       </section>
 
-      <section className="panel phase-section phase-post" data-color={getPhaseColor("post", temporalGroup)}>
+      <section className="panel studio-panel phase-section phase-post" data-color={getPhaseColor("post", temporalGroup)}>
         <h3>3. Project Panel</h3>
         <ProjectCreator
           profile={profile}
@@ -270,7 +311,7 @@ export default function StudioWorkspace({
         </button>
       </section>
 
-      <section className="panel phase-section phase-work" data-color={getPhaseColor("work", temporalGroup)}>
+      <section className="panel studio-panel phase-section phase-work" data-color={getPhaseColor("work", temporalGroup)}>
         <h3>4. Work Panel</h3>
         <p>Simplified Garden view with flat orchestration and no tower floors.</p>
         <WorkPanel
