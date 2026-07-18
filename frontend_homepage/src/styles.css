@@ -1360,6 +1360,30 @@ body.dark-mode .enterprise-chain-panel {
   margin-top: 0.7rem;
 }
 
+.enterprise-workspace button {
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.enterprise-workspace button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(16, 46, 74, 0.14);
+}
+
+.enterprise-workspace button:focus-visible {
+  outline: 2px solid rgba(58, 124, 191, 0.55);
+  outline-offset: 2px;
+}
+
+.enterprise-workspace button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 46, 74, 0.18);
+}
+
+.enterprise-workspace button:disabled {
+  cursor: not-allowed;
+  opacity: 0.82;
+}
+
 .enterprise-panel {
   border-left: 4px solid rgba(30, 120, 181, 0.32);
   box-shadow: 0 10px 20px rgba(16, 44, 72, 0.05);
@@ -1428,6 +1452,16 @@ body.dark-mode .enterprise-tower-aside {
   flex-wrap: wrap;
 }
 
+.enterprise-floor-links a {
+  transition: color 120ms ease, text-decoration-color 120ms ease, text-underline-offset 120ms ease;
+  text-underline-offset: 2px;
+}
+
+.enterprise-floor-links a:hover,
+.enterprise-floor-links a:focus-visible {
+  text-underline-offset: 4px;
+}
+
 .enterprise-preview-grid {
   display: grid;
   gap: 0.46rem;
@@ -1467,6 +1501,17 @@ body.dark-mode .enterprise-tower-aside {
   justify-content: space-between;
   align-items: center;
   gap: 0.58rem;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.enterprise-floor-button:hover:not(:disabled) {
+  border-color: #6494bd;
+  box-shadow: 0 8px 16px rgba(30, 86, 132, 0.16);
+}
+
+.enterprise-floor-button[aria-pressed="true"] {
+  border-color: #3c7ec0;
+  box-shadow: 0 0 0 2px rgba(60, 126, 192, 0.2);
 }
 
 .enterprise-floor-button.is-active .enterprise-floor-label {
