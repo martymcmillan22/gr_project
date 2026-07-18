@@ -41,6 +41,7 @@ import { buildDeterministicReleaseReport } from "./config/deterministicReleaseRe
 import { getDeterministicArtifactManifest } from "./config/deterministicArtifactManifest";
 import { getDeterministicPackagingMetadata } from "./config/deterministicPackagingMetadata";
 import { getTierDistributionProfiles } from "./config/tierDistributionProfiles";
+import { resolveDistributionRule } from "./config/deterministicDistributionRules";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -227,6 +228,14 @@ export default function App() {
       : baseTrueCompartmentRoute?.tier || "novice";
   const activeDeploymentPolicy = tierDeploymentRules.byTier?.[activeRouteTier] || null;
   const activeDistributionProfile = tierDistributionProfiles.byTier?.[activeRouteTier] || null;
+  const activeDistributionRule = useMemo(
+    () =>
+      resolveDistributionRule(
+        activeRouteTier,
+        activeDistributionProfile?.channel || releaseMetadata.channel,
+      ),
+    [activeDistributionProfile, activeRouteTier, releaseMetadata.channel],
+  );
 
   if (isStudioWorkspaceRoute && studioTierParam === "enterprise") {
     throw new Error("Tier/profile mismatch: Studio route cannot request enterprise tier");
@@ -508,6 +517,24 @@ export default function App() {
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };
   }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.distribution.rule.resolved",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        ruleId: activeDistributionRule?.ruleId || "",
+        bundleId: activeDistributionRule?.bundleId || "",
+        channel: activeDistributionProfile?.channel || releaseMetadata.channel,
+      },
+    });
+  }, [
+    activeDistributionProfile,
+    activeDistributionRule,
+    activeRouteTier,
+    releaseMetadata.channel,
+  ]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -2070,6 +2097,7 @@ export default function App() {
             packagingMetadata={packagingMetadata}
             artifactManifest={artifactManifest}
             distributionProfile={tierDistributionProfiles.byTier?.novice}
+            distributionRule={resolveDistributionRule("novice", tierDistributionProfiles.byTier?.novice?.channel || releaseMetadata.channel)}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -2088,6 +2116,7 @@ export default function App() {
             packagingMetadata={packagingMetadata}
             artifactManifest={artifactManifest}
             distributionProfile={tierDistributionProfiles.byTier?.[baseTrueCompartmentRoute.tier]}
+            distributionRule={resolveDistributionRule(baseTrueCompartmentRoute.tier, tierDistributionProfiles.byTier?.[baseTrueCompartmentRoute.tier]?.channel || releaseMetadata.channel)}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2126,6 +2155,7 @@ export default function App() {
           packagingMetadata={packagingMetadata}
           artifactManifest={artifactManifest}
           distributionProfile={tierDistributionProfiles.byTier?.studio}
+          distributionRule={resolveDistributionRule("studio", tierDistributionProfiles.byTier?.studio?.channel || releaseMetadata.channel)}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2151,6 +2181,7 @@ export default function App() {
             packagingMetadata={packagingMetadata}
             artifactManifest={artifactManifest}
             distributionProfile={tierDistributionProfiles.byTier?.enterprise}
+            distributionRule={resolveDistributionRule("enterprise", tierDistributionProfiles.byTier?.enterprise?.channel || releaseMetadata.channel)}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2185,6 +2216,7 @@ export default function App() {
           packagingMetadata={packagingMetadata}
           artifactManifest={artifactManifest}
           distributionProfile={tierDistributionProfiles.byTier?.enterprise}
+          distributionRule={resolveDistributionRule("enterprise", tierDistributionProfiles.byTier?.enterprise?.channel || releaseMetadata.channel)}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."

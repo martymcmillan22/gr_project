@@ -24,6 +24,7 @@ export function DeterministicSurfaceFallback({
   packagingMetadata,
   artifactManifest,
   distributionProfile,
+  distributionRule,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -62,6 +63,8 @@ export function DeterministicSurfaceFallback({
       data-artifact-manifest-id={artifactManifest?.manifestId || ""}
       data-distribution-profile={distributionProfile?.profileId || ""}
       data-distribution-mode={distributionProfile?.packagingMode || ""}
+      data-distribution-rule={distributionRule?.ruleId || ""}
+      data-distribution-bundle={distributionRule?.bundleId || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -113,6 +116,7 @@ export class DeterministicErrorBoundary extends React.Component {
       packagingMetadata,
       artifactManifest,
       distributionProfile,
+      distributionRule,
     } = this.props;
 
     if (this.state.hasError) {
@@ -130,6 +134,7 @@ export class DeterministicErrorBoundary extends React.Component {
           packagingMetadata={packagingMetadata}
           artifactManifest={artifactManifest}
           distributionProfile={distributionProfile}
+          distributionRule={distributionRule}
         />
       );
     }
@@ -155,6 +160,8 @@ export class DeterministicErrorBoundary extends React.Component {
         data-artifact-manifest-id={artifactManifest?.manifestId || ""}
         data-distribution-profile={distributionProfile?.profileId || ""}
         data-distribution-mode={distributionProfile?.packagingMode || ""}
+        data-distribution-rule={distributionRule?.ruleId || ""}
+        data-distribution-bundle={distributionRule?.bundleId || ""}
       >
         {children}
       </div>
@@ -173,6 +180,7 @@ export function DeterministicLoadingSurface({
   packagingMetadata,
   artifactManifest,
   distributionProfile,
+  distributionRule,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -187,6 +195,7 @@ export function DeterministicLoadingSurface({
       packagingMetadata={packagingMetadata}
       artifactManifest={artifactManifest}
       distributionProfile={distributionProfile}
+      distributionRule={distributionRule}
     />
   );
 }
@@ -205,6 +214,7 @@ export function DeterministicGuardedSurface({
   packagingMetadata,
   artifactManifest,
   distributionProfile,
+  distributionRule,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -249,6 +259,7 @@ export function DeterministicGuardedSurface({
         packagingMetadata={packagingMetadata}
         artifactManifest={artifactManifest}
         distributionProfile={distributionProfile}
+        distributionRule={distributionRule}
       />
     );
   }
@@ -274,6 +285,8 @@ export function DeterministicGuardedSurface({
         data-artifact-manifest-id={artifactManifest?.manifestId || ""}
         data-distribution-profile={distributionProfile?.profileId || ""}
         data-distribution-mode={distributionProfile?.packagingMode || ""}
+        data-distribution-rule={distributionRule?.ruleId || ""}
+        data-distribution-bundle={distributionRule?.bundleId || ""}
     >
       {children}
     </div>
