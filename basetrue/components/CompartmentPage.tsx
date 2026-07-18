@@ -95,6 +95,7 @@ export default function CompartmentPage(props: CompartmentPageProps) {
             type="button"
             onClick={() => setViewMode("dashboard")}
             aria-pressed={isDashboard}
+            aria-current={isDashboard ? "step" : undefined}
             disabled={isDashboard}
           >
             Dashboard Mode
@@ -103,6 +104,7 @@ export default function CompartmentPage(props: CompartmentPageProps) {
             type="button"
             onClick={() => setViewMode("pipeline")}
             aria-pressed={!isDashboard}
+            aria-current={!isDashboard ? "step" : undefined}
             disabled={!isDashboard}
           >
             Pipeline Mode
@@ -110,13 +112,41 @@ export default function CompartmentPage(props: CompartmentPageProps) {
         </div>
         {!isDashboard ? (
           <div className="action-grid">
-            <button type="button" disabled={!gateState.canIdea} onClick={() => setActiveStage("idea")}>Create Idea</button>
-            <button type="button" disabled={!gateState.canSeed} onClick={() => setActiveStage("seed")}>Form Seed</button>
-            <button type="button" disabled={!gateState.canProject} onClick={() => setActiveStage("project")}>Activate Project</button>
-            <button type="button" disabled={!gateState.canWork} onClick={() => setActiveStage("work")}>Enter Work Phase</button>
+            <button
+              type="button"
+              disabled={!gateState.canIdea}
+              aria-current={activeStage === "idea" ? "step" : undefined}
+              onClick={() => setActiveStage("idea")}
+            >
+              Create Idea
+            </button>
+            <button
+              type="button"
+              disabled={!gateState.canSeed}
+              aria-current={activeStage === "seed" ? "step" : undefined}
+              onClick={() => setActiveStage("seed")}
+            >
+              Form Seed
+            </button>
+            <button
+              type="button"
+              disabled={!gateState.canProject}
+              aria-current={activeStage === "project" ? "step" : undefined}
+              onClick={() => setActiveStage("project")}
+            >
+              Activate Project
+            </button>
+            <button
+              type="button"
+              disabled={!gateState.canWork}
+              aria-current={activeStage === "work" ? "step" : undefined}
+              onClick={() => setActiveStage("work")}
+            >
+              Enter Work Phase
+            </button>
           </div>
         ) : null}
-        <p>
+        <p role="status" aria-live="polite" aria-atomic="true">
           Stage: {isDashboard ? "dashboard" : activeStage} | RR pipeline: {canRouteRRInPipeline(props.tier) ? "enabled" : "disabled"} | QPU: {hasQPU(props.tier) ? "enabled" : "disabled"} | Tower: {canUseQPUTower(props.tier) ? "enabled" : "disabled"}
         </p>
         <ArtifactTagDisplay label="Lens Idea" tags={idea?.artifact_tags} />

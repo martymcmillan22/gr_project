@@ -972,6 +972,11 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
   box-shadow: 0 0 0 2px rgba(49, 114, 172, 0.16);
 }
 
+.compartment-page[data-tier="novice"] .pipeline-navigation .action-grid button[aria-current="step"],
+.compartment-page[data-tier="intermediate"] .pipeline-navigation .action-grid button[aria-current="step"] {
+  box-shadow: 0 0 0 2px rgba(49, 114, 172, 0.2);
+}
+
 .compartment-page[data-tier="novice"] button:focus-visible,
 .compartment-page[data-tier="intermediate"] button:focus-visible {
   outline: 2px solid rgba(49, 114, 172, 0.55);
@@ -1001,6 +1006,13 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
 .compartment-page[data-tier="intermediate"] .pipeline-navigation a:hover,
 .compartment-page[data-tier="intermediate"] .pipeline-navigation a:focus-visible {
   text-underline-offset: 4px;
+}
+
+.compartment-page[data-tier="novice"] .pipeline-navigation a:focus-visible,
+.compartment-page[data-tier="intermediate"] .pipeline-navigation a:focus-visible {
+  outline: 2px solid rgba(49, 114, 172, 0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @media (max-width: 760px) {
