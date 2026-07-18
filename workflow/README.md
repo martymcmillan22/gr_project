@@ -695,3 +695,37 @@ Output:
 - python3 workflow/cli.py release --bump patch
 - python3 workflow/cli.py release-notes
 - python3 workflow/cli.py ai-export
+
+## Canonical Architecture Reference
+
+- workflow/meta/docs/UNIFIED_SEMANTIC_PLATFORM_ARCHITECTURE.md
+
+## Unified Semantic Platform Validation Checklist
+
+Run this checklist before any governed apply-mode or release:
+
+1. **Anchors synced**
+	- `basetrue/anchors/bt_anchor.json` and `basetrue/README_BTIF_BTPE.md` updated and validated.
+	- `workflow/meta/registry.json` and `workflow/meta/governance_policy.json` consistent.
+
+2. **Determinism tests**
+	- `npm test` (BaseTrue logic determinism) -> green.
+	- `python3 -m unittest discover workflow/tests -v` -> green.
+
+3. **Integrity chain**
+	- `python3 workflow/cli.py validate-suite`
+	- `python3 workflow/cli.py visualize-all`
+	- `python3 workflow/cli.py sync-all`
+	- `python3 workflow/cli.py ai-export`
+
+4. **Semantic health + scorecard**
+	- Run appropriate profile:
+	  - weekly / monthly / quarterly / annual `semantic-health`
+	  - `semantic-scorecard` with configured confidence threshold.
+
+5. **Governance approvals**
+	- Explicit `--approve-*` flags present for any apply-mode:
+	  - evolution, expansion, refactor, semantic, structural, sync.
+
+6. **AI context regeneration**
+	- Confirm `ai_hints.json`, `ai_navigation.json`, `semantic_context.json`, and cycle/evolution/expansion/refactor JSON refreshed after release.

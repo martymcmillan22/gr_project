@@ -1,0 +1,242 @@
+{
+  "btif": {
+    "name": "BaseTrue Information Format",
+    "description": "Global schema for compartments, phases, temporal views, geometry, tiers and artifacts."
+  },
+  "btpe": {
+    "name": "BaseTrue Phase Engine",
+    "phases": ["create", "post", "work"],
+    "cpw_order": ["create", "post", "work"]
+  },
+  "temporal_grid": {
+    "groups": {
+      "past": {
+        "indices": [1, 5, 9],
+        "view": "list"
+      },
+      "present_past": {
+        "indices": [2, 6, 10],
+        "view": "detail"
+      },
+      "present_future": {
+        "indices": [3, 7, 11],
+        "view": "how_to"
+      },
+      "future": {
+        "indices": [4, 8, 12],
+        "view": "present"
+      }
+    },
+    "phase_colors": {
+      "create": {
+        "past": "red",
+        "present_past": "blue",
+        "present_future": "yellow",
+        "future": "green"
+      },
+      "post": {
+        "past": "purple",
+        "present_past": "teal",
+        "present_future": "orange",
+        "future": "lime"
+      },
+      "work": {
+        "past": "pink",
+        "present_past": "cyan",
+        "present_future": "amber",
+        "future": "green_lime"
+      }
+    }
+  },
+  "geometry": {
+    "modes": ["architectural", "layered", "flat"],
+    "hybrid": true,
+    "transitions": {
+      "large_screens": "animated",
+      "small_screens": "instant"
+    },
+    "shapes": {
+      "rr": "circle",
+      "qpu": "square",
+      "tower": "vertical_stack"
+    }
+  },
+  "tiers": {
+    "novice": {
+      "commands": [4],
+      "rr": false,
+      "qpu": false
+    },
+    "intermediate": {
+      "commands": [4, 16],
+      "rr": true,
+      "qpu": false
+    },
+    "advanced": {
+      "commands": [4, 16, 64],
+      "rr": true,
+      "qpu": false
+    },
+    "studio": {
+      "commands": [4, 16, 64],
+      "rr": true,
+      "qpu": true,
+      "storage_gb": 50,
+      "qpu_max_compartment": 8
+    },
+    "enterprise": {
+      "commands": ["all"],
+      "rr": true,
+      "qpu": true,
+      "qpu_max_compartment": 12
+    }
+  },
+  "qpu_growth": {
+    "5": 4,
+    "6": 16,
+    "7": 64,
+    "8": 256,
+    "9": 1024,
+    "10": 4096,
+    "11": 16384,
+    "12": 65536
+  },
+  "compartments": {
+    "public": ["BOS", "BOL", "BOE", "BOP", "Library", "Duseum", "Nuseum", "Monuments", "GR", "PJs", "AT", "HC"],
+    "personal": ["CP", "IN", "DC", "NO", "BOT", "Analyze", "Evaluate", "Persuasive", "PTG", "PH&D", "LW", "TR"]
+  },
+  "canonical_blueprint": {
+    "version": "novice_intermediate_studio_enterprise_final",
+    "tier_identities": {
+      "create": "Architect",
+      "post": "Full-Stack Engineer",
+      "work": "Botanist"
+    },
+    "tier_logic": {
+      "novice": "MLAS_4_step",
+      "intermediate": "SVEM_16_step"
+    },
+    "behavior_rules": {
+      "compartments_read_only": true,
+      "cpw_editing_surfaces": ["pipeline_mode", "studio_workspace", "enterprise_workspace"],
+      "rr_drives_qpu": true,
+      "qpu_drives_orchestration": true,
+      "deterministic_tags": true,
+      "shared_tag_display": "ArtifactTagDisplay",
+      "studio_qpu_mode": "scaled",
+      "enterprise_qpu_mode": "tower"
+    },
+    "museum": {
+      "wings": {
+        "descriptive": "Duseum",
+        "narrative": "Nuseum",
+        "library": "read_only",
+        "monuments": "presentation_checkout"
+      },
+      "section_mapping": {
+        "DATA": "Duseum_Library_flank",
+        "LOGIC": "Duseum",
+        "JAVA": "Nuseum",
+        "TEMPLATES": "Nuseum_Monuments"
+      },
+      "temporal_ownership": {
+        "qc_user": ["past", "present_past"],
+        "qa_va": ["present_future", "future"]
+      },
+      "svem_16_step_sections": {
+        "DATA": [
+          ["Select", "Form", "Hierarchical"],
+          ["Action", "Table", "Network"],
+          ["Query", "Parameter", "Object"],
+          ["Cross", "Report", "Relational"]
+        ],
+        "LOGIC": ["Data", "Program", "Which", "Template"],
+        "JAVA": ["Keyword", "Operator", "Expression", "Value"],
+        "TEMPLATES": [
+          ["Chest", "Forms", "Widgets"],
+          ["Info", "Retrieve", "Process"],
+          ["Assist", "Step-by-Step"],
+          ["Checkout", "Survey", "Polls"]
+        ]
+      }
+    },
+    "studio_enterprise": {
+      "studio": {
+        "identity": "semantic_workstation",
+        "inherits": "museum_svem_16_as_blocks",
+        "tower_enabled": false,
+        "qpu_mode": "scaled",
+        "semantic_overlays_only": true,
+        "multi_floor_execution": false
+      },
+      "enterprise": {
+        "identity": "semantic_skyscraper",
+        "inherits": "museum_svem_16_as_floors",
+        "tower_enabled": true,
+        "qpu_mode": "tower",
+        "multi_floor_execution": true,
+        "tower_navigation": true,
+        "floor_detail_panels": true,
+        "execution_timeline": true
+      },
+      "sections": {
+        "DATA": {
+          "wing": "Duseum_Library",
+          "role": "safe_modification_layer",
+          "library": "read_only",
+          "qc_owner": true,
+          "qa_owner": false,
+          "blocks_or_floors": [
+            ["Select", "Form", "Hierarchical"],
+            ["Action", "Table", "Network"],
+            ["Query", "Parameter", "Object"],
+            ["Cross", "Report", "Relational"]
+          ]
+        },
+        "LOGIC": {
+          "wing": "Duseum",
+          "role": "descriptive_flow",
+          "qc_owner": true,
+          "qa_owner": false,
+          "blocks_or_floors": ["Data", "Program", "Which", "Template"]
+        },
+        "JAVA": {
+          "wing": "Nuseum",
+          "role": "narrative_action",
+          "qc_owner": "review_only",
+          "qa_owner": true,
+          "blocks_or_floors": ["Keyword", "Operator", "Expression", "Value"]
+        },
+        "TEMPLATES": {
+          "wing": "Nuseum_Monuments",
+          "role": "narrative_presentation",
+          "qc_owner": "annotate_only",
+          "qa_owner": true,
+          "blocks_or_floors": [
+            ["Chest", "Forms", "Widgets"],
+            ["Info", "Retrieve", "Process"],
+            ["Assist", "Step-by-Step"],
+            ["Checkout", "Survey", "Polls"]
+          ]
+        }
+      },
+      "guided_chain": ["Monuments", "Checkout", "Surveys", "Polls"],
+      "temporal_ownership": {
+        "qc_user": ["past", "present_past"],
+        "qa_va": ["present_future", "future"]
+      },
+      "enterprise_tower": {
+        "zones": 4,
+        "floors_per_zone": 4,
+        "total_floors": 16,
+        "zone_mapping": {
+          "zone_1": "DATA_lower",
+          "zone_2": "LOGIC_lower",
+          "zone_3": "JAVA_upper",
+          "zone_4": "TEMPLATES_upper"
+        }
+      },
+      "garden_maintenance": ["manufacturing", "contractors", "logistics", "shipping"]
+    }
+  }
+}

@@ -21,9 +21,6 @@ import {
   savePreferences,
 } from "./api/homepageApi";
 import QpcBlueprint from "./presentation/QpcBlueprint";
-import BasetrueCoverSlide from "./presentation/BasetrueCoverSlide";
-import RepositoryRelayBlueprint from "./presentation/RepositoryRelayBlueprint";
-import StatisticsRelayDiagram from "./presentation/StatisticsRelayDiagram";
 import RoutingLayoutPreview from "./presentation/RoutingLayoutPreview";
 import SquareRootTimelineGrid from "./presentation/SquareRootTimelineGrid";
 import StoryHierarchyExplorer from "./presentation/StoryHierarchyExplorer";
@@ -34,10 +31,13 @@ import FlowPanel from "./ui/FlowPanel";
 import QuickActions from "./ui/QuickActions";
 import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
-import AstrologyWheelDemo from "./presentation/AstrologyWheelDemo";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
-import { generatedSlideComponents } from "./ui/generated";
-import QuadrantSandbox from "./ui/quadrant-sandbox/QuadrantSandbox";
+import { TemplateGroupInspectorPanel } from "../../ui/diagnostics/TemplateGroupInspectorPanel";
+import CompartmentPage from "../../basetrue/components/CompartmentPage";
+import EnterpriseWorkspace from "../../basetrue/workspaces/EnterpriseWorkspace";
+import StudioWorkspace from "../../basetrue/workspaces/StudioWorkspace";
+import { canUseGovernedApplyMode } from "../../basetrue/logic/pipelineLogic";
+import btAnchor from "../../basetrue/anchors/bt_anchor.json";
 
 const fallbackFlow = { status: "active", progress: 42, message: "In progress" };
 const fallbackTasks = [
@@ -56,57 +56,107 @@ const QPC_COUNT_PRESETS = [
   { label: "Compact 2/8/32", counts: [2, 8, 32] },
 ];
 
-const PRACTICE_PITCH_SLIDES = [
+function slugifyCompartmentName(name = "") {
+  return String(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function parseBaseTrueCompartmentRoute(pathname) {
+  const segments = String(pathname || "")
+    .split("/")
+    .filter(Boolean);
+
+  if (segments[0] !== "basetrue") {
+    return null;
+  }
+
+  if (segments.length === 1) {
+    return {
+      error:
+        "Missing route segments. Use /basetrue/<public|personal>/<compartment>/<1-12>/<tier>",
+    };
+  }
+
+  const profile = segments[1];
+  if (profile !== "public" && profile !== "personal") {
+    return {
+      error: "Profile must be public or personal.",
+    };
+  }
+
+  const compartmentSegment = decodeURIComponent(segments[2] || "");
+  const index = Number(segments[3]);
+  const tier = String(segments[4] || "novice").toLowerCase();
+
+  const validTiers = Object.keys(btAnchor.tiers || {});
+  if (!validTiers.includes(tier)) {
+    return {
+      error: `Invalid tier. Use one of: ${validTiers.join(", ")}`,
+    };
+  }
+
+  if (!Number.isInteger(index) || index < 1 || index > 12) {
+    return {
+      error: "Compartment index must be an integer from 1 to 12.",
+    };
+  }
+
+  const names = Array.isArray(btAnchor.compartments?.[profile]) ? btAnchor.compartments[profile] : [];
+  const bySlug = new Map(names.map((name) => [slugifyCompartmentName(name), name]));
+  const compartmentName = bySlug.get(slugifyCompartmentName(compartmentSegment));
+
+  if (!compartmentName) {
+    return {
+      error: `Unknown compartment for ${profile}.`,
+    };
+  }
+
+  return {
+    profile,
+    name: compartmentName,
+    index,
+    tier,
+  };
+}
+
+function buildBaseTruePath(profile, compartmentSlug, index, tier) {
+  return `/basetrue/${profile}/${compartmentSlug}/${index}/${tier}`;
+}
+
+const BASETRUE_ROUTE_PRESETS = [
   {
-    id: "basetrue-cover",
-    tabLabel: "Slide 1 • Cover",
-    title: "Basetrue Cover: 24 Compartments + Core Features",
-    subtitle: "Presentation atlas for compartments and platform systems",
-    bullets: [
-      "Showcases the 24 Basetrue compartments as one coherent visual set",
-      "Introduces supporting platform features: Polish, Twist, Rhythm Clock, and POVs",
-      "Provides a clean launch point for guided walkthrough and deeper compartment review",
-      "Aligns narrative framing before diving into detailed compartment slides",
-    ],
+    id: "novice_start",
+    label: "Novice Start",
+    profile: "public",
+    compartmentSlug: "bos",
+    index: 1,
+    tier: "novice",
   },
   {
-    id: "repository-relay",
-    tabLabel: "Slide 2",
-    title: "Slide 2: Repository Relay",
-    subtitle: "The Universal Building Block of Structured Intelligence",
-    bullets: [
-      "Future-ready semantic structure for organizing information across any domain",
-      "Reusable, subject-agnostic blueprint with deterministic L1-L4 layering",
-      "Standardizes team workflows and removes structural ambiguity",
-      "Transforms information noise into predictable semantic clarity",
-      "Acts as the atomic unit of scalable intelligence",
-    ],
+    id: "rr_start",
+    label: "RR Start",
+    profile: "public",
+    compartmentSlug: "boe",
+    index: 3,
+    tier: "intermediate",
   },
   {
-    id: "qpu",
-    tabLabel: "Slide 3",
-    title: "Slide 3: QPU (Quantum Series Circuit Processor)",
-    subtitle: "Quantum-Inspired Semantic Engine",
-    bullets: [
-      "Orchestrates multiple relays into one unified decision circuit",
-      "Supports real-time introspection through profile states and compare navigation",
-      "Coordinates semantic routing across independent relay profiles",
-      "Highlights divergence patterns while preserving deterministic behavior",
-      "Forms the foundation for next-generation intelligent systems",
-    ],
+    id: "qpu_start",
+    label: "QPU Start",
+    profile: "public",
+    compartmentSlug: "bop",
+    index: 4,
+    tier: "studio",
   },
   {
-    id: "twist",
-    tabLabel: "Slide 4 • TWIST",
-    title: "Slide 4: TWIST (Temporal Workflow Intelligence Sequencing Topology)",
-    subtitle: "12-Slot SRL Synchronization Layer",
-    bullets: [
-      "Aligns the SRL 12-slot sequence with Public Center and Personal Domain naming",
-      "Maps TWIST quadrants into deterministic SRL routing for Create, Post, and Work domains",
-      "Creates a visual handoff between Rhythm Clock timing and semantic execution",
-      "Keeps route clarity high with deterministic slot-to-domain alignment",
-      "Acts as the coordination bridge from narrative flow into compartment-level execution",
-    ],
+    id: "tower_start",
+    label: "Tower Start",
+    profile: "public",
+    compartmentSlug: "library",
+    index: 5,
+    tier: "enterprise",
   },
 ];
 
@@ -128,9 +178,19 @@ export default function App() {
   const noticeTimerRef = useRef(null);
   const presetInitRef = useRef(false);
   const qpcPanelRef = useRef(null);
-  const pathname = window.location.pathname;
-  const isAstrologyWheelRoute = pathname === "/astrology-wheel";
+  const pathname = window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/+$/, "");
+  const isDiagnosticsRoute = pathname === "/diagnostics";
   const isBaseTrueWheelRoute = pathname === "/base-true-wheel";
+  const isStudioWorkspaceRoute = pathname === "/basetrue/studio";
+  const isEnterpriseWorkspaceRoute = pathname === "/basetrue/enterprise" || pathname === "/basetrue/tower";
+  const studioTierParam = new URLSearchParams(window.location.search).get("tier");
+  const enterpriseRouteAllowed = canUseGovernedApplyMode("enterprise");
+  const baseTrueCompartmentRoute =
+    isStudioWorkspaceRoute || isEnterpriseWorkspaceRoute ? null : parseBaseTrueCompartmentRoute(pathname);
+
+  if (isStudioWorkspaceRoute && studioTierParam === "enterprise") {
+    throw new Error("Tier/profile mismatch: Studio route cannot request enterprise tier");
+  }
   const [overview, setOverview] = useState({
     welcome: "Your daily overview",
     flow: fallbackFlow,
@@ -237,7 +297,10 @@ export default function App() {
   const [qpcCompareEnabled, setQpcCompareEnabled] = useState(false);
   const [qpcCompareMode, setQpcCompareMode] = useState(false);
   const [qpcCompareSelection, setQpcCompareSelection] = useState([]);
-  const [practicePitchSlideId, setPracticePitchSlideId] = useState(PRACTICE_PITCH_SLIDES[0].id);
+  const [btRouteProfile, setBtRouteProfile] = useState("public");
+  const [btRouteCompartmentSlug, setBtRouteCompartmentSlug] = useState("bos");
+  const [btRouteIndex, setBtRouteIndex] = useState(1);
+  const [btRouteTier, setBtRouteTier] = useState("novice");
 
   const showNotice = useCallback((type, text) => {
     if (noticeTimerRef.current) {
@@ -380,6 +443,44 @@ export default function App() {
       return next;
     });
   }, [showNotice]);
+
+  const baseTrueTierOptions = useMemo(() => Object.keys(btAnchor.tiers || {}), []);
+
+  const baseTrueCompartmentsForProfile = useMemo(() => {
+    const list = Array.isArray(btAnchor.compartments?.[btRouteProfile]) ? btAnchor.compartments[btRouteProfile] : [];
+    return list.map((name) => ({ name, slug: slugifyCompartmentName(name) }));
+  }, [btRouteProfile]);
+
+  useEffect(() => {
+    if (baseTrueCompartmentsForProfile.length === 0) {
+      setBtRouteCompartmentSlug("");
+      return;
+    }
+
+    const exists = baseTrueCompartmentsForProfile.some((item) => item.slug === btRouteCompartmentSlug);
+    if (!exists) {
+      setBtRouteCompartmentSlug(baseTrueCompartmentsForProfile[0].slug);
+    }
+  }, [baseTrueCompartmentsForProfile, btRouteCompartmentSlug]);
+
+  const baseTrueRoutePath = useMemo(
+    () => buildBaseTruePath(btRouteProfile, btRouteCompartmentSlug || "", btRouteIndex, btRouteTier),
+    [btRouteCompartmentSlug, btRouteIndex, btRouteProfile, btRouteTier],
+  );
+
+  const openBaseTrueRoute = useCallback(() => {
+    window.location.href = baseTrueRoutePath;
+  }, [baseTrueRoutePath]);
+
+  const applyBaseTrueRoutePreset = useCallback((preset) => {
+    if (!preset) {
+      return;
+    }
+    setBtRouteProfile(preset.profile);
+    setBtRouteCompartmentSlug(preset.compartmentSlug);
+    setBtRouteIndex(preset.index);
+    setBtRouteTier(preset.tier);
+  }, []);
 
   const loadResolvedRoute = useCallback((slideId) => {
     const normalized = String(slideId || "").trim();
@@ -1187,6 +1288,13 @@ export default function App() {
             .catch(() => showNotice("error", "Could not log action"));
         },
       },
+      {
+        id: 3,
+        label: "Open Diagnostics",
+        onClick: () => {
+          window.location.assign("/diagnostics");
+        },
+      },
     ],
     [showNotice]
   );
@@ -1576,10 +1684,6 @@ export default function App() {
     };
   }, [qpcCompareRelays]);
 
-  const selectedPracticePitchSlide = useMemo(() => {
-    return PRACTICE_PITCH_SLIDES.find((slide) => slide.id === practicePitchSlideId) || PRACTICE_PITCH_SLIDES[0];
-  }, [practicePitchSlideId]);
-
   const loadQpcRelayIntoBlueprint = useCallback((relay) => {
     if (!relay) {
       return;
@@ -1633,24 +1737,6 @@ export default function App() {
     setStoryEnginePanelTab("timeline");
   }, []);
 
-  if (isAstrologyWheelRoute) {
-    return (
-      <main className="homepage-wrap astrology-route">
-        <section className="panel astrology-route-hero">
-          <p className="eyebrow">Demo Route</p>
-          <h1>Astrology Wheel</h1>
-          <p className="status-line">
-            A dedicated route for the refined wheel preview. Use this page to inspect the geometry and token colors without the rest of the dashboard.
-          </p>
-          <a href="/" className="action-btn astrology-route-back">
-            Back to dashboard
-          </a>
-        </section>
-        <AstrologyWheelDemo />
-      </main>
-    );
-  }
-
   if (isBaseTrueWheelRoute) {
     return (
       <main className="homepage-wrap basetrue-route">
@@ -1669,11 +1755,170 @@ export default function App() {
     );
   }
 
+  if (baseTrueCompartmentRoute) {
+    return (
+      <main className="homepage-wrap basetrue-route">
+        <section className="panel basetrue-route-hero">
+          <p className="eyebrow">BaseTrue Route</p>
+          <h1>Compartment Lens</h1>
+          <p className="status-line">
+            Anchor-driven compartment page using BaseTrue temporal, tier, and phase rules.
+          </p>
+          <a href="/" className="action-btn basetrue-route-back">
+            Back to dashboard
+          </a>
+        </section>
+
+        <section className="panel basetrue-route-builder">
+          <p className="eyebrow">Route Builder</p>
+          <h2>Generate BaseTrue URL</h2>
+          <p className="status-line">Pick values and open a valid anchor-driven compartment route.</p>
+          <div className="action-grid">
+            {BASETRUE_ROUTE_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className="action-btn"
+                onClick={() => applyBaseTrueRoutePreset(preset)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="routing-controls">
+            <label>
+              Profile
+              <select value={btRouteProfile} onChange={(event) => setBtRouteProfile(event.target.value)}>
+                <option value="public">public</option>
+                <option value="personal">personal</option>
+              </select>
+            </label>
+            <label>
+              Compartment
+              <select
+                value={btRouteCompartmentSlug}
+                onChange={(event) => setBtRouteCompartmentSlug(event.target.value)}
+              >
+                {baseTrueCompartmentsForProfile.map((item) => (
+                  <option key={`${btRouteProfile}-${item.slug}`} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Index
+              <input
+                type="number"
+                min="1"
+                max="12"
+                value={btRouteIndex}
+                onChange={(event) => {
+                  const next = Number(event.target.value || 1);
+                  const bounded = Math.min(12, Math.max(1, Number.isNaN(next) ? 1 : next));
+                  setBtRouteIndex(bounded);
+                }}
+              />
+            </label>
+            <label>
+              Tier
+              <select value={btRouteTier} onChange={(event) => setBtRouteTier(event.target.value)}>
+                {baseTrueTierOptions.map((tier) => (
+                  <option key={tier} value={tier}>
+                    {tier}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="action-btn" onClick={openBaseTrueRoute}>
+              Open Route
+            </button>
+          </div>
+          <p className="status-line">{baseTrueRoutePath}</p>
+        </section>
+
+        {baseTrueCompartmentRoute.error ? (
+          <section className="panel">
+            <h2>Invalid BaseTrue Route</h2>
+            <p className="status-line">{baseTrueCompartmentRoute.error}</p>
+            <p className="status-line">Example: /basetrue/public/bos/1/novice</p>
+          </section>
+        ) : (
+          <CompartmentPage
+            profile={baseTrueCompartmentRoute.profile}
+            name={baseTrueCompartmentRoute.name}
+            index={baseTrueCompartmentRoute.index}
+            tier={baseTrueCompartmentRoute.tier}
+          />
+        )}
+      </main>
+    );
+  }
+
+  if (isStudioWorkspaceRoute) {
+    return (
+      <main className="homepage-wrap basetrue-route">
+        <section className="panel basetrue-route-hero">
+          <p className="eyebrow">BaseTrue Route</p>
+          <h1>Studio Workspace</h1>
+          <p className="status-line">Dedicated Studio environment with scaled QPU and no enterprise tower floors.</p>
+          <p className="status-line">Governed apply mode and release workflows are disabled on Studio route.</p>
+          <a href="/" className="action-btn basetrue-route-back">
+            Back to dashboard
+          </a>
+        </section>
+        <StudioWorkspace initialTier="studio" />
+      </main>
+    );
+  }
+
+  if (isEnterpriseWorkspaceRoute) {
+    if (!enterpriseRouteAllowed) {
+      return (
+        <main className="homepage-wrap basetrue-route">
+          <section className="panel basetrue-route-hero">
+            <p className="eyebrow">BaseTrue Route</p>
+            <h1>Enterprise Tower Workspace</h1>
+            <p className="status-line">Enterprise route is disabled because governed apply mode is not available.</p>
+            <a href="/" className="action-btn basetrue-route-back">
+              Back to dashboard
+            </a>
+          </section>
+        </main>
+      );
+    }
+
+    return (
+      <main className="homepage-wrap basetrue-route">
+        <section className="panel basetrue-route-hero">
+          <p className="eyebrow">BaseTrue Route</p>
+          <h1>Enterprise Tower Workspace</h1>
+          <p className="status-line">Full-power tower orchestration environment for enterprise projects only.</p>
+          <a href="/" className="action-btn basetrue-route-back">
+            Back to dashboard
+          </a>
+        </section>
+        <EnterpriseWorkspace accessTier="enterprise" />
+      </main>
+    );
+  }
+
+  if (isDiagnosticsRoute) {
+    return (
+      <main className="homepage-wrap diagnostics-route">
+        <section className="panel diagnostics-route-hero">
+          <h1>Diagnostics</h1>
+          <p className="status-line">Tier-aware diagnostics for template group routing and mappings.</p>
+        </section>
+        <TemplateGroupInspectorPanel profile="enterprise" />
+      </main>
+    );
+  }
+
   return (
     <main className="homepage-wrap">
       {notice ? <div className={`toast toast-${notice.type}`}>{notice.text}</div> : null}
       <DashboardCard title="Welcome" value={overview.welcome || "Your daily overview"} />
-      <AstrologyWheelDemo />
       <QuickActions actions={actions} />
       <FlowPanel flow={overview.flow || fallbackFlow} />
       <SquareRootTimelineGrid
@@ -2382,75 +2627,6 @@ export default function App() {
         {routeError ? <p className="routing-error">{routeError}</p> : null}
         {routeSlide ? <RoutingLayoutPreview slide={routeSlide} /> : null}
 
-        <div className="repository-relay-panel panel">
-          <p className="eyebrow">Blueprint</p>
-          <h3>Repository Relay V1</h3>
-          <p className="status-line">
-            RR(1,4,16,64): reusable subject-agnostic relay blueprint with configurable expansion rings.
-          </p>
-
-          <div className="routing-presets">
-            <label>
-              Image Label
-              <input type="text" value={relayImageLabel} onChange={(event) => setRelayImageLabel(event.target.value)} />
-            </label>
-            <label>
-              Processor Label
-              <input type="text" value={relayProcessorLabel} onChange={(event) => setRelayProcessorLabel(event.target.value)} />
-            </label>
-            <label>
-              Subject Label
-              <input type="text" value={relaySubjectLabel} onChange={(event) => setRelaySubjectLabel(event.target.value)} />
-            </label>
-          </div>
-
-          <div className="routing-presets">
-            <label>
-              Branches (L1)
-              <input
-                type="number"
-                min="0"
-                max="256"
-                value={String(relayBranchCount)}
-                onChange={(event) => setRelayBranchCount(Number(event.target.value || 0))}
-              />
-            </label>
-            <label>
-              Terms (L2)
-              <input
-                type="number"
-                min="0"
-                max="256"
-                value={String(relayTermCount)}
-                onChange={(event) => setRelayTermCount(Number(event.target.value || 0))}
-              />
-            </label>
-            <label>
-              Meta-Terms (L3)
-              <input
-                type="number"
-                min="0"
-                max="256"
-                value={String(relayMetaTermCount)}
-                onChange={(event) => setRelayMetaTermCount(Number(event.target.value || 0))}
-              />
-            </label>
-          </div>
-
-          <RepositoryRelayBlueprint
-            imageLabel={relayImageLabel}
-            processorLabel={relayProcessorLabel}
-            subjectLabel={relaySubjectLabel}
-            tierCounts={relayTierCounts}
-            onNodeSelected={setRelaySelectedNode}
-          />
-          {relaySelectedNode ? (
-            <p className="status-line">
-              selected node: {relaySelectedNode.tier} / {relaySelectedNode.label}
-            </p>
-          ) : null}
-        </div>
-
         <div
           ref={qpcPanelRef}
           className="qpc-panel panel"
@@ -2709,301 +2885,6 @@ export default function App() {
             </p>
           ) : null}
         </div>
-
-        <div className="pitch-practice-panel panel">
-          <p className="eyebrow">Pitch Practice</p>
-          <h3>The Architecture of Scalable Intelligence</h3>
-          <p className="status-line">
-            Use this in-app rehearsal view to practice your TWIST presentation flow.
-          </p>
-          <p className="status-line">Practice deck: {PRACTICE_PITCH_SLIDES.length} slides (includes TWIST).</p>
-          <div className="pitch-sandbox-hint" role="note" aria-label="Pitch practice sandbox guidance">
-            <span className="pitch-sandbox-badge">Sandbox mode: no database writes</span>
-            <button
-              type="button"
-              className="pitch-sandbox-tooltip-trigger"
-              aria-describedby="pitch-sandbox-tooltip"
-              title="Practice slide tab switching is frontend-only. It does not save, mutate, or write to the database."
-            >
-              Instructions
-            </button>
-            <span id="pitch-sandbox-tooltip" className="pitch-sandbox-tooltip" role="tooltip">
-              Guest guide: you can switch Slide 1/2/3 and rehearse safely. No database writes happen in this panel.
-            </span>
-          </div>
-
-          <div className="pitch-slide-switcher" role="tablist" aria-label="Practice pitch slides">
-            {PRACTICE_PITCH_SLIDES.map((slide) => (
-              <button
-                key={slide.id}
-                type="button"
-                role="tab"
-                aria-selected={practicePitchSlideId === slide.id}
-                className={`generated-preset-btn ${practicePitchSlideId === slide.id ? "active" : ""}`}
-                onClick={() => setPracticePitchSlideId(slide.id)}
-              >
-                {slide.tabLabel || slide.title}
-              </button>
-            ))}
-          </div>
-
-          <article className="pitch-slide-card" aria-live="polite">
-            <h4>{selectedPracticePitchSlide.title}</h4>
-            <p>{selectedPracticePitchSlide.subtitle}</p>
-            {selectedPracticePitchSlide.id === "basetrue-cover" ? <BasetrueCoverSlide /> : null}
-            {selectedPracticePitchSlide.id === "repository-relay" ? <StatisticsRelayDiagram /> : null}
-            {selectedPracticePitchSlide.id === "twist" ? <QuadrantSandbox /> : null}
-            <ul>
-              {selectedPracticePitchSlide.bullets.map((point) => (
-                <li key={`${selectedPracticePitchSlide.id}-${point}`}>{point}</li>
-              ))}
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section className="generated-slides-panel">
-        <h2>Slide Blueprint Registry</h2>
-        {isPresentationLoading ? (
-          <div className="generated-slides-summary generated-slides-summary-skeleton">
-            <span className="skeleton-pill" />
-            <span className="skeleton-pill" />
-            <span className="skeleton-pill" />
-            <span className="skeleton-pill" />
-          </div>
-        ) : presentationSummary ? (
-          <div className="generated-slides-summary">
-            <span>slides: {presentationSummary.slide_count || 0}</span>
-            <span>tags: {presentationSummary.tag_count || 0}</span>
-            <span>preview components: {Object.keys(presentationSummary.preview_components || {}).length}</span>
-            <span>categories: {Object.keys(presentationSummary.categories || {}).length}</span>
-            <span>presets: {allPresets.length}</span>
-          </div>
-        ) : null}
-
-        {isPresentationLoading ? (
-          <div className="generated-registry-skeleton" aria-hidden="true">
-            <div className="generated-skeleton-row">
-              <span className="skeleton-btn" />
-              <span className="skeleton-btn" />
-              <span className="skeleton-btn" />
-              <span className="skeleton-btn" />
-            </div>
-            <div className="generated-skeleton-grid">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <span key={`filter-skeleton-${index}`} className="skeleton-field" />
-              ))}
-            </div>
-            <div className="generated-skeleton-list">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div key={`slide-skeleton-${index}`} className="skeleton-card" />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="generated-slides-presets">
-              <div className="generated-slides-quick-presets">
-                {quickPresets.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className={`generated-preset-btn ${activePresetId === preset.id ? "active" : ""}`}
-                    onClick={() => applyPreset(preset)}
-                  >
-                    {preset.name}
-                  </button>
-                ))}
-              </div>
-              <div className="generated-slides-preset-controls">
-                <label>
-                  Additional Presets
-                  <select
-                    value={activePresetId}
-                    onChange={(event) => {
-                      const next = allPresets.find((preset) => preset.id === event.target.value);
-                      if (next) {
-                        applyPreset(next);
-                      }
-                      if (event.target.value === "custom_live") {
-                        setActivePresetId("custom_live");
-                      }
-                    }}
-                  >
-                    <option value="custom_live">Current Filters</option>
-                    {additionalPresets.map((preset) => (
-                      <option key={preset.id} value={preset.id}>
-                        {preset.name}
-                      </option>
-                    ))}
-                  </select>
-                  {additionalPresets.length === 0 ? (
-                    <span className="generated-presets-helper">No custom presets yet</span>
-                  ) : null}
-                </label>
-                <label>
-                  Save Current As Preset
-                  <input
-                    type="text"
-                    value={customPresetName}
-                    onChange={(event) => setCustomPresetName(event.target.value)}
-                    placeholder="e.g. Revenue Watch"
-                  />
-                </label>
-                <div className="generated-preset-actions">
-                  <button type="button" className="generated-preset-btn" onClick={saveCurrentAsPreset}>
-                    Save Preset
-                  </button>
-                  <button
-                    type="button"
-                    className="generated-preset-btn generated-preset-btn-danger"
-                    onClick={removeActiveCustomPreset}
-                    disabled={!canDeleteActiveCustomPreset}
-                  >
-                    Delete Custom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="generated-active-preset-badge">Active preset: {activePresetLabel}</div>
-
-            <div className="generated-slides-filters">
-          <label>
-            Search
-            <input
-              type="text"
-              value={slideSearch}
-              onChange={(event) => setSlideSearch(event.target.value)}
-              placeholder="title, component, file, route"
-            />
-          </label>
-          <label>
-            Tag Type
-            <select value={slideTagFilter} onChange={(event) => setSlideTagFilter(event.target.value)}>
-              <option value="all">all</option>
-              {availableTagTypes.map((tagName) => (
-                <option key={tagName} value={tagName}>
-                  {tagName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tag Count
-            <select value={slideTagCountFilter} onChange={(event) => setSlideTagCountFilter(event.target.value)}>
-              <option value="all">all</option>
-              <option value="0-10">0-10</option>
-              <option value="11-14">11-14</option>
-              <option value="15+">15+</option>
-            </select>
-          </label>
-          <label>
-            Category
-            <select value={slideCategoryFilter} onChange={(event) => setSlideCategoryFilter(event.target.value)}>
-              <option value="all">all</option>
-              {availableCategories.map((categoryName) => (
-                <option key={categoryName} value={categoryName}>
-                  {categoryName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Component Name
-            <select value={slideComponentFilter} onChange={(event) => setSlideComponentFilter(event.target.value)}>
-              <option value="all">all</option>
-              {availableComponents.map((componentName) => (
-                <option key={componentName} value={componentName}>
-                  {componentName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Page Name
-            <select value={slidePageFilter} onChange={(event) => setSlidePageFilter(event.target.value)}>
-              <option value="all">all</option>
-              {availablePages.map((pageName) => (
-                <option key={pageName} value={pageName}>
-                  {pageName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Sort
-            <select value={slideSort} onChange={(event) => setSlideSort(event.target.value)}>
-              <option value="title_asc">title (A-Z)</option>
-              <option value="title_desc">title (Z-A)</option>
-              <option value="tag_desc">tag count (high-low)</option>
-              <option value="tag_asc">tag count (low-high)</option>
-              <option value="category_asc">category (A-Z)</option>
-            </select>
-          </label>
-          <label>
-            Group By
-            <select value={slideGroupBy} onChange={(event) => setSlideGroupBy(event.target.value)}>
-              <option value="none">none</option>
-              <option value="category">category</option>
-              <option value="tag_type">tag type profile</option>
-            </select>
-          </label>
-            </div>
-
-            {presentationSlides.length ? (
-              <div className="generated-slides-groups">
-                {groupedSlides.map((group) => (
-                  <section key={group.key} className="generated-slide-group">
-                    {slideGroupBy !== "none" ? <h3>{group.key}</h3> : null}
-                    <ul className="generated-slides-list">
-                      {group.slides.map((slide) => (
-                        <li key={slide.id}>
-                          <strong>{slide.title}</strong>
-                          <span>{slide.source_file}</span>
-                          <span>{slide.route}</span>
-                          <span>
-                            tags: {slide.tag_count || 0} | component: {slide.component_name} | page: {slide.page_name}
-                          </span>
-                          <div className="generated-slide-chip-row">
-                            <span className="generated-slide-chip generated-slide-chip-meta">category:{slide.category || "general"}</span>
-                            {(slide.labels || []).map((label) => (
-                              <span key={`${slide.id}-label-${label}`} className="generated-slide-chip generated-slide-chip-meta">
-                                {label}
-                              </span>
-                            ))}
-                            {Object.keys(slide.tags_by_type || {}).map((tagName) => (
-                              <span key={`${slide.id}-tag-${tagName}`} className="generated-slide-chip generated-slide-chip-meta">
-                                {tagName}:{slide.tags_by_type[tagName]}
-                              </span>
-                            ))}
-                            {(slide.preview_components || []).map((name) => (
-                              <span key={`${slide.id}-preview-${name}`} className="generated-slide-chip">
-                                {name}
-                              </span>
-                            ))}
-                          </div>
-                          {generatedSlideComponents[slide.id] ? (
-                            <div className="generated-slide-preview">
-                              {(() => {
-                                const SlideComponent = generatedSlideComponents[slide.id];
-                                return <SlideComponent />;
-                              })()}
-                            </div>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p>No generated slides found yet. Add MDX files under docs/architecture/presentation/slides.</p>
-            )}
-            {presentationSlides.length > 0 && sortedSlides.length === 0 ? (
-              <p>No slides match the current filters.</p>
-            ) : null}
-          </>
-        )}
       </section>
     </main>
   );
