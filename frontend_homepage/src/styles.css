@@ -1276,6 +1276,61 @@ body.dark-mode .studio-disabled-command {
   box-shadow: 0 10px 20px rgba(15, 51, 35, 0.05);
 }
 
+.det-boundary-shell {
+  min-width: 0;
+}
+
+.det-surface-stable {
+  min-height: 240px;
+}
+
+.det-surface-stable--studio {
+  min-height: 400px;
+}
+
+.det-surface-fallback {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 0.84rem;
+  background: var(--card);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.det-surface-fallback-eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.det-surface-fallback h3 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.det-surface-fallback-skeleton {
+  display: grid;
+  gap: 0.32rem;
+  margin-top: 0.1rem;
+}
+
+.det-surface-skeleton-row {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(20, 111, 75, 0.14), rgba(20, 111, 75, 0.3), rgba(20, 111, 75, 0.14));
+}
+
+.det-surface-fallback--studio {
+  border-left: 4px solid rgba(20, 111, 75, 0.38);
+}
+
+.det-surface-fallback--studio .det-surface-skeleton-row {
+  background: linear-gradient(90deg, rgba(20, 111, 75, 0.14), rgba(20, 111, 75, 0.34), rgba(20, 111, 75, 0.14));
+}
+
 @media (max-width: 980px) {
   .studio-summary-grid {
     grid-template-columns: 1fr;

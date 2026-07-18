@@ -32,6 +32,7 @@ import QuickActions from "./ui/QuickActions";
 import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
+import { DeterministicErrorBoundary } from "./ui/DeterministicBoundary";
 import { TemplateGroupInspectorPanel } from "../../ui/diagnostics/TemplateGroupInspectorPanel";
 import CompartmentPage from "../../basetrue/components/CompartmentPage";
 import EnterpriseWorkspace from "../../basetrue/workspaces/EnterpriseWorkspace";
@@ -1867,7 +1868,16 @@ export default function App() {
             Back to dashboard
           </a>
         </section>
-        <StudioWorkspace initialTier="studio" />
+        <DeterministicErrorBoundary
+          tier="studio"
+          surface="workspace-panel"
+          shellClassName="det-surface-stable det-surface-stable--studio"
+          fallbackTitle="Studio Workspace Recovery"
+          fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
+          fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
+        >
+          <StudioWorkspace initialTier="studio" />
+        </DeterministicErrorBoundary>
       </main>
     );
   }
