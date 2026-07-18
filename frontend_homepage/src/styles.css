@@ -957,6 +957,7 @@ body.dark-mode .studio-header-panel {
   letter-spacing: 0.03em;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.7);
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
 body.dark-mode .studio-stage-pill {
@@ -1049,6 +1050,42 @@ body.dark-mode .studio-summary-card {
   margin: 0.82rem 0 0.4rem;
 }
 
+.studio-routing-controls input,
+.studio-routing-controls select {
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.studio-routing-controls input:focus-visible,
+.studio-routing-controls select:focus-visible {
+  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 2px rgba(20, 111, 75, 0.16);
+}
+
+.studio-workspace button {
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.studio-workspace button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(12, 46, 31, 0.14);
+}
+
+.studio-workspace button:focus-visible {
+  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline-offset: 2px;
+}
+
+.studio-workspace button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(12, 46, 31, 0.16);
+}
+
+.studio-workspace button:disabled {
+  cursor: not-allowed;
+  opacity: 0.82;
+}
+
 .studio-badge-row,
 .studio-command-row {
   display: flex;
@@ -1086,6 +1123,7 @@ body.dark-mode .studio-summary-card {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 600;
+  filter: saturate(0.82);
 }
 
 body.dark-mode .studio-disabled-command {
