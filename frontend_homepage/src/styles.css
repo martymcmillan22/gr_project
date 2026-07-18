@@ -1408,6 +1408,10 @@ body.dark-mode .enterprise-zone-pill {
   transform: translateY(-1px);
 }
 
+.enterprise-zone-pill[aria-current="step"] {
+  box-shadow: 0 0 0 2px rgba(58, 124, 191, 0.24);
+}
+
 .enterprise-zone-pill:hover {
   transform: translateY(-1px);
 }
@@ -1506,6 +1510,12 @@ body.dark-mode .enterprise-chain-panel {
 .enterprise-workspace button:focus-visible {
   outline: 2px solid rgba(58, 124, 191, 0.55);
   outline-offset: 2px;
+}
+
+.enterprise-workspace a:focus-visible {
+  outline: 2px solid rgba(58, 124, 191, 0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .enterprise-workspace button:active:not(:disabled) {

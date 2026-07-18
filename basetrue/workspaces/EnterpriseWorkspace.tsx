@@ -251,31 +251,36 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
           Garden maintenance route: {activeGardenRoute} | Guided chain: {STUDIO_ENTERPRISE_GUIDED_CHAIN.join(" -> ")}
         </p>
 
-        <div className="enterprise-summary-grid">
-          <article className="enterprise-summary-card">
+        <div className="enterprise-summary-grid" role="list">
+          <article className="enterprise-summary-card" role="listitem">
             <h4>Active Floor Context</h4>
             <p className="enterprise-summary-keyline">Floor {effectiveFloor || "-"}</p>
             <p className="enterprise-summary-detail">Zone {activeZone} · Route {rrRoute}</p>
           </article>
-          <article className="enterprise-summary-card">
+          <article className="enterprise-summary-card" role="listitem">
             <h4>Zone & Garden Path</h4>
             <p className="enterprise-summary-keyline">Zone {activeZone}</p>
             <p className="enterprise-summary-detail">Garden route: {activeGardenRoute}</p>
           </article>
-          <article className="enterprise-summary-card">
+          <article className="enterprise-summary-card" role="listitem">
             <h4>Temporal Owner</h4>
             <p className={`enterprise-owner-pill owner-${temporalOwner.toLowerCase()}`}>{temporalOwner}</p>
             <p className="enterprise-summary-detail">Owner derived from temporal group governance.</p>
           </article>
         </div>
 
-        <div className="enterprise-zone-rail" aria-label="Enterprise tower zones">
+        <div className="enterprise-zone-rail" aria-label="Enterprise tower zones" role="list">
           {Array.from({ length: STUDIO_ENTERPRISE_TOWER.zones }, (_, index) => {
             const zone = index + 1;
             const floorStart = (zone - 1) * STUDIO_ENTERPRISE_TOWER.floors_per_zone + 1;
             const floorEnd = zone * STUDIO_ENTERPRISE_TOWER.floors_per_zone;
             return (
-              <span key={zone} className={`enterprise-zone-pill${zone === activeZone ? " is-active" : ""}`}>
+              <span
+                key={zone}
+                className={`enterprise-zone-pill${zone === activeZone ? " is-active" : ""}`}
+                role="listitem"
+                aria-current={zone === activeZone ? "step" : undefined}
+              >
                 Zone {zone} · Floors {floorStart}-{floorEnd}
               </span>
             );
@@ -373,9 +378,21 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
           />
           <aside className="enterprise-tower-aside">
             <h4>Zone Snapshot</h4>
-            <p className="status-line">Zone {activeZone} governs floors around {effectiveFloor}.</p>
-            <p className="status-line">Garden route: {activeGardenRoute}</p>
-            {hoveredFloorSummary ? <p className="status-line">Hover: {hoveredFloorSummary}</p> : <p className="status-line">Hover a floor for preview.</p>}
+            <p className="status-line" role="status" aria-live="polite" aria-atomic="true">
+              Zone {activeZone} governs floors around {effectiveFloor}.
+            </p>
+            <p className="status-line" role="status" aria-live="polite" aria-atomic="true">
+              Garden route: {activeGardenRoute}
+            </p>
+            {hoveredFloorSummary ? (
+              <p className="status-line" role="status" aria-live="polite" aria-atomic="true">
+                Hover: {hoveredFloorSummary}
+              </p>
+            ) : (
+              <p className="status-line" role="status" aria-live="polite" aria-atomic="true">
+                Hover a floor for preview.
+              </p>
+            )}
           </aside>
         </div>
       </section>
@@ -392,11 +409,11 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
               {activeProject?.qpu_plan.rr_influence?.subnode || "-"}.
               {activeProject?.qpu_plan.rr_influence?.logic_mode || "-"}
             </p>
-            <div className="enterprise-floor-slice-grid">
+            <div className="enterprise-floor-slice-grid" role="list">
               {activeFloorPlan.slices.map((slice) => {
                 const widthPct = activeFloorPlan.total_count > 0 ? Math.round((slice.count / activeFloorPlan.total_count) * 100) : 0;
                 return (
-                  <div key={`${activeFloorPlan.floor}-${slice.slice}`} className="enterprise-floor-slice-row">
+                  <div key={`${activeFloorPlan.floor}-${slice.slice}`} className="enterprise-floor-slice-row" role="listitem">
                     <div className="enterprise-floor-slice-head">
                       <span>{slice.slice}</span>
                       <span>{slice.count}</span>
