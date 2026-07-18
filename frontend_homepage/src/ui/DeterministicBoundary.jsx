@@ -25,6 +25,7 @@ export function DeterministicSurfaceFallback({
   artifactManifest,
   distributionProfile,
   distributionRule,
+  distributionReport,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -65,6 +66,8 @@ export function DeterministicSurfaceFallback({
       data-distribution-mode={distributionProfile?.packagingMode || ""}
       data-distribution-rule={distributionRule?.ruleId || ""}
       data-distribution-bundle={distributionRule?.bundleId || ""}
+      data-distribution-report-tier={distributionReport?.activeTier || ""}
+      data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -117,6 +120,7 @@ export class DeterministicErrorBoundary extends React.Component {
       artifactManifest,
       distributionProfile,
       distributionRule,
+      distributionReport,
     } = this.props;
 
     if (this.state.hasError) {
@@ -135,6 +139,7 @@ export class DeterministicErrorBoundary extends React.Component {
           artifactManifest={artifactManifest}
           distributionProfile={distributionProfile}
           distributionRule={distributionRule}
+          distributionReport={distributionReport}
         />
       );
     }
@@ -162,6 +167,8 @@ export class DeterministicErrorBoundary extends React.Component {
         data-distribution-mode={distributionProfile?.packagingMode || ""}
         data-distribution-rule={distributionRule?.ruleId || ""}
         data-distribution-bundle={distributionRule?.bundleId || ""}
+        data-distribution-report-tier={distributionReport?.activeTier || ""}
+        data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
       >
         {children}
       </div>
@@ -181,6 +188,7 @@ export function DeterministicLoadingSurface({
   artifactManifest,
   distributionProfile,
   distributionRule,
+  distributionReport,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -196,6 +204,7 @@ export function DeterministicLoadingSurface({
       artifactManifest={artifactManifest}
       distributionProfile={distributionProfile}
       distributionRule={distributionRule}
+      distributionReport={distributionReport}
     />
   );
 }
@@ -215,6 +224,7 @@ export function DeterministicGuardedSurface({
   artifactManifest,
   distributionProfile,
   distributionRule,
+  distributionReport,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -260,6 +270,7 @@ export function DeterministicGuardedSurface({
         artifactManifest={artifactManifest}
         distributionProfile={distributionProfile}
         distributionRule={distributionRule}
+        distributionReport={distributionReport}
       />
     );
   }
@@ -287,6 +298,8 @@ export function DeterministicGuardedSurface({
         data-distribution-mode={distributionProfile?.packagingMode || ""}
         data-distribution-rule={distributionRule?.ruleId || ""}
         data-distribution-bundle={distributionRule?.bundleId || ""}
+        data-distribution-report-tier={distributionReport?.activeTier || ""}
+        data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
     >
       {children}
     </div>
