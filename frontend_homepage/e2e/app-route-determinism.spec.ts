@@ -39,6 +39,13 @@ test.describe("BaseTrue app route determinism", () => {
     await expect(page.getByText("QPU: disabled", { exact: false })).toBeVisible();
     await expect(page.getByText("Tower: disabled", { exact: false })).toBeVisible();
 
+    const noviceModeButtons = page.locator('.pipeline-navigation [role="group"][aria-label="Compartment mode"] button');
+    await expect(noviceModeButtons).toHaveCount(2);
+    await expect(noviceModeButtons.nth(0)).toHaveAttribute("aria-pressed", "true");
+    await expect(noviceModeButtons.nth(0)).toBeDisabled();
+    await expect(noviceModeButtons.nth(1)).toHaveAttribute("aria-pressed", "false");
+    await expect(noviceModeButtons.nth(1)).toBeEnabled();
+
     // Novice route must not overlap with studio or enterprise workspace surfaces.
     await expect(page.locator(".studio-workspace")).toHaveCount(0);
     await expect(page.locator(".enterprise-workspace")).toHaveCount(0);
@@ -56,6 +63,13 @@ test.describe("BaseTrue app route determinism", () => {
     await expect(page.getByText("RR pipeline: disabled", { exact: false })).toBeVisible();
     await expect(page.getByText("QPU: disabled", { exact: false })).toBeVisible();
     await expect(page.getByText("Tower: disabled", { exact: false })).toBeVisible();
+
+    const intermediateModeButtons = page.locator('.pipeline-navigation [role="group"][aria-label="Compartment mode"] button');
+    await expect(intermediateModeButtons).toHaveCount(2);
+    await expect(intermediateModeButtons.nth(0)).toHaveAttribute("aria-pressed", "true");
+    await expect(intermediateModeButtons.nth(0)).toBeDisabled();
+    await expect(intermediateModeButtons.nth(1)).toHaveAttribute("aria-pressed", "false");
+    await expect(intermediateModeButtons.nth(1)).toBeEnabled();
 
     // Intermediate route must not overlap with studio or enterprise workspace surfaces.
     await expect(page.locator(".studio-workspace")).toHaveCount(0);
@@ -85,6 +99,12 @@ test.describe("BaseTrue app route determinism", () => {
     // Studio overlays should be present in Studio route.
     await expect(page.getByText("Studio Idea Tags")).toBeVisible();
     await expect(page.getByText("Studio Seed Tags")).toBeVisible();
+
+    const studioDisabledCommands = page.locator(".studio-command-row .studio-disabled-command");
+    await expect(studioDisabledCommands).toHaveCount(3);
+    await expect(studioDisabledCommands.nth(0)).toBeDisabled();
+    await expect(studioDisabledCommands.nth(1)).toBeDisabled();
+    await expect(studioDisabledCommands.nth(2)).toBeDisabled();
   });
 
   test("Assert_Enterprise_Route_E2E and Assert_Governed_Apply_E2E", async ({ page }) => {
@@ -97,6 +117,8 @@ test.describe("BaseTrue app route determinism", () => {
     await expect(page.getByText("release workflows:enabled")).toBeVisible();
     await expect(page.getByRole("button", { name: "improve-all --apply" })).toBeVisible();
     await expect(page.getByRole("button", { name: "release --bump patch" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "improve-all --apply" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "release --bump patch" })).toBeEnabled();
     await expect(page.getByText("monthly:allowed")).toBeVisible();
     await expect(page.getByText("quarterly:allowed")).toBeVisible();
     await expect(page.getByText("annual:allowed")).toBeVisible();
@@ -106,6 +128,13 @@ test.describe("BaseTrue app route determinism", () => {
     await expect(page.getByRole("heading", { name: "Monuments -> Checkout -> Surveys -> Polls" })).toBeVisible();
     await expect(page.locator(".tower-floor-selector .enterprise-floor-button").first()).toBeVisible();
     await expect(page.locator(".enterprise-floor-slice-grid")).toBeVisible();
+
+    const selectedFloorButton = page.locator('.tower-floor-selector .enterprise-floor-button[aria-pressed="true"]');
+    await expect(selectedFloorButton).toHaveCount(1);
+    const secondFloorButton = page.locator(".tower-floor-selector .enterprise-floor-button").nth(1);
+    await secondFloorButton.click();
+    await expect(secondFloorButton).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('.tower-floor-selector .enterprise-floor-button[aria-pressed="true"]')).toHaveCount(1);
 
     // Enterprise route must not render Studio-only overlays.
     await expect(page.getByText("Studio Idea Tags")).toHaveCount(0);
