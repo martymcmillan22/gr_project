@@ -16,6 +16,10 @@
   --curve-ease-out: ease-out;
   --curve-ease-in-out: ease-in-out;
   --ease-standard: ease;
+  --focus-ring-global: rgba(20, 111, 75, 0.45);
+  --focus-ring-compartment: rgba(49, 114, 172, 0.55);
+  --focus-ring-studio: rgba(20, 111, 75, 0.5);
+  --focus-ring-enterprise: rgba(58, 124, 191, 0.55);
 }
 
 * {
@@ -63,7 +67,7 @@ body.dark-mode {
 .homepage-wrap input:focus-visible,
 .homepage-wrap select:focus-visible,
 .homepage-wrap textarea:focus-visible {
-  outline: 2px solid rgba(20, 111, 75, 0.45);
+  outline: 2px solid var(--focus-ring-global);
   outline-offset: 2px;
 }
 
@@ -843,7 +847,7 @@ body.dark-mode .basetrue-demo-chips span {
 
 .routing-controls input:focus,
 .routing-controls select:focus {
-  outline: 2px solid rgba(20, 111, 75, 0.45);
+  outline: 2px solid var(--focus-ring-global);
   outline-offset: 1px;
 }
 
@@ -979,7 +983,7 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
 
 .compartment-page[data-tier="novice"] button:focus-visible,
 .compartment-page[data-tier="intermediate"] button:focus-visible {
-  outline: 2px solid rgba(49, 114, 172, 0.55);
+  outline: 2px solid var(--focus-ring-compartment);
   outline-offset: 2px;
 }
 
@@ -1010,7 +1014,7 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
 
 .compartment-page[data-tier="novice"] .pipeline-navigation a:focus-visible,
 .compartment-page[data-tier="intermediate"] .pipeline-navigation a:focus-visible {
-  outline: 2px solid rgba(49, 114, 172, 0.55);
+  outline: 2px solid var(--focus-ring-compartment);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -1185,7 +1189,7 @@ body.dark-mode .studio-summary-card {
 
 .studio-routing-controls input:focus-visible,
 .studio-routing-controls select:focus-visible {
-  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline: 2px solid var(--focus-ring-studio);
   outline-offset: 1px;
   box-shadow: 0 0 0 2px rgba(20, 111, 75, 0.16);
 }
@@ -1200,12 +1204,12 @@ body.dark-mode .studio-summary-card {
 }
 
 .studio-workspace button:focus-visible {
-  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline: 2px solid var(--focus-ring-studio);
   outline-offset: 2px;
 }
 
 .studio-workspace a:focus-visible {
-  outline: 2px solid rgba(20, 111, 75, 0.5);
+  outline: 2px solid var(--focus-ring-studio);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -1520,12 +1524,12 @@ body.dark-mode .enterprise-chain-panel {
 }
 
 .enterprise-workspace button:focus-visible {
-  outline: 2px solid rgba(58, 124, 191, 0.55);
+  outline: 2px solid var(--focus-ring-enterprise);
   outline-offset: 2px;
 }
 
 .enterprise-workspace a:focus-visible {
-  outline: 2px solid rgba(58, 124, 191, 0.55);
+  outline: 2px solid var(--focus-ring-enterprise);
   outline-offset: 2px;
   border-radius: 4px;
 }
