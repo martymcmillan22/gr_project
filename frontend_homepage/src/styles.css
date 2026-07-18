@@ -891,6 +891,7 @@ body.dark-mode .compartment-page[data-tier="intermediate"] {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.68);
+  transition: border-color 160ms ease-in-out, background-color 160ms ease-in-out, box-shadow 160ms ease-in-out;
 }
 
 body.dark-mode .compartment-page[data-tier="novice"] .tier-badge,
@@ -911,6 +912,7 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .temporal-badge {
   font-weight: 700;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.56);
+  transition: border-color 160ms ease-in-out, background-color 160ms ease-in-out, box-shadow 160ms ease-in-out;
 }
 
 body.dark-mode .compartment-page[data-tier="novice"] .commands-badge,
@@ -925,6 +927,7 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .commands-badge {
   padding: 0.72rem 0.78rem;
   background: rgba(255, 255, 255, 0.58);
   box-shadow: 0 8px 20px rgba(17, 46, 70, 0.06);
+  transition: border-color 200ms ease-in-out, box-shadow 200ms ease-in-out, background-color 200ms ease-in-out;
 }
 
 body.dark-mode .compartment-page[data-tier="novice"] .pipeline-navigation,
@@ -949,13 +952,18 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
 .compartment-page[data-tier="intermediate"] .pipeline-navigation .action-grid button {
   border-radius: 10px;
   font-weight: 700;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-in-out, border-color 160ms ease-in-out, background-color 160ms ease-in-out;
 }
 
 .compartment-page[data-tier="novice"] button:hover:not(:disabled),
 .compartment-page[data-tier="intermediate"] button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(19, 52, 82, 0.12);
+}
+
+.compartment-page[data-tier="novice"] .pipeline-navigation .action-grid button[aria-pressed="true"],
+.compartment-page[data-tier="intermediate"] .pipeline-navigation .action-grid button[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px rgba(49, 114, 172, 0.16);
 }
 
 .compartment-page[data-tier="novice"] button:focus-visible,
