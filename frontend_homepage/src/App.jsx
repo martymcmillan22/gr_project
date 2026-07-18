@@ -33,6 +33,13 @@ import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
 import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
+import {
+  emitDeterministicTelemetry,
+  incrementDeterministicMetric,
+  reportDeterministicError,
+  startDeterministicTimer,
+  stopDeterministicTimer,
+} from "./ui/deterministicTelemetry";
 import { TemplateGroupInspectorPanel } from "../../ui/diagnostics/TemplateGroupInspectorPanel";
 import CompartmentPage from "../../basetrue/components/CompartmentPage";
 import EnterpriseWorkspace from "../../basetrue/workspaces/EnterpriseWorkspace";
@@ -179,6 +186,7 @@ export default function App() {
   const noticeTimerRef = useRef(null);
   const presetInitRef = useRef(false);
   const qpcPanelRef = useRef(null);
+  const routeLoadingTimerRef = useRef("");
   const pathname = window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/+$/, "");
   const isDiagnosticsRoute = pathname === "/diagnostics";
   const isBaseTrueWheelRoute = pathname === "/base-true-wheel";
@@ -327,7 +335,13 @@ export default function App() {
           settings: payload.settings || fallbackSettings,
         }));
       })
-      .catch(() => {});
+      .catch(() => {
+        reportDeterministicError({
+          tier: "novice",
+          surface: "workspace",
+          code: "overview_fetch_failed",
+        });
+      });
 
     fetchPresentationSlides()
       .then((payload) => {
@@ -343,6 +357,11 @@ export default function App() {
         }
         setPresentationSlides([]);
         setPresentationSummary(null);
+        reportDeterministicError({
+          tier: "novice",
+          surface: "pipeline",
+          code: "presentation_manifest_failed",
+        });
       })
       .finally(() => {
         if (!active) {
@@ -392,6 +411,83 @@ export default function App() {
       JSON.stringify({ latticeIndex: timelineSelection.latticeIndex }),
     );
   }, [timelineSelection]);
+
+  useEffect(() => {
+    if (isRouteLoading && !routeLoadingTimerRef.current) {
+      routeLoadingTimerRef.current = startDeterministicTimer("app.route.preview.loading", {
+        surface: "pipeline",
+        tier: "novice",
+      });
+      emitDeterministicTelemetry({
+        eventName: "app.route.preview.loading.started",
+        tier: "novice",
+        surface: "pipeline",
+      });
+    }
+
+    if (!isRouteLoading && routeLoadingTimerRef.current) {
+      const durationMs = stopDeterministicTimer(routeLoadingTimerRef.current);
+      routeLoadingTimerRef.current = "";
+      emitDeterministicTelemetry({
+        eventName: "app.route.preview.loading.completed",
+        tier: "novice",
+        surface: "pipeline",
+        payload: { durationMs },
+      });
+      incrementDeterministicMetric("app.route.preview.loading.completed", {
+        tier: "novice",
+      });
+    }
+  }, [isRouteLoading]);
+
+  useEffect(() => {
+    if (!routeError) {
+      return;
+    }
+    reportDeterministicError({
+      tier: "novice",
+      surface: "pipeline",
+      code: "route_preview_error",
+      payload: {
+        message: routeError,
+      },
+    });
+  }, [routeError]);
+
+  useEffect(() => {
+    const onUnhandledError = () => {
+      reportDeterministicError({
+        tier: "novice",
+        surface: "workspace",
+        code: "window_error",
+      });
+    };
+    const onUnhandledRejection = () => {
+      reportDeterministicError({
+        tier: "novice",
+        surface: "workspace",
+        code: "window_unhandled_rejection",
+      });
+    };
+
+    window.addEventListener("error", onUnhandledError);
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", onUnhandledError);
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    };
+  }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.route.context.loaded",
+      tier: "novice",
+      surface: "workspace",
+      payload: {
+        pathname,
+      },
+    });
+  }, [pathname]);
 
   useEffect(() => {
     const onKeyDown = (event) => {

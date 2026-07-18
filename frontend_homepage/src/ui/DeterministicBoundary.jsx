@@ -1,4 +1,11 @@
 import React from "react";
+import {
+  emitDeterministicTelemetry,
+  incrementDeterministicMetric,
+  reportDeterministicError,
+  startDeterministicTimer,
+  stopDeterministicTimer,
+} from "./deterministicTelemetry";
 
 function joinClassNames(...values) {
   return values.filter(Boolean).join(" ");
@@ -12,6 +19,22 @@ export function DeterministicSurfaceFallback({
   mode = "error",
   details,
 }) {
+  React.useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "deterministic.fallback.rendered",
+      tier,
+      surface,
+      payload: {
+        mode,
+      },
+    });
+    incrementDeterministicMetric("deterministic.fallback.activations", {
+      tier,
+      surface,
+      mode,
+    });
+  }, [mode, surface, tier]);
+
   return (
     <section
       className={joinClassNames(
@@ -50,6 +73,11 @@ export class DeterministicErrorBoundary extends React.Component {
 
   componentDidCatch(_error, _errorInfo) {
     // Deterministic fallback is rendered by state transition only.
+    reportDeterministicError({
+      tier: this.props.tier,
+      surface: this.props.surface,
+      code: "boundary_catch",
+    });
   }
 
   render() {
@@ -105,6 +133,36 @@ export function DeterministicLoadingSurface({ tier, surface, title, message }) {
 }
 
 export function DeterministicGuardedSurface({ tier, surface, shellClassName, loading, loadingTitle, loadingMessage, children }) {
+  const loadingTimerRef = React.useRef("");
+
+  React.useEffect(() => {
+    if (loading) {
+      loadingTimerRef.current = startDeterministicTimer("deterministic.loading.duration", {
+        tier,
+        surface,
+      });
+      emitDeterministicTelemetry({
+        eventName: "deterministic.loading.started",
+        tier,
+        surface,
+      });
+      return;
+    }
+
+    if (loadingTimerRef.current) {
+      const durationMs = stopDeterministicTimer(loadingTimerRef.current);
+      emitDeterministicTelemetry({
+        eventName: "deterministic.loading.completed",
+        tier,
+        surface,
+        payload: {
+          durationMs,
+        },
+      });
+      loadingTimerRef.current = "";
+    }
+  }, [loading, surface, tier]);
+
   if (loading) {
     return (
       <DeterministicLoadingSurface

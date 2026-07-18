@@ -10,6 +10,8 @@ function getStore() {
       events: [],
       metrics: {
         counts: {},
+        durations: {},
+        timers: {},
       },
     };
   }
@@ -75,6 +77,60 @@ export function incrementDeterministicMetric(metricName, tags = {}) {
   store.metrics.counts[counterKey] = (store.metrics.counts[counterKey] || 0) + 1;
 }
 
+export function startDeterministicTimer(timerName, tags = {}) {
+  const store = getStore();
+  if (!store || !timerName) {
+    return "";
+  }
+  const normalizedTags = clonePayload(tags);
+  const timerKey = `${timerName}|${Object.entries(normalizedTags)
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join("|")}`;
+  store.metrics.timers[timerKey] = typeof performance !== "undefined" ? performance.now() : Date.now();
+  return timerKey;
+}
+
+export function stopDeterministicTimer(timerKey) {
+  const store = getStore();
+  if (!store || !timerKey || !store.metrics.timers[timerKey]) {
+    return 0;
+  }
+
+  const start = store.metrics.timers[timerKey];
+  const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const durationMs = Math.max(0, Number((end - start).toFixed(2)));
+  delete store.metrics.timers[timerKey];
+
+  const durationEntry = store.metrics.durations[timerKey] || {
+    count: 0,
+    totalMs: 0,
+    maxMs: 0,
+  };
+  durationEntry.count += 1;
+  durationEntry.totalMs += durationMs;
+  durationEntry.maxMs = Math.max(durationEntry.maxMs, durationMs);
+  store.metrics.durations[timerKey] = durationEntry;
+
+  return durationMs;
+}
+
+export function reportDeterministicError({ tier, surface, code, payload = {} }) {
+  emitDeterministicTelemetry({
+    eventName: "deterministic.error.reported",
+    tier,
+    surface,
+    payload: {
+      code,
+      ...clonePayload(payload),
+    },
+  });
+  incrementDeterministicMetric("deterministic.error.count", {
+    tier,
+    surface,
+    code,
+  });
+}
+
 export function readDeterministicTelemetryStore() {
   const store = getStore();
   if (!store) {
@@ -89,6 +145,7 @@ export function readDeterministicTelemetryStore() {
     events: [...store.events],
     metrics: {
       counts: { ...store.metrics.counts },
+        durations: { ...store.metrics.durations },
     },
   };
 }
