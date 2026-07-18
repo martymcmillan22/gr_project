@@ -1043,7 +1043,7 @@ body.dark-mode .studio-header-panel {
   letter-spacing: 0.03em;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.7);
-  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+  transition: border-color 160ms ease-in-out, color 160ms ease-in-out, background-color 160ms ease-in-out, box-shadow 160ms ease-in-out, transform 160ms ease-out;
 }
 
 body.dark-mode .studio-stage-pill {
@@ -1055,6 +1055,11 @@ body.dark-mode .studio-stage-pill {
   color: var(--accent);
   background: rgba(20, 111, 75, 0.16);
   box-shadow: 0 0 0 1px rgba(20, 111, 75, 0.18);
+  transform: translateY(-1px);
+}
+
+.studio-stage-pill:hover {
+  transform: translateY(-1px);
 }
 
 .studio-summary-grid {
@@ -1070,6 +1075,7 @@ body.dark-mode .studio-stage-pill {
   padding: 0.68rem 0.78rem;
   background: rgba(255, 255, 255, 0.66);
   box-shadow: 0 8px 20px rgba(15, 43, 30, 0.08);
+  transition: box-shadow 200ms ease-in-out, border-color 160ms ease-in-out, transform 160ms ease-out;
 }
 
 body.dark-mode .studio-summary-card {
@@ -1096,6 +1102,11 @@ body.dark-mode .studio-summary-card {
   word-break: break-word;
 }
 
+.studio-summary-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 43, 30, 0.12);
+}
+
 .studio-summary-detail {
   margin: 0.38rem 0 0;
   color: var(--muted);
@@ -1112,6 +1123,7 @@ body.dark-mode .studio-summary-card {
   font-weight: 700;
   font-size: 0.77rem;
   letter-spacing: 0.03em;
+  transition: box-shadow 160ms ease-in-out, border-color 160ms ease-in-out, background-color 160ms ease-in-out;
 }
 
 .studio-owner-pill.owner-qc {
@@ -1187,18 +1199,21 @@ body.dark-mode .studio-summary-card {
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  transition: border-color 160ms ease-in-out, background-color 160ms ease-in-out, box-shadow 160ms ease-in-out;
 }
 
 .commands-badge.studio-badge.is-allowed {
   border-color: #7fc9a1;
   background: rgba(38, 138, 91, 0.16);
   color: #1d7b4e;
+  box-shadow: 0 0 0 1px rgba(38, 138, 91, 0.14);
 }
 
 .commands-badge.studio-badge.is-blocked {
   border-color: #d0a87d;
   background: rgba(198, 124, 39, 0.16);
   color: #8a5413;
+  box-shadow: 0 0 0 1px rgba(198, 124, 39, 0.12);
 }
 
 .studio-disabled-command {
