@@ -1845,12 +1845,21 @@ export default function App() {
             <p className="status-line">Example: /basetrue/public/bos/1/novice</p>
           </section>
         ) : (
-          <CompartmentPage
-            profile={baseTrueCompartmentRoute.profile}
-            name={baseTrueCompartmentRoute.name}
-            index={baseTrueCompartmentRoute.index}
+          <DeterministicErrorBoundary
             tier={baseTrueCompartmentRoute.tier}
-          />
+            surface="compartment-pipeline"
+            shellClassName={`det-surface-stable det-surface-stable--${baseTrueCompartmentRoute.tier}`}
+            fallbackTitle="Compartment Route Recovery"
+            fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
+            fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
+          >
+            <CompartmentPage
+              profile={baseTrueCompartmentRoute.profile}
+              name={baseTrueCompartmentRoute.name}
+              index={baseTrueCompartmentRoute.index}
+              tier={baseTrueCompartmentRoute.tier}
+            />
+          </DeterministicErrorBoundary>
         )}
       </main>
     );
