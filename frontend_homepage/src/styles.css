@@ -901,6 +901,44 @@ body.dark-mode .compartment-page[data-tier="intermediate"] .pipeline-navigation 
 .compartment-page[data-tier="intermediate"] .pipeline-navigation .action-grid button {
   border-radius: 10px;
   font-weight: 700;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.compartment-page[data-tier="novice"] button:hover:not(:disabled),
+.compartment-page[data-tier="intermediate"] button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(19, 52, 82, 0.12);
+}
+
+.compartment-page[data-tier="novice"] button:focus-visible,
+.compartment-page[data-tier="intermediate"] button:focus-visible {
+  outline: 2px solid rgba(49, 114, 172, 0.55);
+  outline-offset: 2px;
+}
+
+.compartment-page[data-tier="novice"] button:active:not(:disabled),
+.compartment-page[data-tier="intermediate"] button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(19, 52, 82, 0.16);
+}
+
+.compartment-page[data-tier="novice"] button:disabled,
+.compartment-page[data-tier="intermediate"] button:disabled {
+  cursor: not-allowed;
+  opacity: 0.82;
+}
+
+.compartment-page[data-tier="novice"] .pipeline-navigation a,
+.compartment-page[data-tier="intermediate"] .pipeline-navigation a {
+  text-underline-offset: 2px;
+  transition: text-underline-offset 120ms ease, color 120ms ease;
+}
+
+.compartment-page[data-tier="novice"] .pipeline-navigation a:hover,
+.compartment-page[data-tier="novice"] .pipeline-navigation a:focus-visible,
+.compartment-page[data-tier="intermediate"] .pipeline-navigation a:hover,
+.compartment-page[data-tier="intermediate"] .pipeline-navigation a:focus-visible {
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 760px) {
