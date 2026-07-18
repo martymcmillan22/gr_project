@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ArtifactTagDisplay from "../components/ArtifactTagDisplay";
 import IdeaEditor from "../components/IdeaEditor";
 import ProjectCreator from "../components/ProjectCreator";
@@ -14,6 +14,7 @@ import {
 import { getPhaseColor, getTemporalGroup, getViewType } from "../logic/temporalRouting";
 import { buildSeedRoute } from "../logic/rrRouter";
 import { STUDIO_ENTERPRISE_TEMPORAL_OWNERSHIP } from "../logic/baseTrueConstants";
+import { emitDeterministicTelemetry, incrementDeterministicMetric } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import type {
   GovernanceProfile,
   IdeaRecord,
@@ -53,6 +54,15 @@ export default function StudioWorkspace({
   initialProfile = "public",
   initialCompartmentIndex = 5,
 }: StudioWorkspaceProps) {
+  const emitStudioTelemetry = (eventName: string, payload: Record<string, unknown> = {}) => {
+    emitDeterministicTelemetry({
+      eventName,
+      tier: "studio",
+      surface: "workspace",
+      payload,
+    });
+  };
+
   const [accessTier, setAccessTier] = useState<StudioAccessTier>(initialTier);
   const [profile, setProfile] = useState<ProfileKind>(initialProfile);
   const [compartmentIndex, setCompartmentIndex] = useState<number>(clampStudioCompartmentIndex(initialCompartmentIndex));
@@ -103,22 +113,85 @@ export default function StudioWorkspace({
     setSeed(null);
     setProject(null);
     setActiveStage("seed");
+    emitStudioTelemetry("studio.idea.created", {
+      compartmentIndex,
+      temporalGroup,
+    });
+    incrementDeterministicMetric("studio.idea.created", {
+      tier: "studio",
+    });
   };
 
   const handleSeedCreate = (nextSeed: SeedRecord) => {
     setSeed(nextSeed);
     setProject(null);
     setActiveStage("project");
+    emitStudioTelemetry("studio.seed.created", {
+      compartmentIndex,
+      temporalGroup,
+    });
+    incrementDeterministicMetric("studio.seed.created", {
+      tier: "studio",
+    });
   };
 
   const handleProjectCreate = (nextProject: ProjectRecord) => {
     setProject(nextProject);
     setActiveStage("work");
+    emitStudioTelemetry("studio.project.created", {
+      compartmentIndex,
+      temporalGroup,
+      projectId: nextProject.project_id,
+    });
+    incrementDeterministicMetric("studio.project.created", {
+      tier: "studio",
+    });
   };
 
   const handleProjectUpdate = (nextProject: ProjectRecord) => {
     setProject(nextProject);
+    emitStudioTelemetry("studio.project.updated", {
+      projectId: nextProject.project_id,
+    });
   };
+
+  useEffect(() => {
+    emitStudioTelemetry("studio.workspace.loaded", {
+      compartmentIndex,
+      profile,
+      stage: activeStage,
+    });
+    incrementDeterministicMetric("studio.workspace.loaded", {
+      tier: "studio",
+    });
+    // This mount event is deterministic and intentionally one-time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    emitStudioTelemetry("studio.stage.changed", {
+      stage: activeStage,
+      compartmentIndex,
+      temporalGroup,
+    });
+  }, [activeStage, compartmentIndex, temporalGroup]);
+
+  useEffect(() => {
+    emitStudioTelemetry("studio.compartment.changed", {
+      compartmentIndex,
+      temporalGroup,
+      view,
+    });
+  }, [compartmentIndex, temporalGroup, view]);
+
+  useEffect(() => {
+    emitStudioTelemetry("studio.route.preview.changed", {
+      rrRoutePreview,
+      rrQuadrant,
+      rrSubnode,
+      rrLogicMode,
+    });
+  }, [rrLogicMode, rrQuadrant, rrRoutePreview, rrSubnode]);
 
   return (
     <section className="studio-workspace" role="region" aria-labelledby="studio-workspace-heading">
@@ -169,7 +242,16 @@ export default function StudioWorkspace({
           </label>
           <label>
             Profile
-            <select value={profile} onChange={(event) => setProfile(event.target.value === "personal" ? "personal" : "public")}>
+            <select
+              value={profile}
+              onChange={(event) => {
+                const nextProfile = event.target.value === "personal" ? "personal" : "public";
+                setProfile(nextProfile);
+                emitStudioTelemetry("studio.profile.changed", {
+                  profile: nextProfile,
+                });
+              }}
+            >
               <option value="public">public</option>
               <option value="personal">personal</option>
             </select>
@@ -181,7 +263,13 @@ export default function StudioWorkspace({
               min={5}
               max={8}
               value={compartmentIndex}
-              onChange={(event) => setCompartmentIndex(clampStudioCompartmentIndex(Number(event.target.value || 5)))}
+              onChange={(event) => {
+                const nextCompartmentIndex = clampStudioCompartmentIndex(Number(event.target.value || 5));
+                setCompartmentIndex(nextCompartmentIndex);
+                emitStudioTelemetry("studio.compartment.input.changed", {
+                  compartmentIndex: nextCompartmentIndex,
+                });
+              }}
             />
           </label>
         </div>
