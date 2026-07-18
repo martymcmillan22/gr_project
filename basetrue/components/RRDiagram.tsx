@@ -1,5 +1,6 @@
 import { getTransitionMode } from "../logic/geometryMode";
 import { RR_LOGIC_MODES, RR_QUADRANTS, RR_SUBNODE_MEANINGS, RR_SUBNODES, getRrDiagramMode } from "../logic/rrRouter";
+import { emitDeterministicTelemetry } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import type { RRLogicMode, RRQuadrant, RRSubnode, TemporalGroup, Tier } from "../types";
 
 const LOGIC_MODE_COLORS: Record<RRLogicMode, string> = {
@@ -43,6 +44,15 @@ export default function RRDiagram({
   routingEnabled = false,
   interactive = true,
 }: RRDiagramProps) {
+  const emitRrTelemetry = (eventName: string, payload: Record<string, unknown> = {}) => {
+    emitDeterministicTelemetry({
+      eventName,
+      tier,
+      surface: "pipeline",
+      payload,
+    });
+  };
+
   const mode = getRrDiagramMode(tier);
   const transition = getTransitionMode(isLargeScreen);
 
@@ -74,6 +84,10 @@ export default function RRDiagram({
               onClick={() => {
                 if (interactive) {
                   onSelectQuadrant?.(quadrant);
+                  emitRrTelemetry("rr.quadrant.selected", {
+                    quadrant,
+                    temporalGroup,
+                  });
                 }
               }}
               disabled={!interactive}
@@ -106,6 +120,10 @@ export default function RRDiagram({
                 onClick={() => {
                   if (interactive) {
                     onSelectSubnode?.(subnode);
+                    emitRrTelemetry("rr.subnode.selected", {
+                      subnode,
+                      temporalGroup,
+                    });
                   }
                 }}
                 disabled={!interactive}
@@ -139,6 +157,10 @@ export default function RRDiagram({
                 onClick={() => {
                   if (interactive) {
                     onSelectLogicMode?.(logicMode);
+                    emitRrTelemetry("rr.logic_mode.selected", {
+                      logicMode,
+                      temporalGroup,
+                    });
                   }
                 }}
                 disabled={!interactive}
