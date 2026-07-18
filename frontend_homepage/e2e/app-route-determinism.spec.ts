@@ -28,6 +28,42 @@ async function stubHomepageApi(page: Page) {
 }
 
 test.describe("BaseTrue app route determinism", () => {
+  test("Assert_Novice_Route_E2E", async ({ page }) => {
+    await stubHomepageApi(page);
+    await page.goto("/basetrue/public/bos/1/novice");
+
+    await expect(page.getByRole("heading", { name: "Compartment Lens" })).toBeVisible();
+    await expect(page.locator(".compartment-page")).toBeVisible();
+    await expect(page.locator('.compartment-page[data-tier="novice"]')).toBeVisible();
+    await expect(page.getByText("RR pipeline: disabled", { exact: false })).toBeVisible();
+    await expect(page.getByText("QPU: disabled", { exact: false })).toBeVisible();
+    await expect(page.getByText("Tower: disabled", { exact: false })).toBeVisible();
+
+    // Novice route must not overlap with studio or enterprise workspace surfaces.
+    await expect(page.locator(".studio-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-zone-rail")).toHaveCount(0);
+    await expect(page.locator(".tower-floor-selector")).toHaveCount(0);
+  });
+
+  test("Assert_Intermediate_Route_E2E", async ({ page }) => {
+    await stubHomepageApi(page);
+    await page.goto("/basetrue/public/boe/3/intermediate");
+
+    await expect(page.getByRole("heading", { name: "Compartment Lens" })).toBeVisible();
+    await expect(page.locator(".compartment-page")).toBeVisible();
+    await expect(page.locator('.compartment-page[data-tier="intermediate"]')).toBeVisible();
+    await expect(page.getByText("RR pipeline: disabled", { exact: false })).toBeVisible();
+    await expect(page.getByText("QPU: disabled", { exact: false })).toBeVisible();
+    await expect(page.getByText("Tower: disabled", { exact: false })).toBeVisible();
+
+    // Intermediate route must not overlap with studio or enterprise workspace surfaces.
+    await expect(page.locator(".studio-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-zone-rail")).toHaveCount(0);
+    await expect(page.locator(".tower-floor-selector")).toHaveCount(0);
+  });
+
   test("Assert_Studio_Route_E2E", async ({ page }) => {
     await stubHomepageApi(page);
     await page.goto("/basetrue/studio");

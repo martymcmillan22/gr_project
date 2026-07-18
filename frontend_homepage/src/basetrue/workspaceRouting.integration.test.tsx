@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { fileURLToPath } from "node:url";
 
+import CompartmentPage from "../../../basetrue/components/CompartmentPage";
 import StudioWorkspace from "../../../basetrue/workspaces/StudioWorkspace";
 import EnterpriseWorkspace from "../../../basetrue/workspaces/EnterpriseWorkspace";
 
@@ -90,6 +91,7 @@ function normalizeStructure(html: string): string {
     const classAttr = /\sclass="([^"]+)"/.exec(attrBlob)?.[1] || "";
     const idAttr = /\sid="([^"]+)"/.exec(attrBlob)?.[1] || "";
     const ariaAttr = /\saria-label="([^"]+)"/.exec(attrBlob)?.[1] || "";
+    const dataTierAttr = /\sdata-tier="([^"]+)"/.exec(attrBlob)?.[1] || "";
     const classValue = classAttr
       .split(/\s+/)
       .filter(Boolean)
@@ -99,6 +101,7 @@ function normalizeStructure(html: string): string {
       classValue ? `class=\"${classValue}\"` : "",
       idAttr ? `id=\"${idAttr}\"` : "",
       ariaAttr ? `aria-label=\"${ariaAttr}\"` : "",
+      dataTierAttr ? `data-tier=\"${dataTierAttr}\"` : "",
     ].filter(Boolean);
 
     tokens.push(`${"  ".repeat(depth)}<${tagName}${attrParts.length ? ` ${attrParts.join(" ")}` : ""}>`);
@@ -242,5 +245,69 @@ describe("BaseTrue workspace runtime routing", () => {
     const floorSliceSurface = extractSurfaceByClass(enterpriseHtml, "enterprise-floor-slice-grid");
 
     await expect(normalizeStructure(floorSliceSurface)).toMatchFileSnapshot(snapshotPath("floor-slice-css-baseline.snap"));
+  });
+
+  it("locks deterministic CSS selectors for Novice and Intermediate compartment routes", () => {
+    const noviceHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOS" index={1} tier="novice" />,
+    );
+    const intermediateHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOE" index={3} tier="intermediate" />,
+    );
+
+    expect(noviceHtml).toContain('class="compartment-page"');
+    expect(noviceHtml).toContain('data-tier="novice"');
+    expect(noviceHtml).toContain('class="pipeline-navigation"');
+
+    expect(intermediateHtml).toContain('class="compartment-page"');
+    expect(intermediateHtml).toContain('data-tier="intermediate"');
+    expect(intermediateHtml).toContain('class="pipeline-navigation"');
+
+    expect(noviceHtml).not.toContain("studio-workspace");
+    expect(noviceHtml).not.toContain("enterprise-workspace");
+    expect(intermediateHtml).not.toContain("studio-workspace");
+    expect(intermediateHtml).not.toContain("enterprise-workspace");
+  });
+
+  it("matches Novice CSS structure snapshot baseline", async () => {
+    const noviceHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOS" index={1} tier="novice" />,
+    );
+    const noviceSurface = extractSurfaceByClass(noviceHtml, "compartment-page");
+
+    await expect(normalizeStructure(noviceSurface)).toMatchFileSnapshot(snapshotPath("novice-css-baseline.snap"));
+  });
+
+  it("matches Intermediate CSS structure snapshot baseline", async () => {
+    const intermediateHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOE" index={3} tier="intermediate" />,
+    );
+    const intermediateSurface = extractSurfaceByClass(intermediateHtml, "compartment-page");
+
+    await expect(normalizeStructure(intermediateSurface)).toMatchFileSnapshot(
+      snapshotPath("intermediate-css-baseline.snap"),
+    );
+  });
+
+  it("matches Novice pipeline navigation CSS structure snapshot baseline", async () => {
+    const noviceHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOS" index={1} tier="novice" />,
+    );
+    const novicePipelineSurface = extractSurfaceByClass(noviceHtml, "pipeline-navigation");
+
+    await expect(normalizeStructure(novicePipelineSurface)).toMatchFileSnapshot(
+      snapshotPath("novice-pipeline-navigation-css-baseline.snap"),
+    );
+  });
+
+  it("matches Intermediate pipeline navigation CSS structure snapshot baseline", async () => {
+    const intermediateHtml = renderToStaticMarkup(
+      <CompartmentPage profile="public" name="BOE" index={3} tier="intermediate" />,
+    );
+    const intermediatePipelineSurface = extractSurfaceByClass(intermediateHtml, "pipeline-navigation");
+
+    await expect(normalizeStructure(intermediatePipelineSurface)).toMatchFileSnapshot(
+      snapshotPath("intermediate-pipeline-navigation-css-baseline.snap"),
+    );
   });
 });

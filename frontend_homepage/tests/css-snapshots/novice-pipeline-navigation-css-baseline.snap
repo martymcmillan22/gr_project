@@ -1,0 +1,42 @@
+<section class="pipeline-navigation">
+  <p>
+  </p>
+  <p>
+  </p>
+  <p>
+    <a>
+    </a>
+  </p>
+  <div class="action-grid" aria-label="Compartment mode">
+    <button>
+    </button>
+    <button>
+    </button>
+  </div>
+  <p>
+  </p>
+  <div class="artifact-tag-display" aria-label="Lens Idea artifact tags">
+    <div>
+      <strong>
+      </strong>
+    </div>
+  </div>
+  <div class="artifact-tag-display" aria-label="Lens Seed artifact tags">
+    <div>
+      <strong>
+      </strong>
+    </div>
+  </div>
+  <div class="artifact-tag-display" aria-label="Lens Project artifact tags">
+    <div>
+      <strong>
+      </strong>
+    </div>
+  </div>
+  <div class="artifact-tag-display" aria-label="Lens Work Artifact artifact tags">
+    <div>
+      <strong>
+      </strong>
+    </div>
+  </div>
+</section>

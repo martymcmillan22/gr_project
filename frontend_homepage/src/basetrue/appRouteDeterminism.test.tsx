@@ -51,7 +51,9 @@ vi.mock("./ui/Taskboard", () => ({ default: () => <div /> }));
 vi.mock("../../../ui/diagnostics/TemplateGroupInspectorPanel", () => ({
   TemplateGroupInspectorPanel: () => <div />,
 }));
-vi.mock("../../../basetrue/components/CompartmentPage", () => ({ default: () => <div /> }));
+vi.mock("../../../basetrue/components/CompartmentPage", () => ({
+  default: (props: { tier?: string }) => <div>COMPARTMENT_PAGE_STUB tier:{props?.tier || "unknown"}</div>,
+}));
 
 import App from "../App";
 
@@ -124,5 +126,27 @@ describe("App route-level determinism", () => {
     expect(() => renderToStaticMarkup(<App />)).toThrow(
       /Tier\/profile mismatch: Studio route cannot request enterprise tier/,
     );
+  });
+
+  it("loads Novice compartment route with compartment lens only", () => {
+    setRoute("/basetrue/public/bos/1/novice");
+
+    const html = renderToStaticMarkup(<App />);
+
+    expect(html).toContain("Compartment Lens");
+    expect(html).toContain("COMPARTMENT_PAGE_STUB tier:novice");
+    expect(html).not.toContain("STUDIO_WORKSPACE_STUB");
+    expect(html).not.toContain("ENTERPRISE_WORKSPACE_STUB");
+  });
+
+  it("loads Intermediate compartment route with compartment lens only", () => {
+    setRoute("/basetrue/public/boe/3/intermediate");
+
+    const html = renderToStaticMarkup(<App />);
+
+    expect(html).toContain("Compartment Lens");
+    expect(html).toContain("COMPARTMENT_PAGE_STUB tier:intermediate");
+    expect(html).not.toContain("STUDIO_WORKSPACE_STUB");
+    expect(html).not.toContain("ENTERPRISE_WORKSPACE_STUB");
   });
 });

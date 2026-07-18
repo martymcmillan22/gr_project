@@ -31,6 +31,48 @@ async function stubHomepageApi(page: Page) {
 }
 
 test.describe("BaseTrue UX visual determinism", () => {
+  test("Novice visual baseline surfaces", async ({ page }) => {
+    await stubHomepageApi(page);
+    await page.goto("/basetrue/public/bos/1/novice");
+
+    await expect(page.getByRole("heading", { name: "Compartment Lens" })).toBeVisible();
+    await expect(page.locator('.compartment-page[data-tier="novice"]')).toBeVisible();
+    await expect(page.locator(".pipeline-navigation")).toBeVisible();
+
+    await expect(await page.locator('.compartment-page[data-tier="novice"]').screenshot()).toMatchSnapshot(
+      "novice-compartment-baseline.png",
+    );
+    await expect(await page.locator(".pipeline-navigation").screenshot()).toMatchSnapshot(
+      "novice-pipeline-navigation-baseline.png",
+    );
+
+    // Novice drift guards: no studio or enterprise workspace surfaces.
+    await expect(page.locator(".studio-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-zone-rail")).toHaveCount(0);
+  });
+
+  test("Intermediate visual baseline surfaces", async ({ page }) => {
+    await stubHomepageApi(page);
+    await page.goto("/basetrue/public/boe/3/intermediate");
+
+    await expect(page.getByRole("heading", { name: "Compartment Lens" })).toBeVisible();
+    await expect(page.locator('.compartment-page[data-tier="intermediate"]')).toBeVisible();
+    await expect(page.locator(".pipeline-navigation")).toBeVisible();
+
+    await expect(await page.locator('.compartment-page[data-tier="intermediate"]').screenshot()).toMatchSnapshot(
+      "intermediate-compartment-baseline.png",
+    );
+    await expect(await page.locator(".pipeline-navigation").screenshot()).toMatchSnapshot(
+      "intermediate-pipeline-navigation-baseline.png",
+    );
+
+    // Intermediate drift guards: no studio or enterprise workspace surfaces.
+    await expect(page.locator(".studio-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-workspace")).toHaveCount(0);
+    await expect(page.locator(".enterprise-zone-rail")).toHaveCount(0);
+  });
+
   test("Studio visual baseline surfaces", async ({ page }) => {
     await stubHomepageApi(page);
     await page.goto("/basetrue/studio");

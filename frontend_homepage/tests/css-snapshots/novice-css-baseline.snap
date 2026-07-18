@@ -1,0 +1,159 @@
+<div class="compartment-page" data-tier="novice">
+  <header>
+    <h1>
+    </h1>
+    <span class="tier-badge">
+    </span>
+    <span class="temporal-badge">
+    </span>
+    <span class="commands-badge">
+    </span>
+  </header>
+  <section class="pipeline-navigation">
+    <p>
+    </p>
+    <p>
+    </p>
+    <p>
+      <a>
+      </a>
+    </p>
+    <div class="action-grid" aria-label="Compartment mode">
+      <button>
+      </button>
+      <button>
+      </button>
+    </div>
+    <p>
+    </p>
+    <div class="artifact-tag-display" aria-label="Lens Idea artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <div class="artifact-tag-display" aria-label="Lens Seed artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <div class="artifact-tag-display" aria-label="Lens Project artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <div class="artifact-tag-display" aria-label="Lens Work Artifact artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+  </section>
+  <section class="phase-section phase-create">
+    <h2>
+    </h2>
+    <p>
+    </p>
+    <p>
+    </p>
+    <p>
+    </p>
+    <div class="artifact-tag-display" aria-label="Create Idea Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <div class="artifact-tag-display" aria-label="Create Seed Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <h3>
+    </h3>
+    <ul>
+      <li>
+      </li>
+      <li>
+      </li>
+    </ul>
+    <p>
+    </p>
+  </section>
+  <section class="phase-section phase-post">
+    <h2>
+    </h2>
+    <p>
+    </p>
+    <p>
+    </p>
+    <div class="artifact-tag-display" aria-label="Post Project Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <h3>
+    </h3>
+    <ul>
+      <li>
+      </li>
+      <li>
+      </li>
+    </ul>
+    <p>
+    </p>
+  </section>
+  <section class="phase-section phase-work">
+    <h2>
+    </h2>
+    <p>
+    </p>
+    <p>
+    </p>
+    <div class="artifact-tag-display" aria-label="Work Project Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <h3>
+    </h3>
+    <ul>
+      <li>
+      </li>
+      <li>
+      </li>
+    </ul>
+    <article class="pipeline-card">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <div class="artifact-tag-display" aria-label="Work Project Tags artifact tags">
+        <div>
+          <strong>
+          </strong>
+        </div>
+      </div>
+      <div class="artifact-tag-display" aria-label="Work Artifact Tags artifact tags">
+        <div>
+          <strong>
+          </strong>
+        </div>
+      </div>
+      <label>
+        <input>
+      </label>
+      <button>
+      </button>
+    </article>
+    <p>
+    </p>
+  </section>
+</div>
