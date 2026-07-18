@@ -1,0 +1,435 @@
+<section class="studio-workspace">
+  <header class="panel studio-header-panel">
+    <p class="eyebrow">
+    </p>
+    <h2>
+    </h2>
+    <p class="status-line studio-status-line">
+    </p>
+    <div class="studio-stage-rail" aria-label="Studio stage progression">
+      <span class="studio-stage-pill is-active">
+      </span>
+      <span class="studio-stage-pill">
+      </span>
+      <span class="studio-stage-pill">
+      </span>
+      <span class="studio-stage-pill">
+      </span>
+    </div>
+    <div class="studio-summary-grid">
+      <article class="studio-summary-card">
+        <h4>
+        </h4>
+        <p class="studio-owner-pill owner-qc">
+        </p>
+        <p class="studio-summary-detail">
+        </p>
+      </article>
+      <article class="studio-summary-card">
+        <h4>
+        </h4>
+        <p class="studio-summary-keyline">
+        </p>
+        <p class="studio-summary-keyline">
+        </p>
+      </article>
+      <article class="studio-summary-card">
+        <h4>
+        </h4>
+        <p class="studio-summary-route">
+        </p>
+        <p class="studio-summary-detail">
+        </p>
+      </article>
+    </div>
+    <div class="routing-controls studio-routing-controls">
+      <label>
+        <select>
+          <option>
+          </option>
+        </select>
+      </label>
+      <label>
+        <select>
+          <option>
+          </option>
+          <option>
+          </option>
+        </select>
+      </label>
+      <label>
+        <input>
+      </label>
+    </div>
+    <p class="status-line studio-status-line">
+    </p>
+    <p class="status-line studio-status-line">
+    </p>
+    <div class="studio-badge-row">
+      <span class="commands-badge studio-badge is-allowed">
+      </span>
+      <span class="commands-badge studio-badge is-blocked">
+      </span>
+      <span class="commands-badge studio-badge is-blocked">
+      </span>
+    </div>
+    <div class="studio-command-row" aria-label="Studio disabled enterprise actions">
+      <button class="studio-disabled-command">
+      </button>
+      <button class="studio-disabled-command">
+      </button>
+      <button class="studio-disabled-command">
+      </button>
+    </div>
+  </header>
+  <section class="panel studio-panel phase-section phase-create">
+    <h3>
+    </h3>
+    <p>
+    </p>
+    <article class="pipeline-card">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <label>
+        <input>
+      </label>
+      <label>
+        <textarea>
+        </textarea>
+      </label>
+      <label>
+        <input>
+      </label>
+      <button>
+      </button>
+    </article>
+    <div class="artifact-tag-display" aria-label="Studio Idea Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <section class="rr-diagram">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <div>
+        <button>
+        </button>
+        <button>
+        </button>
+        <button>
+        </button>
+        <button>
+        </button>
+      </div>
+      <div>
+        <strong>
+        </strong>
+        <div>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+        </div>
+      </div>
+      <div>
+        <strong>
+        </strong>
+        <div>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+        </div>
+      </div>
+      <p>
+      </p>
+    </section>
+    <button>
+    </button>
+  </section>
+  <section class="panel studio-panel phase-section phase-create">
+    <h3>
+    </h3>
+    <article class="pipeline-card">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <label>
+        <textarea>
+        </textarea>
+      </label>
+      <label>
+        <textarea>
+        </textarea>
+      </label>
+      <fieldset>
+        <legend>
+        </legend>
+        <p>
+        </p>
+        <label>
+          <select>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+          </select>
+        </label>
+        <label>
+          <select>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+          </select>
+        </label>
+        <label>
+          <select>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+            <option>
+            </option>
+          </select>
+        </label>
+        <p>
+        </p>
+      </fieldset>
+      <label>
+        <input>
+      </label>
+      <button>
+      </button>
+    </article>
+    <section class="rr-diagram">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <div>
+        <button>
+        </button>
+        <button>
+        </button>
+        <button>
+        </button>
+        <button>
+        </button>
+      </div>
+      <div>
+        <strong>
+        </strong>
+        <div>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+        </div>
+      </div>
+      <div>
+        <strong>
+        </strong>
+        <div>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+          <button>
+          </button>
+        </div>
+      </div>
+      <p>
+      </p>
+    </section>
+    <div class="artifact-tag-display" aria-label="Studio Seed Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <button>
+    </button>
+  </section>
+  <section class="panel studio-panel phase-section phase-post">
+    <h3>
+    </h3>
+    <article class="pipeline-card">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <fieldset>
+        <legend>
+        </legend>
+        <label>
+          <input>
+        </label>
+        <label>
+          <input>
+        </label>
+        <label>
+          <input>
+        </label>
+        <label>
+          <input>
+        </label>
+        <p>
+        </p>
+      </fieldset>
+      <label>
+        <input>
+      </label>
+      <label>
+        <input>
+      </label>
+      <button>
+      </button>
+    </article>
+    <section class="qpu-frame">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <div class="artifact-tag-display" aria-label="QPU Surface Tags artifact tags">
+        <div>
+          <strong>
+          </strong>
+        </div>
+      </div>
+      <p>
+      </p>
+    </section>
+    <div class="artifact-tag-display" aria-label="Studio Project Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+    <button>
+    </button>
+  </section>
+  <section class="panel studio-panel phase-section phase-work">
+    <h3>
+    </h3>
+    <p>
+    </p>
+    <article class="pipeline-card">
+      <h3>
+      </h3>
+      <p>
+      </p>
+      <p>
+      </p>
+      <p>
+      </p>
+      <div class="artifact-tag-display" aria-label="Work Project Tags artifact tags">
+        <div>
+          <strong>
+          </strong>
+        </div>
+      </div>
+      <div class="artifact-tag-display" aria-label="Work Artifact Tags artifact tags">
+        <div>
+          <strong>
+          </strong>
+        </div>
+      </div>
+      <label>
+        <input>
+      </label>
+      <button>
+      </button>
+    </article>
+    <div class="artifact-tag-display" aria-label="Studio Work Tags artifact tags">
+      <div>
+        <strong>
+        </strong>
+      </div>
+    </div>
+  </section>
+</section>

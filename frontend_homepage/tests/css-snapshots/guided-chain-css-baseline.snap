@@ -1,0 +1,30 @@
+<section class="enterprise-chain-panel" aria-label="Monuments to Polls guided chain">
+  <h4>
+  </h4>
+  <ol class="enterprise-chain-list">
+    <li class="is-active">
+      <strong>
+      </strong>
+      <span>
+      </span>
+    </li>
+    <li>
+      <strong>
+      </strong>
+      <span>
+      </span>
+    </li>
+    <li>
+      <strong>
+      </strong>
+      <span>
+      </span>
+    </li>
+    <li>
+      <strong>
+      </strong>
+      <span>
+      </span>
+    </li>
+  </ol>
+</section>

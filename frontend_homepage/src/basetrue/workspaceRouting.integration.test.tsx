@@ -1,8 +1,119 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { fileURLToPath } from "node:url";
 
 import StudioWorkspace from "../../../basetrue/workspaces/StudioWorkspace";
 import EnterpriseWorkspace from "../../../basetrue/workspaces/EnterpriseWorkspace";
+
+// CSS snapshot updates require explicit approval.
+// Do not update snapshots during UX or logic changes unless intentional.
+
+function extractSurfaceByClass(html: string, className: string): string {
+  const classPattern = new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`);
+  const classMatch = classPattern.exec(html);
+  if (!classMatch || classMatch.index < 0) {
+    throw new Error(`Surface with class '${className}' not found`);
+  }
+
+  const tagStart = html.lastIndexOf("<", classMatch.index);
+  if (tagStart < 0) {
+    throw new Error(`Unable to find tag start for class '${className}'`);
+  }
+
+  const openTagMatch = /^<([a-zA-Z0-9]+)([^>]*)>/.exec(html.slice(tagStart));
+  if (!openTagMatch) {
+    throw new Error(`Unable to parse opening tag for class '${className}'`);
+  }
+
+  const tagName = openTagMatch[1];
+  const openTagLength = openTagMatch[0].length;
+  let scanIndex = tagStart;
+  let depth = 0;
+  const tokenRegex = /<\/?([a-zA-Z0-9]+)(?:\s[^>]*)?>/g;
+
+  while (true) {
+    tokenRegex.lastIndex = scanIndex;
+    const token = tokenRegex.exec(html);
+    if (!token || token.index < 0) {
+      break;
+    }
+
+    const raw = token[0];
+    const tokenTagName = token[1];
+    const isClosing = raw.startsWith("</");
+    const isSelfClosing = raw.endsWith("/>");
+
+    if (tokenTagName === tagName) {
+      if (!isClosing) {
+        depth += 1;
+      }
+      if (isClosing) {
+        depth -= 1;
+        if (depth === 0) {
+          return html.slice(tagStart, tokenRegex.lastIndex);
+        }
+      }
+      if (isSelfClosing) {
+        depth -= 1;
+      }
+    }
+
+    scanIndex = tokenRegex.lastIndex;
+  }
+
+  return html.slice(tagStart, tagStart + openTagLength);
+}
+
+function normalizeStructure(html: string): string {
+  const tokens: string[] = [];
+  const tagRegex = /<\/?([a-zA-Z0-9]+)([^>]*)>/g;
+  let depth = 0;
+
+  while (true) {
+    const match = tagRegex.exec(html);
+    if (!match) {
+      break;
+    }
+
+    const raw = match[0];
+    const tagName = match[1].toLowerCase();
+    const attrBlob = match[2] || "";
+    const isClosing = raw.startsWith("</");
+    const isSelfClosing = raw.endsWith("/>");
+
+    if (isClosing) {
+      depth = Math.max(0, depth - 1);
+      tokens.push(`${"  ".repeat(depth)}</${tagName}>`);
+      continue;
+    }
+
+    const classAttr = /\sclass="([^"]+)"/.exec(attrBlob)?.[1] || "";
+    const idAttr = /\sid="([^"]+)"/.exec(attrBlob)?.[1] || "";
+    const ariaAttr = /\saria-label="([^"]+)"/.exec(attrBlob)?.[1] || "";
+    const classValue = classAttr
+      .split(/\s+/)
+      .filter(Boolean)
+      .join(" ");
+
+    const attrParts = [
+      classValue ? `class=\"${classValue}\"` : "",
+      idAttr ? `id=\"${idAttr}\"` : "",
+      ariaAttr ? `aria-label=\"${ariaAttr}\"` : "",
+    ].filter(Boolean);
+
+    tokens.push(`${"  ".repeat(depth)}<${tagName}${attrParts.length ? ` ${attrParts.join(" ")}` : ""}>`);
+
+    if (!isSelfClosing) {
+      depth += 1;
+    }
+  }
+
+  return tokens.join("\n");
+}
+
+function snapshotPath(fileName: string): string {
+  return fileURLToPath(new URL(`../../tests/css-snapshots/${fileName}`, import.meta.url));
+}
 
 describe("BaseTrue workspace runtime routing", () => {
   it("renders Studio with Studio-only governance and disabled governed actions", () => {
@@ -68,5 +179,68 @@ describe("BaseTrue workspace runtime routing", () => {
 
     expect(html).toContain("Enterprise Workspace Access Required");
     expect(html).toContain("Only tier enterprise can access this workspace.");
+  });
+
+  it("locks deterministic CSS selector surfaces for Studio and Enterprise", () => {
+    const studioHtml = renderToStaticMarkup(<StudioWorkspace initialTier="studio" initialCompartmentIndex={5} />);
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+
+    expect(studioHtml).toContain('class="studio-workspace"');
+    expect(studioHtml).toContain('class="studio-summary-grid"');
+    expect(studioHtml).toContain('class="studio-stage-rail"');
+
+    expect(enterpriseHtml).toContain('class="enterprise-workspace"');
+    expect(enterpriseHtml).toContain('class="enterprise-zone-rail"');
+    expect(enterpriseHtml).toContain('class="enterprise-chain-panel"');
+    expect(enterpriseHtml).toContain('class="enterprise-floor-slice-grid"');
+    expect(enterpriseHtml).toContain('class="tower-floor-selector"');
+  });
+
+  it("enforces tier-specific CSS drift guards", () => {
+    const studioHtml = renderToStaticMarkup(<StudioWorkspace initialTier="studio" initialCompartmentIndex={5} />);
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+
+    expect(studioHtml).not.toContain("enterprise-zone-rail");
+    expect(studioHtml).not.toContain("enterprise-chain-panel");
+    expect(studioHtml).not.toContain("tower-floor-selector");
+
+    expect(enterpriseHtml).not.toContain("studio-workspace");
+    expect(enterpriseHtml).not.toContain("studio-summary-grid");
+    expect(enterpriseHtml).not.toContain("studio-stage-rail");
+  });
+
+  it("matches Studio CSS structure snapshot baseline", async () => {
+    const studioHtml = renderToStaticMarkup(<StudioWorkspace initialTier="studio" initialCompartmentIndex={5} />);
+    const studioSurface = extractSurfaceByClass(studioHtml, "studio-workspace");
+
+    await expect(normalizeStructure(studioSurface)).toMatchFileSnapshot(snapshotPath("studio-css-baseline.snap"));
+  });
+
+  it("matches Enterprise CSS structure snapshot baseline", async () => {
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+    const enterpriseSurface = extractSurfaceByClass(enterpriseHtml, "enterprise-workspace");
+
+    await expect(normalizeStructure(enterpriseSurface)).toMatchFileSnapshot(snapshotPath("enterprise-css-baseline.snap"));
+  });
+
+  it("matches zone rail CSS structure snapshot baseline", async () => {
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+    const zoneSurface = extractSurfaceByClass(enterpriseHtml, "enterprise-zone-rail");
+
+    await expect(normalizeStructure(zoneSurface)).toMatchFileSnapshot(snapshotPath("zone-rail-css-baseline.snap"));
+  });
+
+  it("matches guided chain CSS structure snapshot baseline", async () => {
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+    const chainSurface = extractSurfaceByClass(enterpriseHtml, "enterprise-chain-panel");
+
+    await expect(normalizeStructure(chainSurface)).toMatchFileSnapshot(snapshotPath("guided-chain-css-baseline.snap"));
+  });
+
+  it("matches floor slice CSS structure snapshot baseline", async () => {
+    const enterpriseHtml = renderToStaticMarkup(<EnterpriseWorkspace accessTier="enterprise" profile="public" />);
+    const floorSliceSurface = extractSurfaceByClass(enterpriseHtml, "enterprise-floor-slice-grid");
+
+    await expect(normalizeStructure(floorSliceSurface)).toMatchFileSnapshot(snapshotPath("floor-slice-css-baseline.snap"));
   });
 });

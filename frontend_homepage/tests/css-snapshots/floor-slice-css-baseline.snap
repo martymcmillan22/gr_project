@@ -1,0 +1,50 @@
+<div class="enterprise-floor-slice-grid">
+  <div class="enterprise-floor-slice-row">
+    <div class="enterprise-floor-slice-head">
+      <span>
+      </span>
+      <span>
+      </span>
+    </div>
+    <div class="enterprise-floor-slice-track">
+      <div class="enterprise-floor-slice-fill">
+      </div>
+    </div>
+  </div>
+  <div class="enterprise-floor-slice-row">
+    <div class="enterprise-floor-slice-head">
+      <span>
+      </span>
+      <span>
+      </span>
+    </div>
+    <div class="enterprise-floor-slice-track">
+      <div class="enterprise-floor-slice-fill">
+      </div>
+    </div>
+  </div>
+  <div class="enterprise-floor-slice-row">
+    <div class="enterprise-floor-slice-head">
+      <span>
+      </span>
+      <span>
+      </span>
+    </div>
+    <div class="enterprise-floor-slice-track">
+      <div class="enterprise-floor-slice-fill">
+      </div>
+    </div>
+  </div>
+  <div class="enterprise-floor-slice-row">
+    <div class="enterprise-floor-slice-head">
+      <span>
+      </span>
+      <span>
+      </span>
+    </div>
+    <div class="enterprise-floor-slice-track">
+      <div class="enterprise-floor-slice-fill">
+      </div>
+    </div>
+  </div>
+</div>
