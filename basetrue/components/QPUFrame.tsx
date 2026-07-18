@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import ArtifactTagDisplay from "./ArtifactTagDisplay";
 import { getTierConfig } from "../logic/tierLogic";
 import { buildQpuPlan } from "../logic/qpuEngine";
+import { emitDeterministicTelemetry } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import type { GeometryMode, ProjectRecord, SeedRecord, TemporalGroup, Tier, WorkspaceMode } from "../types";
 
 interface QPUFrameProps {
@@ -93,6 +94,34 @@ export default function QPUFrame({
   const isWithinTierLimit = maxCompartment > 0 && compartmentIndex <= maxCompartment;
   const displayCount = project ? qpuPlan.adjusted_count : isWithinTierLimit ? qpuPlan.adjusted_count : 0;
   const orchestrationLabel = scaledOnly ? "scaled" : qpuPlan.orchestration_mode;
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "qpu.frame.loaded",
+      tier,
+      surface: "qpu-frame",
+      payload: {
+        temporalGroup,
+        workspaceMode,
+        planId: qpuPlan.qpu_plan_id,
+      },
+    });
+    // Deterministic mount telemetry is intentionally emitted once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "qpu.frame.updated",
+      tier,
+      surface: "qpu-frame",
+      payload: {
+        planId: qpuPlan.qpu_plan_id,
+        geometry: temporalGeometryMode,
+        qpuCount: displayCount,
+      },
+    });
+  }, [displayCount, qpuPlan.qpu_plan_id, temporalGeometryMode, tier]);
 
   return (
     <section

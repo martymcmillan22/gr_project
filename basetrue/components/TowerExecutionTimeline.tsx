@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ArtifactTagDisplay from "./ArtifactTagDisplay";
 import { buildArtifactTags } from "../logic/artifactTagging";
 import { buildQpuFloorPlans } from "../logic/qpuEngine";
 import { buildSeedRoute } from "../logic/rrRouter";
+import { emitDeterministicTelemetry } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import type { ProjectRecord, QpuPlan, RRQuadrant, WorkRecord } from "../types";
 
 type ExecutionState = "planned" | "in_progress" | "completed";
@@ -83,6 +84,34 @@ export default function TowerExecutionTimeline({
         temporalGroup: qpuPlan.rr_influence.temporal_group,
       })
     : undefined;
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "enterprise.timeline.loaded",
+      tier: activeProject?.tier || "enterprise",
+      surface: "pipeline",
+      payload: {
+        totalRows: rows.length,
+        filteredRows: filteredRows.length,
+      },
+    });
+    // Deterministic mount telemetry is intentionally emitted once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "enterprise.timeline.filters.changed",
+      tier: activeProject?.tier || "enterprise",
+      surface: "pipeline",
+      payload: {
+        floorFilter,
+        temporalFilter,
+        quadrantFilter,
+        filteredRows: filteredRows.length,
+      },
+    });
+  }, [activeProject?.tier, filteredRows.length, floorFilter, quadrantFilter, temporalFilter]);
 
   return (
     <section id="enterprise-timeline" className="tower-execution-timeline" style={{ display: "grid", gap: "10px" }}>

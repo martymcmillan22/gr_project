@@ -1,8 +1,9 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import ArtifactTagDisplay from "./ArtifactTagDisplay";
 import { buildQpuFloorPlans } from "../logic/qpuEngine";
 import { getQPUCount } from "../logic/qpuGrowth";
 import { STUDIO_ENTERPRISE_TOWER } from "../logic/baseTrueConstants";
+import { emitDeterministicTelemetry } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import type { ProjectRecord, RRQuadrant, TemporalGroup, WorkspaceMode } from "../types";
 
 const TEMPORAL_RING: Record<TemporalGroup, string> = {
@@ -62,6 +63,32 @@ export default function QPUTower({
   const hoverFloor = typeof selectedFloor === "number" ? selectedFloor : null;
   const hoverPlan = hoverFloor ? floorPlans.find((floor) => floor.floor === hoverFloor) : null;
   const floorsPerZone = STUDIO_ENTERPRISE_TOWER.floors_per_zone;
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "qpu.tower.loaded",
+      tier: project?.tier || "enterprise",
+      surface: "tower",
+      payload: {
+        workspaceMode,
+        floors,
+        qpuCount,
+      },
+    });
+    // Deterministic mount telemetry is intentionally emitted once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "qpu.tower.floor.active",
+      tier: project?.tier || "enterprise",
+      surface: "tower",
+      payload: {
+        selectedFloor: typeof selectedFloor === "number" ? selectedFloor : 0,
+      },
+    });
+  }, [project?.tier, selectedFloor]);
 
   const renderSemanticOverlay = (floor: number) => {
     const plan = floorPlans.find((item) => item.floor === floor);
@@ -153,6 +180,15 @@ export default function QPUTower({
                   if (interactiveTower) {
                     floorRefs.current[floor]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
                     onFloorSelect?.(floor);
+                    emitDeterministicTelemetry({
+                      eventName: "qpu.tower.floor.click",
+                      tier: project?.tier || "enterprise",
+                      surface: "tower",
+                      payload: {
+                        floor,
+                        zone,
+                      },
+                    });
                   }
                 }}
                 onMouseEnter={() => {

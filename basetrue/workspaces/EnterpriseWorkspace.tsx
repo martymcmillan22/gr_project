@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import btAnchor from "../anchors/bt_anchor.json";
 import ArtifactTagDisplay from "../components/ArtifactTagDisplay";
 import QPUTower from "../components/QPUTower";
 import TowerExecutionTimeline from "../components/TowerExecutionTimeline";
+import { emitDeterministicTelemetry, incrementDeterministicMetric } from "../../frontend_homepage/src/ui/deterministicTelemetry";
 import {
   canUseGovernedApplyMode,
   getGovernanceProfilesForTier,
@@ -131,6 +132,15 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
   const [hoveredFloor, setHoveredFloor] = useState<number | null>(null);
   const [executionStateMap, setExecutionStateMap] = useState<Record<string, ExecutionState>>({});
 
+  const emitEnterpriseTelemetry = (eventName: string, payload: Record<string, unknown> = {}) => {
+    emitDeterministicTelemetry({
+      eventName,
+      tier: "enterprise",
+      surface: "workspace",
+      payload,
+    });
+  };
+
   const activeProject = useMemo(
     () => projects.find((project) => project.project_id === activeProjectId) || projects[0] || null,
     [activeProjectId, projects],
@@ -226,6 +236,41 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
       .map((slice) => `${slice.slice}:${slice.count}`)
       .join(" | ")}`;
   }, [floorPlans, hoveredFloor]);
+
+  useEffect(() => {
+    emitEnterpriseTelemetry("enterprise.workspace.loaded", {
+      profile,
+      projectId: activeProject?.project_id || "none",
+    });
+    incrementDeterministicMetric("enterprise.workspace.loaded", {
+      tier: "enterprise",
+    });
+    // Deterministic mount telemetry is intentionally emitted once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    emitEnterpriseTelemetry("enterprise.project.changed", {
+      projectId: activeProject?.project_id || "none",
+      temporalGroup: activeProject?.temporal_group || "none",
+    });
+  }, [activeProject?.project_id, activeProject?.temporal_group]);
+
+  useEffect(() => {
+    emitEnterpriseTelemetry("enterprise.floor.changed", {
+      activeFloor,
+      effectiveFloor,
+      hoveredFloor: hoveredFloor || 0,
+    });
+  }, [activeFloor, effectiveFloor, hoveredFloor]);
+
+  useEffect(() => {
+    emitEnterpriseTelemetry("enterprise.zone.changed", {
+      activeZone,
+      guidedChainIndex,
+      gardenRoute: activeGardenRoute,
+    });
+  }, [activeGardenRoute, activeZone, guidedChainIndex]);
 
   return (
     <section className="enterprise-workspace">
@@ -347,6 +392,9 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
                 setActiveProjectId(project.project_id);
                 setActiveFloor(1);
                 setHoveredFloor(null);
+                emitEnterpriseTelemetry("enterprise.project.selected", {
+                  projectId: project.project_id,
+                });
               }}
             >
               {project.project_id}
@@ -371,8 +419,18 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
             compartmentIndex={activeProject?.artifact_tags.compartment_index || 9}
             project={activeProject}
             selectedFloor={effectiveFloor}
-            onFloorSelect={setActiveFloor}
-            onFloorHover={setHoveredFloor}
+            onFloorSelect={(floor) => {
+              setActiveFloor(floor);
+              emitEnterpriseTelemetry("enterprise.tower.floor.selected", {
+                floor,
+              });
+            }}
+            onFloorHover={(floor) => {
+              setHoveredFloor(floor);
+              emitEnterpriseTelemetry("enterprise.tower.floor.hovered", {
+                floor: floor || 0,
+              });
+            }}
             workspaceMode="enterprise"
             interactive={true}
           />
@@ -497,6 +555,14 @@ export default function EnterpriseWorkspace({ accessTier = "enterprise", profile
               ...current,
               [rowId]: cycleExecutionState(state),
             }));
+            emitEnterpriseTelemetry("enterprise.timeline.state.advanced", {
+              rowId,
+              previousState: state,
+              nextState: cycleExecutionState(state),
+            });
+            incrementDeterministicMetric("enterprise.timeline.state.advanced", {
+              tier: "enterprise",
+            });
           }}
         />
       </section>
