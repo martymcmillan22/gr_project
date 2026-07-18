@@ -35,6 +35,9 @@ import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
 import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
 import { getDeterministicReleaseMetadata } from "./config/deterministicRelease";
 import { getTierDeploymentRules } from "./config/tierDeploymentRules";
+import { DETERMINISTIC_RELEASE_GATES } from "./config/deterministicReleaseGates";
+import { getDeterministicRollbackPolicy } from "./config/releaseRollbackPolicy";
+import { buildDeterministicReleaseReport } from "./config/deterministicReleaseReport";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -187,6 +190,17 @@ function resolveTimelineCellByIndex(index) {
 export default function App() {
   const releaseMetadata = useMemo(() => getDeterministicReleaseMetadata(), []);
   const tierDeploymentRules = useMemo(() => getTierDeploymentRules(), []);
+  const rollbackPolicy = useMemo(() => getDeterministicRollbackPolicy(), []);
+  const deterministicReleaseReport = useMemo(
+    () =>
+      buildDeterministicReleaseReport({
+        releaseMetadata,
+        tierDeploymentRules,
+        releaseGates: DETERMINISTIC_RELEASE_GATES,
+        rollbackPolicy,
+      }),
+    [releaseMetadata, rollbackPolicy, tierDeploymentRules],
+  );
   const noticeTimerRef = useRef(null);
   const presetInitRef = useRef(false);
   const qpcPanelRef = useRef(null);
@@ -500,6 +514,32 @@ export default function App() {
       },
     });
   }, [releaseMetadata]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.release.rollback.metadata.loaded",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        rollbackAllowed: Boolean(rollbackPolicy.rollbackAllowed),
+        previousBuildId: rollbackPolicy.previousBuildId,
+      },
+    });
+  }, [activeRouteTier, rollbackPolicy]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.release.report.generated",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        semanticVersion: deterministicReleaseReport.semanticVersion,
+        buildId: deterministicReleaseReport.buildId,
+        requiredGateCount: deterministicReleaseReport.requiredGateIds.length,
+      },
+    });
+    window.__btDeterministicReleaseReport = deterministicReleaseReport;
+  }, [activeRouteTier, deterministicReleaseReport]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -1981,6 +2021,7 @@ export default function App() {
             loading={false}
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.novice}
+            rollbackPolicy={rollbackPolicy}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -1995,6 +2036,7 @@ export default function App() {
             shellClassName={`det-surface-stable det-surface-stable--${baseTrueCompartmentRoute.tier}`}
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.[baseTrueCompartmentRoute.tier]}
+            rollbackPolicy={rollbackPolicy}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2029,6 +2071,7 @@ export default function App() {
           shellClassName="det-surface-stable det-surface-stable--studio"
           releaseMetadata={releaseMetadata}
           deploymentPolicy={tierDeploymentRules.byTier?.studio}
+          rollbackPolicy={rollbackPolicy}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2050,6 +2093,7 @@ export default function App() {
             loading={false}
             releaseMetadata={releaseMetadata}
             deploymentPolicy={tierDeploymentRules.byTier?.enterprise}
+            rollbackPolicy={rollbackPolicy}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2080,6 +2124,7 @@ export default function App() {
           shellClassName="det-surface-stable det-surface-stable--enterprise"
           releaseMetadata={releaseMetadata}
           deploymentPolicy={tierDeploymentRules.byTier?.enterprise}
+          rollbackPolicy={rollbackPolicy}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."
