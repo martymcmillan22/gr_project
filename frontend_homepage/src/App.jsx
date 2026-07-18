@@ -1908,7 +1908,16 @@ export default function App() {
             Back to dashboard
           </a>
         </section>
-        <EnterpriseWorkspace accessTier="enterprise" />
+        <DeterministicErrorBoundary
+          tier="enterprise"
+          surface="tower-workspace"
+          shellClassName="det-surface-stable det-surface-stable--enterprise"
+          fallbackTitle="Enterprise Workspace Recovery"
+          fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
+          fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."
+        >
+          <EnterpriseWorkspace accessTier="enterprise" />
+        </DeterministicErrorBoundary>
       </main>
     );
   }
