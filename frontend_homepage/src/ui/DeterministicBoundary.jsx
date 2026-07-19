@@ -29,6 +29,8 @@ export function DeterministicSurfaceFallback({
   integritySignatures,
   artifactVerification,
   tierBundleIntegrity,
+  semanticConsistency,
+  multiLayerVerification,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -78,6 +80,13 @@ export function DeterministicSurfaceFallback({
       data-artifact-verification-id={artifactVerification?.verificationId || ""}
       data-tier-bundle-integrity-valid={tierBundleIntegrity?.isValid ? "true" : "false"}
       data-tier-bundle-integrity-profile={tierBundleIntegrity?.profileId || ""}
+      data-semantic-consistency-valid={semanticConsistency?.isValid ? "true" : "false"}
+      data-semantic-identity-valid={semanticConsistency?.semanticIdentity?.isValid ? "true" : "false"}
+      data-semantic-pipeline-qpu-valid={semanticConsistency?.pipelineQpuConsistency?.isValid ? "true" : "false"}
+      data-semantic-distribution-artifact-valid={semanticConsistency?.distributionArtifactAlignment?.isValid ? "true" : "false"}
+      data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
+      data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
+      data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -134,6 +143,8 @@ export class DeterministicErrorBoundary extends React.Component {
       integritySignatures,
       artifactVerification,
       tierBundleIntegrity,
+      semanticConsistency,
+      multiLayerVerification,
     } = this.props;
 
     if (this.state.hasError) {
@@ -156,6 +167,8 @@ export class DeterministicErrorBoundary extends React.Component {
           integritySignatures={integritySignatures}
           artifactVerification={artifactVerification}
           tierBundleIntegrity={tierBundleIntegrity}
+          semanticConsistency={semanticConsistency}
+          multiLayerVerification={multiLayerVerification}
         />
       );
     }
@@ -192,6 +205,13 @@ export class DeterministicErrorBoundary extends React.Component {
         data-artifact-verification-id={artifactVerification?.verificationId || ""}
         data-tier-bundle-integrity-valid={tierBundleIntegrity?.isValid ? "true" : "false"}
         data-tier-bundle-integrity-profile={tierBundleIntegrity?.profileId || ""}
+        data-semantic-consistency-valid={semanticConsistency?.isValid ? "true" : "false"}
+        data-semantic-identity-valid={semanticConsistency?.semanticIdentity?.isValid ? "true" : "false"}
+        data-semantic-pipeline-qpu-valid={semanticConsistency?.pipelineQpuConsistency?.isValid ? "true" : "false"}
+        data-semantic-distribution-artifact-valid={semanticConsistency?.distributionArtifactAlignment?.isValid ? "true" : "false"}
+        data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
+        data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
+        data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
       >
         {children}
       </div>
@@ -215,6 +235,8 @@ export function DeterministicLoadingSurface({
   integritySignatures,
   artifactVerification,
   tierBundleIntegrity,
+  semanticConsistency,
+  multiLayerVerification,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -234,6 +256,8 @@ export function DeterministicLoadingSurface({
       integritySignatures={integritySignatures}
       artifactVerification={artifactVerification}
       tierBundleIntegrity={tierBundleIntegrity}
+      semanticConsistency={semanticConsistency}
+      multiLayerVerification={multiLayerVerification}
     />
   );
 }
@@ -257,6 +281,8 @@ export function DeterministicGuardedSurface({
   integritySignatures,
   artifactVerification,
   tierBundleIntegrity,
+  semanticConsistency,
+  multiLayerVerification,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -306,6 +332,8 @@ export function DeterministicGuardedSurface({
         integritySignatures={integritySignatures}
         artifactVerification={artifactVerification}
         tierBundleIntegrity={tierBundleIntegrity}
+        semanticConsistency={semanticConsistency}
+        multiLayerVerification={multiLayerVerification}
       />
     );
   }
@@ -342,6 +370,13 @@ export function DeterministicGuardedSurface({
         data-artifact-verification-id={artifactVerification?.verificationId || ""}
         data-tier-bundle-integrity-valid={tierBundleIntegrity?.isValid ? "true" : "false"}
         data-tier-bundle-integrity-profile={tierBundleIntegrity?.profileId || ""}
+        data-semantic-consistency-valid={semanticConsistency?.isValid ? "true" : "false"}
+        data-semantic-identity-valid={semanticConsistency?.semanticIdentity?.isValid ? "true" : "false"}
+        data-semantic-pipeline-qpu-valid={semanticConsistency?.pipelineQpuConsistency?.isValid ? "true" : "false"}
+        data-semantic-distribution-artifact-valid={semanticConsistency?.distributionArtifactAlignment?.isValid ? "true" : "false"}
+        data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
+        data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
+        data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
     >
       {children}
     </div>

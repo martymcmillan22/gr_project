@@ -46,6 +46,8 @@ import { buildDeterministicDistributionReport } from "./config/deterministicDist
 import { getDeterministicIntegritySignatures } from "./config/deterministicIntegritySignatures";
 import { buildDeterministicArtifactVerification } from "./config/deterministicArtifactVerification";
 import { evaluateTierBundleIntegrity } from "./config/tierBundleIntegrityRules";
+import { buildSemanticConsistencyValidators } from "./config/semanticConsistencyValidators";
+import { buildMultiLayerVerification } from "./config/multiLayerVerification";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -285,6 +287,46 @@ export default function App() {
       activeRouteTier,
       integritySignatures,
       packagingMetadata,
+    ],
+  );
+  const semanticConsistency = useMemo(
+    () =>
+      buildSemanticConsistencyValidators({
+        tier: activeRouteTier,
+        releaseMetadata,
+        packagingMetadata,
+        artifactManifest,
+        distributionProfile: activeDistributionProfile,
+        distributionRule: activeDistributionRule,
+        integritySignatures,
+        tierBundleIntegrity,
+      }),
+    [
+      activeDistributionProfile,
+      activeDistributionRule,
+      activeRouteTier,
+      artifactManifest,
+      integritySignatures,
+      packagingMetadata,
+      releaseMetadata,
+      tierBundleIntegrity,
+    ],
+  );
+  const multiLayerVerification = useMemo(
+    () =>
+      buildMultiLayerVerification({
+        tier: activeRouteTier,
+        semanticConsistency,
+        tierBundleIntegrity,
+        artifactVerification,
+        distributionReport: deterministicDistributionReport,
+      }),
+    [
+      activeRouteTier,
+      artifactVerification,
+      deterministicDistributionReport,
+      semanticConsistency,
+      tierBundleIntegrity,
     ],
   );
 
@@ -581,6 +623,32 @@ export default function App() {
       },
     });
   }, [activeRouteTier, tierBundleIntegrity]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.semantic.consistency.validated",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        validationId: semanticConsistency.validationId,
+        isValid: semanticConsistency.isValid,
+      },
+    });
+    window.__btSemanticConsistencyValidation = semanticConsistency;
+  }, [activeRouteTier, semanticConsistency]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.multi.layer.verification.generated",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        verificationId: multiLayerVerification.verificationId,
+        isValid: multiLayerVerification.isValid,
+      },
+    });
+    window.__btMultiLayerVerification = multiLayerVerification;
+  }, [activeRouteTier, multiLayerVerification]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -2207,6 +2275,8 @@ export default function App() {
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
             tierBundleIntegrity={tierBundleIntegrity}
+            semanticConsistency={semanticConsistency}
+            multiLayerVerification={multiLayerVerification}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -2230,6 +2300,8 @@ export default function App() {
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
             tierBundleIntegrity={tierBundleIntegrity}
+            semanticConsistency={semanticConsistency}
+            multiLayerVerification={multiLayerVerification}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2273,6 +2345,8 @@ export default function App() {
           integritySignatures={integritySignatures}
           artifactVerification={artifactVerification}
           tierBundleIntegrity={tierBundleIntegrity}
+          semanticConsistency={semanticConsistency}
+          multiLayerVerification={multiLayerVerification}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2303,6 +2377,8 @@ export default function App() {
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
             tierBundleIntegrity={tierBundleIntegrity}
+            semanticConsistency={semanticConsistency}
+            multiLayerVerification={multiLayerVerification}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2342,6 +2418,8 @@ export default function App() {
           integritySignatures={integritySignatures}
           artifactVerification={artifactVerification}
           tierBundleIntegrity={tierBundleIntegrity}
+          semanticConsistency={semanticConsistency}
+          multiLayerVerification={multiLayerVerification}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."
