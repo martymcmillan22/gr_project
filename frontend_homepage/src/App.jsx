@@ -45,6 +45,7 @@ import { resolveDistributionRule } from "./config/deterministicDistributionRules
 import { buildDeterministicDistributionReport } from "./config/deterministicDistributionReport";
 import { getDeterministicIntegritySignatures } from "./config/deterministicIntegritySignatures";
 import { buildDeterministicArtifactVerification } from "./config/deterministicArtifactVerification";
+import { evaluateTierBundleIntegrity } from "./config/tierBundleIntegrityRules";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -267,6 +268,23 @@ export default function App() {
       packagingMetadata,
       releaseMetadata,
       tierDistributionProfiles,
+    ],
+  );
+  const tierBundleIntegrity = useMemo(
+    () =>
+      evaluateTierBundleIntegrity({
+        tier: activeRouteTier,
+        distributionProfile: activeDistributionProfile,
+        distributionRule: activeDistributionRule,
+        packagingMetadata,
+        integritySignatures,
+      }),
+    [
+      activeDistributionProfile,
+      activeDistributionRule,
+      activeRouteTier,
+      integritySignatures,
+      packagingMetadata,
     ],
   );
 
@@ -550,6 +568,19 @@ export default function App() {
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };
   }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.tier.bundle.integrity.evaluated",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        profileId: tierBundleIntegrity.profileId,
+        ruleId: tierBundleIntegrity.ruleId,
+        isValid: tierBundleIntegrity.isValid,
+      },
+    });
+  }, [activeRouteTier, tierBundleIntegrity]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -2175,6 +2206,7 @@ export default function App() {
             distributionReport={deterministicDistributionReport}
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
+            tierBundleIntegrity={tierBundleIntegrity}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -2197,6 +2229,7 @@ export default function App() {
             distributionReport={deterministicDistributionReport}
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
+            tierBundleIntegrity={tierBundleIntegrity}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2239,6 +2272,7 @@ export default function App() {
           distributionReport={deterministicDistributionReport}
           integritySignatures={integritySignatures}
           artifactVerification={artifactVerification}
+          tierBundleIntegrity={tierBundleIntegrity}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2268,6 +2302,7 @@ export default function App() {
             distributionReport={deterministicDistributionReport}
             integritySignatures={integritySignatures}
             artifactVerification={artifactVerification}
+            tierBundleIntegrity={tierBundleIntegrity}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2306,6 +2341,7 @@ export default function App() {
           distributionReport={deterministicDistributionReport}
           integritySignatures={integritySignatures}
           artifactVerification={artifactVerification}
+          tierBundleIntegrity={tierBundleIntegrity}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."
