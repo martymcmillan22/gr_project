@@ -31,6 +31,7 @@ export function DeterministicSurfaceFallback({
   tierBundleIntegrity,
   semanticConsistency,
   multiLayerVerification,
+  integrityReport,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -87,6 +88,8 @@ export function DeterministicSurfaceFallback({
       data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
       data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
       data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
+      data-integrity-report-id={integrityReport?.reportId || ""}
+      data-integrity-report-valid={integrityReport?.isValid ? "true" : "false"}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -145,6 +148,7 @@ export class DeterministicErrorBoundary extends React.Component {
       tierBundleIntegrity,
       semanticConsistency,
       multiLayerVerification,
+      integrityReport,
     } = this.props;
 
     if (this.state.hasError) {
@@ -169,6 +173,7 @@ export class DeterministicErrorBoundary extends React.Component {
           tierBundleIntegrity={tierBundleIntegrity}
           semanticConsistency={semanticConsistency}
           multiLayerVerification={multiLayerVerification}
+          integrityReport={integrityReport}
         />
       );
     }
@@ -212,6 +217,8 @@ export class DeterministicErrorBoundary extends React.Component {
         data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
         data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
         data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
+        data-integrity-report-id={integrityReport?.reportId || ""}
+        data-integrity-report-valid={integrityReport?.isValid ? "true" : "false"}
       >
         {children}
       </div>
@@ -237,6 +244,7 @@ export function DeterministicLoadingSurface({
   tierBundleIntegrity,
   semanticConsistency,
   multiLayerVerification,
+  integrityReport,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -258,6 +266,7 @@ export function DeterministicLoadingSurface({
       tierBundleIntegrity={tierBundleIntegrity}
       semanticConsistency={semanticConsistency}
       multiLayerVerification={multiLayerVerification}
+      integrityReport={integrityReport}
     />
   );
 }
@@ -283,6 +292,7 @@ export function DeterministicGuardedSurface({
   tierBundleIntegrity,
   semanticConsistency,
   multiLayerVerification,
+  integrityReport,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -334,6 +344,7 @@ export function DeterministicGuardedSurface({
         tierBundleIntegrity={tierBundleIntegrity}
         semanticConsistency={semanticConsistency}
         multiLayerVerification={multiLayerVerification}
+        integrityReport={integrityReport}
       />
     );
   }
@@ -377,6 +388,8 @@ export function DeterministicGuardedSurface({
         data-semantic-telemetry-shape-valid={semanticConsistency?.telemetrySchemaShape?.isValid ? "true" : "false"}
         data-multi-layer-verification-id={multiLayerVerification?.verificationId || ""}
         data-multi-layer-verification-valid={multiLayerVerification?.isValid ? "true" : "false"}
+        data-integrity-report-id={integrityReport?.reportId || ""}
+        data-integrity-report-valid={integrityReport?.isValid ? "true" : "false"}
     >
       {children}
     </div>
