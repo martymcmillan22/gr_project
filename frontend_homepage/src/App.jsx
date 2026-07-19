@@ -43,6 +43,8 @@ import { getDeterministicPackagingMetadata } from "./config/deterministicPackagi
 import { getTierDistributionProfiles } from "./config/tierDistributionProfiles";
 import { resolveDistributionRule } from "./config/deterministicDistributionRules";
 import { buildDeterministicDistributionReport } from "./config/deterministicDistributionReport";
+import { getDeterministicIntegritySignatures } from "./config/deterministicIntegritySignatures";
+import { buildDeterministicArtifactVerification } from "./config/deterministicArtifactVerification";
 import {
   emitDeterministicTelemetry,
   incrementDeterministicMetric,
@@ -199,6 +201,17 @@ export default function App() {
   const artifactManifest = useMemo(() => getDeterministicArtifactManifest(), []);
   const packagingMetadata = useMemo(() => getDeterministicPackagingMetadata(), []);
   const tierDistributionProfiles = useMemo(() => getTierDistributionProfiles(), []);
+  const integritySignatures = useMemo(() => getDeterministicIntegritySignatures(), []);
+  const artifactVerification = useMemo(
+    () =>
+      buildDeterministicArtifactVerification({
+        artifactManifest,
+        packagingMetadata,
+        releaseMetadata,
+        integritySignatures,
+      }),
+    [artifactManifest, integritySignatures, packagingMetadata, releaseMetadata],
+  );
   const deterministicReleaseReport = useMemo(
     () =>
       buildDeterministicReleaseReport({
@@ -537,6 +550,33 @@ export default function App() {
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };
   }, []);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.integrity.signatures.loaded",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        artifactSignatureId: integritySignatures.artifactManifest.signatureId,
+        bundleSignatureId: integritySignatures.bundleManifest.signatureId,
+        releaseSignatureId: integritySignatures.releaseMetadata.signatureId,
+      },
+    });
+  }, [activeRouteTier, integritySignatures]);
+
+  useEffect(() => {
+    emitDeterministicTelemetry({
+      eventName: "app.artifact.verification.generated",
+      tier: activeRouteTier,
+      surface: "workspace",
+      payload: {
+        verificationId: artifactVerification.verificationId,
+        bundleId: artifactVerification.bundleId,
+        releaseChannel: artifactVerification.releaseChannel,
+      },
+    });
+    window.__btDeterministicArtifactVerification = artifactVerification;
+  }, [activeRouteTier, artifactVerification]);
 
   useEffect(() => {
     emitDeterministicTelemetry({
@@ -2133,6 +2173,8 @@ export default function App() {
             distributionProfile={tierDistributionProfiles.byTier?.novice}
             distributionRule={resolveDistributionRule("novice", tierDistributionProfiles.byTier?.novice?.channel || releaseMetadata.channel)}
             distributionReport={deterministicDistributionReport}
+            integritySignatures={integritySignatures}
+            artifactVerification={artifactVerification}
           >
             <section className="panel">
               <h2>Invalid BaseTrue Route</h2>
@@ -2153,6 +2195,8 @@ export default function App() {
             distributionProfile={tierDistributionProfiles.byTier?.[baseTrueCompartmentRoute.tier]}
             distributionRule={resolveDistributionRule(baseTrueCompartmentRoute.tier, tierDistributionProfiles.byTier?.[baseTrueCompartmentRoute.tier]?.channel || releaseMetadata.channel)}
             distributionReport={deterministicDistributionReport}
+            integritySignatures={integritySignatures}
+            artifactVerification={artifactVerification}
             fallbackTitle="Compartment Route Recovery"
             fallbackMessage="Compartment fallback surface is active. Deterministic route, tier, and gating constraints are preserved."
             fallbackDetails="Fallback coverage: compartment panel, pipeline surface, and phase section render boundaries."
@@ -2193,6 +2237,8 @@ export default function App() {
           distributionProfile={tierDistributionProfiles.byTier?.studio}
           distributionRule={resolveDistributionRule("studio", tierDistributionProfiles.byTier?.studio?.channel || releaseMetadata.channel)}
           distributionReport={deterministicDistributionReport}
+          integritySignatures={integritySignatures}
+          artifactVerification={artifactVerification}
           fallbackTitle="Studio Workspace Recovery"
           fallbackMessage="Studio workspace fallback surface is active. Deterministic routing and governance constraints are preserved."
           fallbackDetails="Fallback coverage: workspace panels, compartments, pipelines, and QPU presentation surfaces."
@@ -2220,6 +2266,8 @@ export default function App() {
             distributionProfile={tierDistributionProfiles.byTier?.enterprise}
             distributionRule={resolveDistributionRule("enterprise", tierDistributionProfiles.byTier?.enterprise?.channel || releaseMetadata.channel)}
             distributionReport={deterministicDistributionReport}
+            integritySignatures={integritySignatures}
+            artifactVerification={artifactVerification}
           >
             <section className="panel basetrue-route-hero">
               <p className="eyebrow">BaseTrue Route</p>
@@ -2256,6 +2304,8 @@ export default function App() {
           distributionProfile={tierDistributionProfiles.byTier?.enterprise}
           distributionRule={resolveDistributionRule("enterprise", tierDistributionProfiles.byTier?.enterprise?.channel || releaseMetadata.channel)}
           distributionReport={deterministicDistributionReport}
+          integritySignatures={integritySignatures}
+          artifactVerification={artifactVerification}
           fallbackTitle="Enterprise Workspace Recovery"
           fallbackMessage="Enterprise tower fallback surface is active. Deterministic routing, gating, and governance constraints are preserved."
           fallbackDetails="Fallback coverage: tower, zone rail, guided chain, floor slice, and workspace panel surfaces."

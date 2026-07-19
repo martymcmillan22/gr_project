@@ -26,6 +26,8 @@ export function DeterministicSurfaceFallback({
   distributionProfile,
   distributionRule,
   distributionReport,
+  integritySignatures,
+  artifactVerification,
 }) {
   React.useEffect(() => {
     emitDeterministicTelemetry({
@@ -68,6 +70,11 @@ export function DeterministicSurfaceFallback({
       data-distribution-bundle={distributionRule?.bundleId || ""}
       data-distribution-report-tier={distributionReport?.activeTier || ""}
       data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
+      data-integrity-artifact-signature={integritySignatures?.artifactManifest?.signature || ""}
+      data-integrity-bundle-signature={integritySignatures?.bundleManifest?.signature || ""}
+      data-integrity-release-signature={integritySignatures?.releaseMetadata?.signature || ""}
+      data-integrity-telemetry-signature={integritySignatures?.telemetrySchema?.signature || ""}
+      data-artifact-verification-id={artifactVerification?.verificationId || ""}
       role={mode === "loading" ? "status" : "alert"}
       aria-live={mode === "loading" ? "polite" : "assertive"}
       aria-atomic="true"
@@ -121,6 +128,8 @@ export class DeterministicErrorBoundary extends React.Component {
       distributionProfile,
       distributionRule,
       distributionReport,
+      integritySignatures,
+      artifactVerification,
     } = this.props;
 
     if (this.state.hasError) {
@@ -140,6 +149,8 @@ export class DeterministicErrorBoundary extends React.Component {
           distributionProfile={distributionProfile}
           distributionRule={distributionRule}
           distributionReport={distributionReport}
+          integritySignatures={integritySignatures}
+          artifactVerification={artifactVerification}
         />
       );
     }
@@ -169,6 +180,11 @@ export class DeterministicErrorBoundary extends React.Component {
         data-distribution-bundle={distributionRule?.bundleId || ""}
         data-distribution-report-tier={distributionReport?.activeTier || ""}
         data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
+        data-integrity-artifact-signature={integritySignatures?.artifactManifest?.signature || ""}
+        data-integrity-bundle-signature={integritySignatures?.bundleManifest?.signature || ""}
+        data-integrity-release-signature={integritySignatures?.releaseMetadata?.signature || ""}
+        data-integrity-telemetry-signature={integritySignatures?.telemetrySchema?.signature || ""}
+        data-artifact-verification-id={artifactVerification?.verificationId || ""}
       >
         {children}
       </div>
@@ -189,6 +205,8 @@ export function DeterministicLoadingSurface({
   distributionProfile,
   distributionRule,
   distributionReport,
+  integritySignatures,
+  artifactVerification,
 }) {
   return (
     <DeterministicSurfaceFallback
@@ -205,6 +223,8 @@ export function DeterministicLoadingSurface({
       distributionProfile={distributionProfile}
       distributionRule={distributionRule}
       distributionReport={distributionReport}
+      integritySignatures={integritySignatures}
+      artifactVerification={artifactVerification}
     />
   );
 }
@@ -225,6 +245,8 @@ export function DeterministicGuardedSurface({
   distributionProfile,
   distributionRule,
   distributionReport,
+  integritySignatures,
+  artifactVerification,
 }) {
   const loadingTimerRef = React.useRef("");
 
@@ -271,6 +293,8 @@ export function DeterministicGuardedSurface({
         distributionProfile={distributionProfile}
         distributionRule={distributionRule}
         distributionReport={distributionReport}
+        integritySignatures={integritySignatures}
+        artifactVerification={artifactVerification}
       />
     );
   }
@@ -300,6 +324,11 @@ export function DeterministicGuardedSurface({
         data-distribution-bundle={distributionRule?.bundleId || ""}
         data-distribution-report-tier={distributionReport?.activeTier || ""}
         data-distribution-report-channel={distributionReport?.activeDistribution?.channel || ""}
+        data-integrity-artifact-signature={integritySignatures?.artifactManifest?.signature || ""}
+        data-integrity-bundle-signature={integritySignatures?.bundleManifest?.signature || ""}
+        data-integrity-release-signature={integritySignatures?.releaseMetadata?.signature || ""}
+        data-integrity-telemetry-signature={integritySignatures?.telemetrySchema?.signature || ""}
+        data-artifact-verification-id={artifactVerification?.verificationId || ""}
     >
       {children}
     </div>
