@@ -6,19 +6,19 @@ from .models import (
 	Industry,
 	IndustryGroup,
 	LatticeCompartment,
-	RecycleThreeAllocation,
+	Recycle3Profile,
 	SubIndustry,
 )
 
 
-@admin.register(RecycleThreeAllocation)
-class RecycleThreeAllocationAdmin(admin.ModelAdmin):
+@admin.register(Recycle3Profile)
+class Recycle3ProfileAdmin(admin.ModelAdmin):
 	list_display = (
 		"user",
-		"corporation_rd",
-		"people_small_business_qcqa",
-		"government_infrastructure_protection",
-		"isea_gdp_optimization",
+		"corporation_rnd_pct",
+		"people_qcqa_pct",
+		"government_infra_pct",
+		"isea_pct",
 		"updated_at",
 	)
 	search_fields = ("user__username", "user__email")

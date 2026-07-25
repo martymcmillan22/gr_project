@@ -14,13 +14,21 @@
           <h2 class="title is-4">Subject 1: Recycle3</h2>
           <p class="mb-3">Balanced ownership model across three participants.</p>
           <ul>
-            <li><strong>Corporation (Research and Development):</strong> {{ recycle.corporation_rd }}%</li>
-            <li><strong>People and Small Businesses (QC/QA):</strong> {{ recycle.people_small_business_qcqa }}%</li>
-            <li><strong>Government (Infrastructure and Protection):</strong> {{ recycle.government_infrastructure_protection }}%</li>
-            <li><strong>ISEA GDP Optimization:</strong> {{ recycle.isea_gdp_optimization }}%</li>
+            <li><strong>Corporation (Research and Development):</strong> {{ recycle.corporation_rnd_pct }}%</li>
+            <li><strong>People and Small Businesses (QC/QA):</strong> {{ recycle.people_qcqa_pct }}%</li>
+            <li><strong>Government (Infrastructure and Protection):</strong> {{ recycle.government_infra_pct }}%</li>
+            <li><strong>ISEA GDP Optimization:</strong> {{ recycle.isea_pct }}%</li>
             <li><strong>Recycle3 Core Total:</strong> {{ recycle.recycle_total }}%</li>
             <li><strong>Total with ISEA:</strong> {{ recycle.total_with_isea }}%</li>
           </ul>
+          <hr>
+          <p class="mb-2"><strong>Sector Tier:</strong> {{ pip_state.sector_tier }}</p>
+          <p class="mb-2"><strong>Lifecycle Stage:</strong> {{ pip_state.lifecycle_stage }}</p>
+          <p class="mb-2"><strong>RR (Repository Relay) Access:</strong> {% if pip_state.rr_unlocked %}Unlocked{% else %}Locked{% endif %}</p>
+          <p class="mb-2"><strong>QPU Access:</strong> {% if pip_state.qpu_unlocked %}Unlocked{% else %}Locked{% endif %}</p>
+          <p class="mb-2"><strong>Allowed Actions:</strong>
+            {% for stage in allowed_stages %}{{ stage }}{% if not forloop.last %} &rarr; {% endif %}{% endfor %}
+          </p>
         </div>
       </div>
 

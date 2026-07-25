@@ -6,12 +6,45 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-class RecycleThreeAllocation(models.Model):
+class SectorTier(models.TextChoices):
+	"""BaseTrue cognitive-ladder sector tier, derived from a Recycle3Profile."""
+
+	MLAS = "MLAS", "MLAS (Idea)"
+	SEVM = "SEVM", "SEVM (Seed)"
+	CCPP = "CCPP", "CCPP (Project + RR)"
+	DCHD = "DCHD", "DCHD (Enterprise + QPU)"
+
+
+class PIPLifecycle(models.TextChoices):
+	"""PIP workflow action stages, gated by SectorTier."""
+
+	IDEA = "IDEA", "Idea"
+	SEED = "SEED", "Seed"
+	PROJECT = "PROJECT", "Project"
+	ENTERPRISE = "ENTERPRISE", "Enterprise"
+
+
+TIER_TO_LIFECYCLE = {
+	SectorTier.MLAS: PIPLifecycle.IDEA,
+	SectorTier.SEVM: PIPLifecycle.SEED,
+	SectorTier.CCPP: PIPLifecycle.PROJECT,
+	SectorTier.DCHD: PIPLifecycle.ENTERPRISE,
+}
+
+LIFECYCLE_ORDER = [
+	PIPLifecycle.IDEA,
+	PIPLifecycle.SEED,
+	PIPLifecycle.PROJECT,
+	PIPLifecycle.ENTERPRISE,
+]
+
+
+class Recycle3Profile(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recycle_allocations")
-	corporation_rd = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
-	people_small_business_qcqa = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
-	government_infrastructure_protection = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
-	isea_gdp_optimization = models.DecimalField(
+	corporation_rnd_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
+	people_qcqa_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
+	government_infra_pct = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("33.33"))
+	isea_pct = models.DecimalField(
 		max_digits=4,
 		decimal_places=2,
 		default=Decimal("0.01"),
@@ -26,13 +59,13 @@ class RecycleThreeAllocation(models.Model):
 
 	def recycle_total(self):
 		return (
-			self.corporation_rd
-			+ self.people_small_business_qcqa
-			+ self.government_infrastructure_protection
+			self.corporation_rnd_pct
+			+ self.people_qcqa_pct
+			+ self.government_infra_pct
 		)
 
 	def total_with_isea(self):
-		return self.recycle_total() + self.isea_gdp_optimization
+		return self.recycle_total() + self.isea_pct
 
 	def clean(self):
 		base_total = self.recycle_total()
@@ -45,6 +78,34 @@ class RecycleThreeAllocation(models.Model):
 
 	def __str__(self):
 		return f"Recycle3 for {self.user}"
+
+	def calculate_sector_tier(self):
+		"""
+		Canonical BaseTrue tier formula (checked from highest tier down, since each
+		higher tier's thresholds are a superset of the lower ones):
+
+		DCHD (Enterprise + QPU): corp/people/gov >= 50, isea >= 0.02
+		CCPP (Project + RR):     corp/people/gov >= 40, isea >= 0.01
+		SEVM (Seed):              corp/people/gov >= 33.33, isea >= 0.01
+		MLAS (Idea only):         default/fallback (isea < 0.01, or thresholds unmet)
+		"""
+		corp = self.corporation_rnd_pct
+		people = self.people_qcqa_pct
+		gov = self.government_infra_pct
+		isea = self.isea_pct
+
+		if corp >= Decimal("50") and people >= Decimal("50") and gov >= Decimal("50") and isea >= Decimal("0.02"):
+			return SectorTier.DCHD
+		if corp >= Decimal("40") and people >= Decimal("40") and gov >= Decimal("40") and isea >= Decimal("0.01"):
+			return SectorTier.CCPP
+		if corp >= Decimal("33.33") and people >= Decimal("33.33") and gov >= Decimal("33.33") and isea >= Decimal("0.01"):
+			return SectorTier.SEVM
+		return SectorTier.MLAS
+
+
+def calculate_sector_tier(recycle3_profile):
+	"""Module-level convenience wrapper around Recycle3Profile.calculate_sector_tier()."""
+	return recycle3_profile.calculate_sector_tier()
 
 
 class BaseTrueSquareRootMap(models.Model):

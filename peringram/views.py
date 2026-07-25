@@ -9,9 +9,10 @@ from .models import (
     Industry,
     IndustryGroup,
     LatticeCompartment,
-    RecycleThreeAllocation,
+    Recycle3Profile,
     SubIndustry,
 )
+from .pip_state import PIPState, PIPWorkflowService
 
 
 GROUP_DOMAIN_ORDER = [
@@ -111,10 +112,10 @@ class PIPView(LoginRequiredMixin, TemplateView):
 
         seed_peringram_structure()
 
-        recycle, _ = RecycleThreeAllocation.objects.get_or_create(user=self.request.user)
-        if recycle.isea_gdp_optimization == Decimal("0.00"):
-            recycle.isea_gdp_optimization = Decimal("0.01")
-            recycle.save(update_fields=["isea_gdp_optimization", "updated_at"])
+        recycle, _ = Recycle3Profile.objects.get_or_create(user=self.request.user)
+        if recycle.isea_pct == Decimal("0.00"):
+            recycle.isea_pct = Decimal("0.01")
+            recycle.save(update_fields=["isea_pct", "updated_at"])
         user_map, _ = BaseTrueSquareRootMap.objects.get_or_create(
             user=self.request.user,
             territory_name="Default Territory",
@@ -123,7 +124,11 @@ class PIPView(LoginRequiredMixin, TemplateView):
             },
         )
 
+        pip_state = PIPState.from_recycle3(recycle)
+
         context["recycle"] = recycle
+        context["pip_state"] = pip_state
+        context["allowed_stages"] = PIPWorkflowService.allowed_stages(pip_state)
         context["user_map"] = user_map
         context["groups_count"] = IndustryGroup.objects.count()
         context["industries_count"] = Industry.objects.count()

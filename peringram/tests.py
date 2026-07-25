@@ -9,9 +9,12 @@ from .models import (
 	Industry,
 	IndustryGroup,
 	LatticeCompartment,
-	RecycleThreeAllocation,
+	PIPLifecycle,
+	Recycle3Profile,
+	SectorTier,
 	SubIndustry,
 )
+from .pip_state import PIPState, PIPWorkflowService
 
 
 class PIPViewTests(TestCase):
@@ -39,16 +42,50 @@ class PIPViewTests(TestCase):
 		self.assertEqual(LatticeCompartment.objects.get(index=11).category, "Philosophy/Ethics")
 
 	def test_isea_helper_computes_100_percent_total(self):
-		allocation = RecycleThreeAllocation(
+		allocation = Recycle3Profile(
 			user=self.user,
-			corporation_rd=Decimal("33.33"),
-			people_small_business_qcqa=Decimal("33.33"),
-			government_infrastructure_protection=Decimal("33.33"),
-			isea_gdp_optimization=Decimal("0.01"),
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.01"),
 		)
 		allocation.full_clean()
 		self.assertEqual(allocation.recycle_total(), Decimal("99.99"))
 		self.assertEqual(allocation.total_with_isea(), Decimal("100.00"))
+
+	def test_sector_tier_thresholds(self):
+		cases = [
+			(("33.33", "33.33", "33.33"), "0.00", SectorTier.MLAS),
+			(("33.33", "33.33", "33.33"), "0.01", SectorTier.SEVM),
+			(("40.00", "40.00", "40.00"), "0.01", SectorTier.CCPP),
+			(("50.00", "50.00", "50.00"), "0.02", SectorTier.DCHD),
+		]
+		for (corp, people, gov), isea, expected_tier in cases:
+			profile = Recycle3Profile(
+				user=self.user,
+				corporation_rnd_pct=Decimal(corp),
+				people_qcqa_pct=Decimal(people),
+				government_infra_pct=Decimal(gov),
+				isea_pct=Decimal(isea),
+			)
+			self.assertEqual(profile.calculate_sector_tier(), expected_tier)
+
+	def test_pip_workflow_service_gates_lifecycle_actions(self):
+		profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.01"),
+		)
+		pip_state = PIPState.from_recycle3(profile)
+		self.assertEqual(pip_state.sector_tier, SectorTier.SEVM)
+		self.assertTrue(PIPWorkflowService.can_perform_action(PIPLifecycle.IDEA, pip_state))
+		self.assertTrue(PIPWorkflowService.can_perform_action(PIPLifecycle.SEED, pip_state))
+		self.assertFalse(PIPWorkflowService.can_perform_action(PIPLifecycle.PROJECT, pip_state))
+		self.assertFalse(PIPWorkflowService.can_perform_action(PIPLifecycle.ENTERPRISE, pip_state))
+		self.assertFalse(pip_state.rr_unlocked)
+		self.assertFalse(pip_state.qpu_unlocked)
 
 	def test_domain_ordering_for_key_groups(self):
 		self.client.force_login(self.user)
