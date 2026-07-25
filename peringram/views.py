@@ -13,6 +13,7 @@ from .models import (
     SubIndustry,
 )
 from .pip_state import PIPState, PIPWorkflowService
+from .srl import PIPSRLValidator, SRLService
 
 
 GROUP_DOMAIN_ORDER = [
@@ -124,12 +125,26 @@ class PIPView(LoginRequiredMixin, TemplateView):
             },
         )
 
-        pip_state = PIPState.from_recycle3(recycle)
+        territory = SRLService.assign_compartment(self.request.user)
+        pip_state = PIPState.from_recycle3(recycle, territory=territory)
 
         context["recycle"] = recycle
         context["pip_state"] = pip_state
         context["allowed_stages"] = PIPWorkflowService.allowed_stages(pip_state)
         context["user_map"] = user_map
+
+        # SRL validation demo: validate the user's most recent seeds.Idea (if any)
+        # against their assigned lattice compartment, for dashboard display.
+        from seeds.models import Idea  # deferred: avoid circular import
+
+        latest_idea = Idea.objects.filter(user=self.request.user).order_by("-created_at").first()
+        if latest_idea is not None:
+            context["srl_validation"] = PIPSRLValidator.validate(
+                compartment_id=territory.index,
+                raw_content=latest_idea.raw_content,
+            )
+        else:
+            context["srl_validation"] = None
         context["groups_count"] = IndustryGroup.objects.count()
         context["industries_count"] = Industry.objects.count()
         context["sub_industries_count"] = SubIndustry.objects.count()

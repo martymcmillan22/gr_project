@@ -34,11 +34,29 @@
 
       <div class="column is-6">
         <div class="box">
-          <h2 class="title is-4">Subject 2: Maps</h2>
+          <h2 class="title is-4">Subject 2: Maps (SRL Territory)</h2>
           <p class="mb-2"><strong>Territory:</strong> {{ user_map.territory_name }}</p>
           <p><strong>Lattice:</strong> Base True Square Root Lattice</p>
           {% if user_map.lattice_notes %}
           <p class="mt-2">{{ user_map.lattice_notes }}</p>
+          {% endif %}
+          <hr>
+          {% if pip_state.territory %}
+          <p class="mb-2"><strong>Compartment:</strong> L{{ pip_state.territory.index }} ({{ pip_state.territory.color }})</p>
+          <p class="mb-2"><strong>Time Frame:</strong> {{ pip_state.territory.get_time_frame_display }}</p>
+          <p class="mb-2"><strong>Capacity:</strong> {{ pip_state.territory.capacity }}</p>
+          <p class="mb-2"><strong>SRL Category:</strong> {{ pip_state.territory.category }}</p>
+          <p class="mb-2"><strong>Mapped IndustryGroup Code:</strong> {{ pip_state.industry_group_code }}</p>
+          <p class="mb-2"><strong>SRL Tier Boost:</strong> {{ pip_state.srl_tier_boost }}</p>
+          {% endif %}
+          <p class="mb-2"><strong>Current Convection Slot:</strong> {{ pip_state.time_slot.label }} ({{ pip_state.time_slot_time_frame }})</p>
+          <p class="mb-2"><strong>Enterprise Planning Unlocked:</strong> {% if pip_state.enterprise_planning_unlocked %}Yes{% else %}No{% endif %}</p>
+          <p class="mb-2"><strong>Archival/Analysis Unlocked:</strong> {% if pip_state.archival_analysis_unlocked %}Yes{% else %}No{% endif %}</p>
+          {% if srl_validation %}
+          <hr>
+          <p class="mb-2"><strong>Latest Idea SRL Validation:</strong> {{ srl_validation.status }}</p>
+          <p class="mb-2"><strong>Capacity OK:</strong> {% if srl_validation.capacity_ok %}Yes{% else %}No{% endif %}</p>
+          <p class="mb-2"><strong>Time Frame OK:</strong> {% if srl_validation.time_frame_ok %}Yes{% else %}No{% endif %}</p>
           {% endif %}
         </div>
       </div>

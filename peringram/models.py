@@ -79,7 +79,7 @@ class Recycle3Profile(models.Model):
 	def __str__(self):
 		return f"Recycle3 for {self.user}"
 
-	def calculate_sector_tier(self):
+	def calculate_sector_tier(self, lattice_compartment=None):
 		"""
 		Canonical BaseTrue tier formula (checked from highest tier down, since each
 		higher tier's thresholds are a superset of the lower ones):
@@ -88,6 +88,10 @@ class Recycle3Profile(models.Model):
 		CCPP (Project + RR):     corp/people/gov >= 40, isea >= 0.01
 		SEVM (Seed):              corp/people/gov >= 33.33, isea >= 0.01
 		MLAS (Idea only):         default/fallback (isea < 0.01, or thresholds unmet)
+
+		If `lattice_compartment` is given, its SRL time_frame boost (see
+		SRL_TIER_BOOST) can bump the base tier up one level (round-half-up:
+		boost >= 0.5), capped at DCHD.
 		"""
 		corp = self.corporation_rnd_pct
 		people = self.people_qcqa_pct
@@ -95,17 +99,34 @@ class Recycle3Profile(models.Model):
 		isea = self.isea_pct
 
 		if corp >= Decimal("50") and people >= Decimal("50") and gov >= Decimal("50") and isea >= Decimal("0.02"):
-			return SectorTier.DCHD
-		if corp >= Decimal("40") and people >= Decimal("40") and gov >= Decimal("40") and isea >= Decimal("0.01"):
-			return SectorTier.CCPP
-		if corp >= Decimal("33.33") and people >= Decimal("33.33") and gov >= Decimal("33.33") and isea >= Decimal("0.01"):
-			return SectorTier.SEVM
-		return SectorTier.MLAS
+			base_tier = SectorTier.DCHD
+		elif corp >= Decimal("40") and people >= Decimal("40") and gov >= Decimal("40") and isea >= Decimal("0.01"):
+			base_tier = SectorTier.CCPP
+		elif corp >= Decimal("33.33") and people >= Decimal("33.33") and gov >= Decimal("33.33") and isea >= Decimal("0.01"):
+			base_tier = SectorTier.SEVM
+		else:
+			base_tier = SectorTier.MLAS
+
+		if lattice_compartment is None:
+			return base_tier
+
+		tier_order = [SectorTier.MLAS, SectorTier.SEVM, SectorTier.CCPP, SectorTier.DCHD]
+		base_index = tier_order.index(base_tier)
+		boost = SRL_TIER_BOOST.get(lattice_compartment.time_frame, Decimal("0"))
+		bumped_index = base_index + (1 if boost >= Decimal("0.5") else 0)
+		bumped_index = min(bumped_index, len(tier_order) - 1)
+		return tier_order[bumped_index]
+
+	def calculate_srl_boost(self, lattice_compartment):
+		"""Raw SRL boost score (0/0.25/0.5/1) for a given compartment, for dashboard transparency."""
+		if lattice_compartment is None:
+			return Decimal("0")
+		return SRL_TIER_BOOST.get(lattice_compartment.time_frame, Decimal("0"))
 
 
-def calculate_sector_tier(recycle3_profile):
+def calculate_sector_tier(recycle3_profile, lattice_compartment=None):
 	"""Module-level convenience wrapper around Recycle3Profile.calculate_sector_tier()."""
-	return recycle3_profile.calculate_sector_tier()
+	return recycle3_profile.calculate_sector_tier(lattice_compartment)
 
 
 class BaseTrueSquareRootMap(models.Model):
@@ -254,3 +275,48 @@ class LatticeCompartment(models.Model):
 
 	def __str__(self):
 		return f"L{self.index:02d} {self.category} ({self.get_time_frame_display()})"
+
+
+class UserLatticeAssignment(models.Model):
+	"""A user's assigned SRL (Square Root Lattice) territory compartment."""
+
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="lattice_assignment")
+	lattice_compartment = models.ForeignKey(LatticeCompartment, on_delete=models.PROTECT, related_name="assigned_users")
+	assigned_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.user} -> L{self.lattice_compartment.index:02d}"
+
+
+# SRL categories (12, territorial) are intentionally distinct from IndustryGroup
+# domains (16, economic) per Phase 2 decision - do not merge. This is a simple
+# deterministic positional mapping (SRL index N -> IndustryGroup code N) used only
+# for dashboard display and future QPU routing.
+def industry_group_code_for_lattice_index(lattice_index):
+	return lattice_index
+
+
+# Mapping between the existing `seeds` app's Idea.status values and PIPLifecycle.
+# Kept as plain string literals (not importing seeds.models.Idea) to avoid a
+# circular import, since `seeds` already imports from `peringram.models`.
+# "BUSINESS" (seeds' legacy status) maps to PROJECT for now; ENTERPRISE remains
+# PIP-only until Phase 4. The seeds lifecycle itself is not modified.
+SEEDS_STATUS_TO_PIP_LIFECYCLE = {
+	"RAW": PIPLifecycle.IDEA,
+	"SEED": PIPLifecycle.SEED,
+	"PROJECT": PIPLifecycle.PROJECT,
+	"BUSINESS": PIPLifecycle.PROJECT,
+}
+
+
+# SRL time_frame -> sector tier boost (see Recycle3Profile.calculate_sector_tier).
+# Round-half-up semantics: a boost >= 0.5 bumps the tier exactly one level
+# (capped at DCHD); a boost < 0.5 is exposed for dashboard transparency but does
+# not change the categorical tier, since a single user only ever carries one
+# fixed SRL boost (no accumulation across multiple compartments).
+SRL_TIER_BOOST = {
+	LatticeCompartment.TIME_PAST: Decimal("0"),
+	LatticeCompartment.TIME_PRESENT_PAST: Decimal("0.25"),
+	LatticeCompartment.TIME_PRESENT_FUTURE: Decimal("0.5"),
+	LatticeCompartment.TIME_FUTURE: Decimal("1"),
+}

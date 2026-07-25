@@ -13,8 +13,11 @@ from .models import (
 	Recycle3Profile,
 	SectorTier,
 	SubIndustry,
+	UserLatticeAssignment,
 )
 from .pip_state import PIPState, PIPWorkflowService
+from .srl import SRLService
+from .views import seed_peringram_structure
 
 
 class PIPViewTests(TestCase):
@@ -95,3 +98,52 @@ class PIPViewTests(TestCase):
 		self.assertEqual(IndustryGroup.objects.get(code=3).name, "Arts")
 		self.assertEqual(IndustryGroup.objects.get(code=4).name, "Science")
 		self.assertEqual(IndustryGroup.objects.get(code=10).name, "Geology")
+
+	def test_srl_service_assigns_deterministic_compartment(self):
+		seed_peringram_structure()
+		compartment = SRLService.assign_compartment(self.user)
+		expected_index = ((self.user.id - 1) % 12) + 1
+		self.assertEqual(compartment.index, expected_index)
+		self.assertEqual(UserLatticeAssignment.objects.filter(user=self.user).count(), 1)
+		# Re-assigning the same user returns the same compartment (idempotent).
+		again = SRLService.assign_compartment(self.user)
+		self.assertEqual(again.index, expected_index)
+		self.assertEqual(UserLatticeAssignment.objects.filter(user=self.user).count(), 1)
+
+	def test_srl_boost_bumps_tier_only_at_or_above_half(self):
+		seed_peringram_structure()
+		profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.00"),
+		)
+		# Base tier with no compartment is MLAS (isea < 0.01).
+		self.assertEqual(profile.calculate_sector_tier(), SectorTier.MLAS)
+
+		past = LatticeCompartment.objects.get(index=1)  # time_frame=past, boost=0
+		present_past = LatticeCompartment.objects.get(index=2)  # boost=0.25
+		present_future = LatticeCompartment.objects.get(index=3)  # boost=0.5
+		future = LatticeCompartment.objects.get(index=4)  # boost=1
+
+		self.assertEqual(profile.calculate_sector_tier(past), SectorTier.MLAS)
+		self.assertEqual(profile.calculate_sector_tier(present_past), SectorTier.MLAS)
+		self.assertEqual(profile.calculate_sector_tier(present_future), SectorTier.SEVM)
+		self.assertEqual(profile.calculate_sector_tier(future), SectorTier.SEVM)
+
+	def test_pip_state_includes_territory_and_time_slot(self):
+		seed_peringram_structure()
+		profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.01"),
+		)
+		territory = SRLService.assign_compartment(self.user)
+		pip_state = PIPState.from_recycle3(profile, territory=territory)
+		self.assertEqual(pip_state.territory, territory)
+		self.assertEqual(pip_state.industry_group_code, territory.index)
+		self.assertIsNotNone(pip_state.time_slot)
+		self.assertIn(pip_state.time_slot_time_frame, ["past", "present_past", "present_future", "future"])
