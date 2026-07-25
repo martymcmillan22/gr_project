@@ -38,6 +38,23 @@ LIFECYCLE_ORDER = [
 	PIPLifecycle.ENTERPRISE,
 ]
 
+# Ordinal ordering of tiers (index 0 = lowest/MLAS, 3 = highest/DCHD). Always use
+# this for tier arithmetic/comparison - SectorTier is a TextChoices (string)
+# enum, so native max()/+ on the values themselves compares alphabetically,
+# which is NOT tier order (e.g. "CCPP" < "DCHD" < "MLAS" < "SEVM" alphabetically).
+TIER_ORDER = [SectorTier.MLAS, SectorTier.SEVM, SectorTier.CCPP, SectorTier.DCHD]
+
+
+def sector_tier_for_group_code(group_code):
+	"""Bind IndustryGroup code (1-16) to a SectorTier: 1-4->MLAS, 5-8->SEVM, 9-12->CCPP, 13-16->DCHD."""
+	if 1 <= group_code <= 4:
+		return SectorTier.MLAS
+	if 5 <= group_code <= 8:
+		return SectorTier.SEVM
+	if 9 <= group_code <= 12:
+		return SectorTier.CCPP
+	return SectorTier.DCHD
+
 
 class Recycle3Profile(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recycle_allocations")
@@ -110,12 +127,11 @@ class Recycle3Profile(models.Model):
 		if lattice_compartment is None:
 			return base_tier
 
-		tier_order = [SectorTier.MLAS, SectorTier.SEVM, SectorTier.CCPP, SectorTier.DCHD]
-		base_index = tier_order.index(base_tier)
+		base_index = TIER_ORDER.index(base_tier)
 		boost = SRL_TIER_BOOST.get(lattice_compartment.time_frame, Decimal("0"))
 		bumped_index = base_index + (1 if boost >= Decimal("0.5") else 0)
-		bumped_index = min(bumped_index, len(tier_order) - 1)
-		return tier_order[bumped_index]
+		bumped_index = min(bumped_index, len(TIER_ORDER) - 1)
+		return TIER_ORDER[bumped_index]
 
 	def calculate_srl_boost(self, lattice_compartment):
 		"""Raw SRL boost score (0/0.25/0.5/1) for a given compartment, for dashboard transparency."""
@@ -182,6 +198,10 @@ class IndustryGroup(models.Model):
 		self.sector = self.sector_for_group_code(self.code)
 		super().save(*args, **kwargs)
 
+	@property
+	def sector_tier(self):
+		return sector_tier_for_group_code(self.code)
+
 	def __str__(self):
 		return f"Group {self.code} ({self.get_sector_display()})"
 
@@ -198,6 +218,10 @@ class Industry(models.Model):
 			models.UniqueConstraint(fields=["group", "code"], name="unique_industry_code_per_group"),
 		]
 
+	@property
+	def sector_tier(self):
+		return self.group.sector_tier
+
 	def __str__(self):
 		return f"G{self.group.code:02d}-I{self.code:02d} {self.name}"
 
@@ -213,6 +237,10 @@ class SubIndustry(models.Model):
 		constraints = [
 			models.UniqueConstraint(fields=["industry", "code"], name="unique_sub_industry_code_per_industry"),
 		]
+
+	@property
+	def sector_tier(self):
+		return self.industry.sector_tier
 
 	def __str__(self):
 		return f"G{self.industry.group.code:02d}-I{self.industry.code:02d}-S{self.code} {self.name}"

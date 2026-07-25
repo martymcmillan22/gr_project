@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Insufficient Tier{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Insufficient Tier</h1>
+    <p class="subtitle">Your current PIP sector tier does not meet this bureau's minimum requirement.</p>
+    <a class="button is-link" href="{% url 'peringram:dashboard' %}">View your PIP Dashboard</a>
+  </div>
+</section>
+{% endblock %}

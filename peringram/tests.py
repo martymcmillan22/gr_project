@@ -14,8 +14,11 @@ from .models import (
 	SectorTier,
 	SubIndustry,
 	UserLatticeAssignment,
+	sector_tier_for_group_code,
 )
 from .pip_state import PIPState, PIPWorkflowService
+from .qpu import QPUAccessDeniedError, QPUService
+from .rr import RRAccessDeniedError, RRService
 from .srl import SRLService
 from .views import seed_peringram_structure
 
@@ -147,3 +150,129 @@ class PIPViewTests(TestCase):
 		self.assertEqual(pip_state.industry_group_code, territory.index)
 		self.assertIsNotNone(pip_state.time_slot)
 		self.assertIn(pip_state.time_slot_time_frame, ["past", "present_past", "present_future", "future"])
+
+	def test_sector_tier_for_group_code_binds_16_groups_to_4_tiers(self):
+		self.assertEqual(sector_tier_for_group_code(1), SectorTier.MLAS)
+		self.assertEqual(sector_tier_for_group_code(4), SectorTier.MLAS)
+		self.assertEqual(sector_tier_for_group_code(5), SectorTier.SEVM)
+		self.assertEqual(sector_tier_for_group_code(8), SectorTier.SEVM)
+		self.assertEqual(sector_tier_for_group_code(9), SectorTier.CCPP)
+		self.assertEqual(sector_tier_for_group_code(12), SectorTier.CCPP)
+		self.assertEqual(sector_tier_for_group_code(13), SectorTier.DCHD)
+		self.assertEqual(sector_tier_for_group_code(16), SectorTier.DCHD)
+
+	def test_industry_and_subindustry_inherit_sector_tier_from_group(self):
+		seed_peringram_structure()
+		group = IndustryGroup.objects.get(code=9)
+		self.assertEqual(group.sector_tier, SectorTier.CCPP)
+		industry = Industry.objects.filter(group=group).first()
+		self.assertEqual(industry.sector_tier, SectorTier.CCPP)
+		sub_industry = SubIndustry.objects.filter(industry=industry).first()
+		self.assertEqual(sub_industry.sector_tier, SectorTier.CCPP)
+
+	def test_final_tier_takes_the_higher_of_recycle3_or_sector_group(self):
+		seed_peringram_structure()
+
+		# Case 1: sector_group_tier (CCPP, no SRL boost) exceeds recycle3-only (MLAS).
+		low_recycle3 = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.00"),
+		)
+		territory_group_9 = LatticeCompartment.objects.get(index=9)  # -> IndustryGroup 9 -> CCPP, time_frame=past (no boost)
+		pip_state = PIPState.from_recycle3(low_recycle3, territory=territory_group_9)
+		self.assertEqual(pip_state.sector_group_tier, SectorTier.CCPP)
+		self.assertEqual(pip_state.final_tier, SectorTier.CCPP)
+
+		# Case 2: recycle3-only (DCHD) exceeds sector_group_tier (MLAS, group 1, no boost).
+		high_recycle3 = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("50.00"),
+			people_qcqa_pct=Decimal("50.00"),
+			government_infra_pct=Decimal("50.00"),
+			isea_pct=Decimal("0.02"),
+		)
+		territory_group_1 = LatticeCompartment.objects.get(index=1)  # -> IndustryGroup 1 -> MLAS, time_frame=past
+		pip_state_2 = PIPState.from_recycle3(high_recycle3, territory=territory_group_1)
+		self.assertEqual(pip_state_2.sector_group_tier, SectorTier.MLAS)
+		self.assertEqual(pip_state_2.final_tier, SectorTier.DCHD)
+
+	def test_bureau_access_gating(self):
+		seed_peringram_structure()
+		profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.00"),
+		)
+		territory = LatticeCompartment.objects.get(index=1)  # -> group 1 -> MLAS
+		pip_state = PIPState.from_recycle3(profile, territory=territory)
+		self.assertEqual(pip_state.final_tier, SectorTier.MLAS)
+		self.assertTrue(PIPWorkflowService.can_access_bureau("bos", pip_state))
+		self.assertFalse(PIPWorkflowService.can_access_bureau("bol", pip_state))
+		self.assertFalse(PIPWorkflowService.can_access_bureau("boe", pip_state))
+		self.assertFalse(PIPWorkflowService.can_access_bureau("bop", pip_state))
+
+	def test_rr_service_gates_seed_to_project_promotion(self):
+		from seeds.models import Idea
+
+		seed_peringram_structure()
+		industry = Industry.objects.filter(group__code=9).first()
+		idea = Idea.objects.create(user=self.user, industry=industry, raw_content="A viable idea.", status="SEED")
+		# seeds/signals.py auto-creates the Seed via a post_save signal when an
+		# Idea is created with status=SEED (RawToSeedPolishService) - fetch it
+		# rather than creating a second one (would violate the OneToOne constraint).
+		seed = idea.seed
+
+		low_profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("33.33"),
+			people_qcqa_pct=Decimal("33.33"),
+			government_infra_pct=Decimal("33.33"),
+			isea_pct=Decimal("0.01"),
+		)
+		low_pip_state = PIPState.from_recycle3(low_profile)  # SEVM tier, no territory
+		self.assertFalse(RRService.can_invoke(low_pip_state))
+		with self.assertRaises(RRAccessDeniedError):
+			RRService.promote_seed_to_project(low_pip_state, seed, brand_name="Test Co")
+
+		high_profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("40.00"),
+			people_qcqa_pct=Decimal("40.00"),
+			government_infra_pct=Decimal("40.00"),
+			isea_pct=Decimal("0.01"),
+		)
+		high_pip_state = PIPState.from_recycle3(high_profile)  # CCPP tier, no territory
+		self.assertTrue(RRService.can_invoke(high_pip_state))
+		business = RRService.promote_seed_to_project(high_pip_state, seed, brand_name="Test Co")
+		self.assertEqual(business.brand_name, "Test Co")
+		idea.refresh_from_db()
+		self.assertEqual(idea.status, "PROJECT")
+
+	def test_qpu_service_gates_by_dchd_tier(self):
+		low_profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("40.00"),
+			people_qcqa_pct=Decimal("40.00"),
+			government_infra_pct=Decimal("40.00"),
+			isea_pct=Decimal("0.01"),
+		)
+		low_pip_state = PIPState.from_recycle3(low_profile)  # CCPP tier, no territory
+		self.assertFalse(QPUService.can_invoke(low_pip_state))
+		payload = QPUService.prepare_payload(["red"], [4], ["Math"])
+		with self.assertRaises(QPUAccessDeniedError):
+			QPUService.run(low_pip_state, payload)
+
+		high_profile = Recycle3Profile(
+			user=self.user,
+			corporation_rnd_pct=Decimal("50.00"),
+			people_qcqa_pct=Decimal("50.00"),
+			government_infra_pct=Decimal("50.00"),
+			isea_pct=Decimal("0.02"),
+		)
+		high_pip_state = PIPState.from_recycle3(high_profile)  # DCHD tier, no territory
+		self.assertTrue(QPUService.can_invoke(high_pip_state))

@@ -82,10 +82,20 @@
           <div class="content mt-3">
             <ul>
               {% for group in sector_groups %}
-              <li>Group {{ group.code }}: {{ group.name }} ({{ group.get_sector_display }} sector)</li>
+              <li>Group {{ group.code }}: {{ group.name }} ({{ group.get_sector_display }} sector, tier {{ group.sector_tier }})</li>
               {% endfor %}
             </ul>
           </div>
+          <hr>
+          <p class="mb-2"><strong>Sector Group Tier (SRL-derived):</strong> {{ pip_state.sector_group_tier }}</p>
+          <p class="mb-2"><strong>Final Tier:</strong> {{ pip_state.final_tier }}</p>
+          <p class="mb-2"><strong>Bureau Access:</strong>
+            {% for bureau, allowed in pip_state.bureau_access.items %}
+              {{ bureau|upper }}: {% if allowed %}Unlocked{% else %}Locked{% endif %}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+          <p class="mb-2"><strong>RR (Repository Relay) Unlocked:</strong> {% if pip_state.rr_unlocked %}Yes{% else %}No{% endif %}</p>
+          <p class="mb-2"><strong>QPU Unlocked:</strong> {% if pip_state.qpu_unlocked %}Yes{% else %}No{% endif %}</p>
         </div>
       </div>
 

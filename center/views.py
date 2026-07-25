@@ -5,6 +5,10 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from peringram.models import Recycle3Profile
+from peringram.pip_state import PIPState, PIPWorkflowService
+from peringram.srl import SRLService
+
 from .forms import CorporationItemForm
 from .models import CorporationItem
 from polish.forms import PolishReminderPreferenceForm, PolishTaskForm
@@ -145,6 +149,16 @@ class IndexView(LoginRequiredMixin, TemplateView):
 class CellDetailView(LoginRequiredMixin, TemplateView):
     template_name = "center/cell_detail.html"
 
+    def get(self, request, *args, **kwargs):
+        slug = kwargs.get("slug", "").lower()
+        if slug in ("bos", "bol", "boe", "bop"):
+            recycle, _ = Recycle3Profile.objects.get_or_create(user=request.user)
+            territory = SRLService.assign_compartment(request.user)
+            pip_state = PIPState.from_recycle3(recycle, territory=territory)
+            if not PIPWorkflowService.can_access_bureau(slug, pip_state):
+                return redirect("center:insufficient_tier")
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         slug = self.kwargs.get("slug", "").lower()
@@ -153,6 +167,10 @@ class CellDetailView(LoginRequiredMixin, TemplateView):
             raise Http404("Center cell not found")
         context["cell"] = cell
         return context
+
+
+class InsufficientTierView(LoginRequiredMixin, TemplateView):
+    template_name = "center/insufficient_tier.html"
 
 
 class CorporationAdminView(LoginRequiredMixin, TemplateView):
