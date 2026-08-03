@@ -21,6 +21,116 @@ export async function fetchOverview() {
   return response.json();
 }
 
+export async function fetchPhase4Activation(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/platform/activation/?${query.toString()}` : "/platform/activation/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load phase-4 activation heartbeat");
+  }
+
+  return response.json();
+}
+
+export async function fetchPhase4Orchestration(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/platform/orchestration/?${query.toString()}` : "/platform/orchestration/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load phase-4 orchestration decision");
+  }
+
+  return response.json();
+}
+
+export async function fetchIspeActivation(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/ispe/activation/?${query.toString()}` : "/ispe/activation/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load ISPE activation heartbeat");
+  }
+
+  return response.json();
+}
+
+export async function promoteSeed(payload) {
+  const response = await fetch("/seeds/api/promote-seed/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || "Unable to promote Seed");
+  }
+
+  return data;
+}
+
+export async function activateProject(payload) {
+  const response = await fetch("/seeds/api/activate-project/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || "Unable to activate Project");
+  }
+
+  return data;
+}
+
 export async function postAction(label) {
   const response = await fetch("/homepage/api/actions/", {
     method: "POST",

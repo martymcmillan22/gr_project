@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GrassRoots Homepage Hub</title>
-    {% if debug %}
+    {% if use_vite_dev_server %}
       <script type="module">
         import RefreshRuntime from "{{ vite_dev_server }}/@react-refresh";
         RefreshRuntime.injectIntoGlobalHook(window);

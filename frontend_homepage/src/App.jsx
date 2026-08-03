@@ -32,6 +32,7 @@ import QuickActions from "./ui/QuickActions";
 import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
+import IspeIdeaScreen from "./presentation/IspeIdeaScreen";
 import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
 import { getDeterministicReleaseMetadata } from "./config/deterministicRelease";
 import { getTierDeploymentRules } from "./config/tierDeploymentRules";
@@ -231,6 +232,7 @@ export default function App() {
   const qpcPanelRef = useRef(null);
   const routeLoadingTimerRef = useRef("");
   const pathname = window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/+$/, "");
+  const isIspeRoute = pathname === "/ispe";
   const isDiagnosticsRoute = pathname === "/diagnostics";
   const isBaseTrueWheelRoute = pathname === "/base-true-wheel";
   const isStudioWorkspaceRoute = pathname === "/basetrue/studio";
@@ -2213,6 +2215,10 @@ export default function App() {
         <BaseTrueWheelDemo />
       </main>
     );
+  }
+
+  if (isIspeRoute) {
+    return <IspeIdeaScreen />;
   }
 
   if (baseTrueCompartmentRoute) {

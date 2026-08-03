@@ -108,6 +108,14 @@ class HomepageAppView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["vite_dev_server"] = os.environ.get("HOMEPAGE_VITE_DEV_SERVER", "http://127.0.0.1:5173")
+        vite_dev_server = os.environ.get("HOMEPAGE_VITE_DEV_SERVER", "http://127.0.0.1:5173")
+        use_vite_dev_server = os.environ.get("HOMEPAGE_USE_VITE_DEV_SERVER", "0").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+        context["vite_dev_server"] = vite_dev_server
         context["debug"] = settings.DEBUG
+        context["use_vite_dev_server"] = settings.DEBUG and use_vite_dev_server
         return context

@@ -731,6 +731,247 @@ body.dark-mode .srl-cell-color {
   margin: 0.2rem 0 0.35rem;
 }
 
+.ispe-route {
+  max-width: 1200px;
+}
+
+.ispe-hero-panel,
+.ispe-decision-panel,
+.ispe-form-panel,
+.ispe-preview-panel,
+.ispe-va-panel,
+.ispe-footer-panel,
+.ispe-alert-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.ispe-hero-panel::before,
+.ispe-form-panel::before,
+.ispe-preview-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(20, 111, 75, 0.07), transparent 45%);
+  pointer-events: none;
+}
+
+.ispe-hero-panel {
+  display: grid;
+  gap: 0.9rem;
+  border-color: rgba(20, 111, 75, 0.22);
+}
+
+.ispe-hero-panel h1,
+.ispe-decision-panel h2,
+.ispe-form-panel h2,
+.ispe-preview-panel h2,
+.ispe-va-panel h2,
+.ispe-footer-panel h2,
+.ispe-alert-panel h2 {
+  margin: 0;
+}
+
+.ispe-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.ispe-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.34rem 0.7rem;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .ispe-chip {
+  background: rgba(23, 36, 31, 0.82);
+}
+
+.ispe-chip-ready {
+  border-color: rgba(20, 111, 75, 0.3);
+  color: var(--accent);
+}
+
+.ispe-chip-go {
+  border-color: rgba(31, 155, 105, 0.3);
+  color: var(--accent-2);
+}
+
+.ispe-chip-warm,
+.ispe-chip-blocked {
+  border-color: rgba(244, 179, 119, 0.4);
+  color: #975a1d;
+}
+
+body.dark-mode .ispe-chip-warm,
+body.dark-mode .ispe-chip-blocked {
+  color: #f0c27f;
+}
+
+.ispe-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+}
+
+.ispe-stack,
+.ispe-side-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.ispe-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.ispe-phase-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.ispe-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.ispe-form-grid label,
+.ispe-textarea-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ispe-form-grid input,
+.ispe-form-grid textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.72rem 0.8rem;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  font: inherit;
+}
+
+.ispe-form-grid textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+body.dark-mode .ispe-form-grid input,
+body.dark-mode .ispe-form-grid textarea {
+  background: rgba(15, 23, 20, 0.92);
+}
+
+.ispe-field-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ispe-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.8rem;
+}
+
+.ispe-summary-grid > div,
+.ispe-mini-grid > div,
+.ispe-step-pill {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+body.dark-mode .ispe-summary-grid > div,
+body.dark-mode .ispe-mini-grid > div,
+body.dark-mode .ispe-step-pill {
+  background: rgba(18, 28, 23, 0.8);
+}
+
+.ispe-summary-grid ul,
+.ispe-bullet-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.22rem;
+  color: var(--muted);
+}
+
+.ispe-action-bar {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.ispe-action-status {
+  flex: 1 1 260px;
+}
+
+.ispe-preview-panel,
+.ispe-va-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ispe-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.ispe-mini-grid p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.ispe-quote {
+  margin: 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid rgba(20, 111, 75, 0.35);
+  color: var(--muted);
+}
+
+.ispe-footer-panel {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ispe-summary-grid--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ispe-step-pill {
+  display: grid;
+  gap: 0.1rem;
+  text-transform: capitalize;
+}
+
+@media (max-width: 980px) {
+  .ispe-layout,
+  .ispe-form-grid,
+  .ispe-summary-grid,
+  .ispe-summary-grid--compact,
+  .ispe-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ispe-section-heading {
+    flex-direction: column;
+  }
+}
+
 .basetrue-demo {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
