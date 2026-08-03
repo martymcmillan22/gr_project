@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from center.models import CorporationItem
 from polish.models import TaskAssignment
+from polish.models import TaskWorkflowDriftSnapshot
 from polish.task_manager.assignment_engine import build_assignment_sequence
 from polish.task_manager.constants import (
     ASSIGNMENT_DOUBLE_LINEAR,
@@ -11,6 +12,16 @@ from polish.task_manager.constants import (
     ASSIGNMENT_PERPETUAL,
     ASSIGNMENT_TWELVE_POINT,
     ITEM_STATUS_COMPLETED,
+)
+from polish.task_manager.constants import get_task_archetype_definition
+from polish.task_manager.routing import (
+    build_middle_layer_compartment_drift_detection,
+    build_polish_compartment_refinement,
+    build_va_compartment_narration,
+    bind_deliverable_to_compartments,
+    get_phase_policy,
+    resolve_assignment_type_for_deliverable,
+    task_manager_enabled_for_phase,
 )
 from polish.task_manager.workflow_tracking import (
     advance_item,
@@ -25,11 +36,32 @@ from peringram.models import Industry, IndustryGroup
 
 
 class TaskManagerSequenceTests(TestCase):
+    def test_canonical_archetype_definitions_have_expected_compartment_counts(self):
+        self.assertEqual(get_task_archetype_definition(ASSIGNMENT_LINEAR)["compartment_count"], 4)
+        self.assertEqual(get_task_archetype_definition(ASSIGNMENT_DOUBLE_LINEAR)["compartment_count"], 8)
+        self.assertEqual(get_task_archetype_definition(ASSIGNMENT_TWELVE_POINT)["compartment_count"], 12)
+        self.assertEqual(get_task_archetype_definition(ASSIGNMENT_PERPETUAL)["compartment_count"], 24)
+
     def test_sequence_lengths_match_assignment_definitions(self):
         self.assertEqual(len(build_assignment_sequence(ASSIGNMENT_LINEAR)), 4)
         self.assertEqual(len(build_assignment_sequence(ASSIGNMENT_DOUBLE_LINEAR)), 8)
         self.assertEqual(len(build_assignment_sequence(ASSIGNMENT_TWELVE_POINT)), 12)
         self.assertEqual(len(build_assignment_sequence(ASSIGNMENT_PERPETUAL)), 24)
+
+    def test_canonical_track_compartment_maps_have_expected_counts(self):
+        linear = get_task_archetype_definition(ASSIGNMENT_LINEAR)
+        self.assertEqual(len(linear["canonical_compartments"]["track_a"]), 4)
+
+        double_linear = get_task_archetype_definition(ASSIGNMENT_DOUBLE_LINEAR)
+        self.assertEqual(len(double_linear["canonical_compartments"]["track_a"]), 4)
+        self.assertEqual(len(double_linear["canonical_compartments"]["track_b"]), 4)
+
+        twelve_point = get_task_archetype_definition(ASSIGNMENT_TWELVE_POINT)
+        self.assertEqual(len(twelve_point["canonical_compartments"]["track_a"]), 12)
+
+        perpetual = get_task_archetype_definition(ASSIGNMENT_PERPETUAL)
+        self.assertEqual(len(perpetual["canonical_compartments"]["track_a"]), 12)
+        self.assertEqual(len(perpetual["canonical_compartments"]["track_b"]), 12)
 
     def test_perpetual_restarts_compartment_count_on_second_cycle(self):
         sequence = build_assignment_sequence(ASSIGNMENT_PERPETUAL)
@@ -37,6 +69,56 @@ class TaskManagerSequenceTests(TestCase):
         self.assertEqual(sequence[11].compartment, "G-L")
         self.assertEqual(sequence[12].compartment, "R")
         self.assertEqual(sequence[12].cycle, 2)
+
+    def test_deliverable_routing_maps_to_expected_assignment_types(self):
+        self.assertEqual(resolve_assignment_type_for_deliverable("Monthly issue"), ASSIGNMENT_LINEAR)
+        self.assertEqual(resolve_assignment_type_for_deliverable("Issue with sidebar"), ASSIGNMENT_DOUBLE_LINEAR)
+        self.assertEqual(resolve_assignment_type_for_deliverable("Annual summary"), ASSIGNMENT_TWELVE_POINT)
+        self.assertEqual(resolve_assignment_type_for_deliverable("Annual plan"), ASSIGNMENT_PERPETUAL)
+        self.assertEqual(resolve_assignment_type_for_deliverable("Editorial calendar"), ASSIGNMENT_PERPETUAL)
+        self.assertEqual(resolve_assignment_type_for_deliverable("Theme tracker"), ASSIGNMENT_PERPETUAL)
+
+    def test_phase_policy_gates_task_manager_to_project_phase(self):
+        self.assertFalse(task_manager_enabled_for_phase("idea"))
+        self.assertFalse(task_manager_enabled_for_phase("seed"))
+        self.assertTrue(task_manager_enabled_for_phase("project"))
+
+        seed_policy = get_phase_policy("seed")
+        self.assertEqual(seed_policy["va"]["mode"], "read_only")
+        self.assertFalse(seed_policy["task_manager"]["enabled"])
+
+    def test_compartment_binding_shape_is_deterministic(self):
+        bound = bind_deliverable_to_compartments(
+            assignment_type=ASSIGNMENT_DOUBLE_LINEAR,
+            deliverable_name="Issue with sidebar",
+        )
+        self.assertEqual(bound["progression_model"], "parallel")
+        self.assertEqual(bound["binding_count"], 8)
+        self.assertEqual(len(bound["compartment_bindings"]), 8)
+
+    def test_compartment_governance_builders_return_expected_shapes(self):
+        drift = build_middle_layer_compartment_drift_detection(
+            assignment_type=ASSIGNMENT_LINEAR,
+            deliverable_name="Monthly issue",
+            drift_risk=0.4,
+            alert_count=2,
+        )
+        va = build_va_compartment_narration(
+            assignment_type=ASSIGNMENT_LINEAR,
+            deliverable_name="Monthly issue",
+            drift_detection=drift,
+        )
+        polish = build_polish_compartment_refinement(
+            assignment_type=ASSIGNMENT_LINEAR,
+            deliverable_name="Monthly issue",
+        )
+
+        self.assertEqual(len(drift["compartments"]), 4)
+        self.assertEqual(len(va["compartments"]), 4)
+        self.assertEqual(len(polish["compartments"]), 4)
+        self.assertIn("next_step", va["compartments"][0])
+        self.assertIn("clarity", polish["compartments"][0]["refinement"])
+        self.assertIn("semantic", drift["compartments"][0]["drift"])
 
 
 class TaskManagerWorkflowTests(TestCase):
@@ -145,6 +227,28 @@ class TaskManagerWorkflowTests(TestCase):
         item.refresh_from_db()
         self.assertEqual(item.status, ITEM_STATUS_COMPLETED)
 
+    def test_drift_ledger_records_advance_skip_complete_resume_events(self):
+        assignment = create_assignment(
+            created_by=self.engineer,
+            assignment_type=ASSIGNMENT_LINEAR,
+            title="Ledger assignment",
+            assigned_to=self.engineer,
+        )
+        item = attach_item(assignment=assignment, workflow_object=self.idea)
+
+        advance_item(item=item, steps=1)
+        skip_item_to_step(item=item, step_index=2)
+        complete_item_early(item=item)
+        resume_item(item=item)
+
+        events = list(TaskWorkflowDriftSnapshot.objects.filter(assignment=assignment).order_by("created_at", "id"))
+        self.assertEqual(len(events), 4)
+        self.assertEqual(events[0].event_type, TaskWorkflowDriftSnapshot.EVENT_ADVANCE)
+        self.assertEqual(events[1].event_type, TaskWorkflowDriftSnapshot.EVENT_SKIP)
+        self.assertEqual(events[2].event_type, TaskWorkflowDriftSnapshot.EVENT_COMPLETE)
+        self.assertEqual(events[3].event_type, TaskWorkflowDriftSnapshot.EVENT_RESUME)
+        self.assertIn("slot_drift", events[0].drift_payload)
+
     def test_assignment_records_current_position(self):
         assignment = create_assignment(
             created_by=self.engineer,
@@ -154,4 +258,34 @@ class TaskManagerWorkflowTests(TestCase):
         )
         self.assertEqual(assignment.current_phase, "create")
         self.assertEqual(assignment.current_compartment, "R")
+        self.assertEqual(assignment.metadata["task_archetype"]["compartment_count"], 4)
+        self.assertEqual(assignment.metadata["task_archetype"]["tracks"], 1)
+        self.assertEqual(assignment.metadata["task_archetype"]["progression_model"], "sequential")
+        self.assertEqual(assignment.metadata["phase_policy"]["phase"], "project")
+        self.assertEqual(assignment.metadata["deliverable_routing"]["assignment_type"], ASSIGNMENT_LINEAR)
+        self.assertIn("compartment_governance", assignment.metadata)
+        self.assertIn("va_narration", assignment.metadata["compartment_governance"])
+        self.assertIn("polish_refinement", assignment.metadata["compartment_governance"])
+        self.assertIn("middle_layer_drift_detection", assignment.metadata["compartment_governance"])
         self.assertEqual(TaskAssignment.objects.count(), 1)
+
+    def test_assignment_creation_blocked_outside_project_phase(self):
+        with self.assertRaisesMessage(Exception, "Task Manager assignments are only allowed in the Project phase"):
+            create_assignment(
+                created_by=self.engineer,
+                assignment_type=ASSIGNMENT_LINEAR,
+                title="Blocked in seed",
+                assigned_to=self.engineer,
+                operating_phase="seed",
+            )
+
+    def test_assignment_creation_auto_routes_from_deliverable_name(self):
+        assignment = create_assignment(
+            created_by=self.engineer,
+            assignment_type="auto",
+            title="Auto routed",
+            assigned_to=self.engineer,
+            deliverable_name="Issue with sidebar",
+        )
+        self.assertEqual(assignment.assignment_type, ASSIGNMENT_DOUBLE_LINEAR)
+        self.assertEqual(assignment.metadata["deliverable_routing"]["progression_model"], "parallel")

@@ -4,10 +4,7 @@ from dataclasses import dataclass
 
 from polish.task_manager.btif_adapter import resolve_phase_compartments, resolve_supported_phases
 from polish.task_manager.constants import (
-    ASSIGNMENT_DOUBLE_LINEAR,
-    ASSIGNMENT_LINEAR,
-    ASSIGNMENT_PERPETUAL,
-    ASSIGNMENT_TWELVE_POINT,
+    get_task_archetype_definition,
 )
 
 
@@ -21,19 +18,14 @@ class AssignmentStep:
 
 def _active_phases_for_assignment(assignment_type: str) -> tuple[str, ...]:
     phases = resolve_supported_phases()
-    if assignment_type == ASSIGNMENT_LINEAR:
-        return (phases[0],)
-    if assignment_type == ASSIGNMENT_DOUBLE_LINEAR:
-        return phases[:2]
-    if assignment_type in {ASSIGNMENT_TWELVE_POINT, ASSIGNMENT_PERPETUAL}:
-        return phases
-    raise ValueError(f"Unsupported assignment type: {assignment_type}")
+    definition = get_task_archetype_definition(assignment_type)
+    allowed = set(phases)
+    return tuple(phase for phase in definition.get("phase_scope", ()) if phase in allowed)
 
 
 def _cycles_for_assignment(assignment_type: str) -> int:
-    if assignment_type == ASSIGNMENT_PERPETUAL:
-        return 2
-    return 1
+    definition = get_task_archetype_definition(assignment_type)
+    return int(definition.get("cycles", 1))
 
 
 def build_assignment_sequence(assignment_type: str) -> list[AssignmentStep]:

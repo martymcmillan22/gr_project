@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -24,6 +25,7 @@ from .models import (
 	TaskAttachmentAuditLog,
 	TaskAttachmentQuarantine,
 	TaskManagerAnalyticsExportRun,
+	TaskWorkflowDriftSnapshot,
 	TaskWorkflowItem,
 )
 from .admin import TaskAttachmentQuarantineAdmin
@@ -131,11 +133,21 @@ class PolishTaskManagerIntegrationTests(TestCase):
 
 	def test_dedicated_task_manager_admin_page_loads(self):
 		self.client.login(username="engineer@example.com", password="testpass123")
+		TaskAssignment.objects.create(
+			title="Timeline Control Assignment",
+			assignment_type="linear",
+			created_by=self.user,
+			assigned_to=self.user,
+		)
 		response = self.client.get(reverse("task-manager-admin:index"))
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Task Manager Admin")
 		self.assertContains(response, "Task Manager Metrics")
 		self.assertContains(response, "Total Assignments")
+		self.assertContains(response, "Governance Timeline")
+		self.assertContains(response, "Event Type")
+		self.assertContains(response, "Grouped by item for replay and audit readability")
+		self.assertContains(response, "Risk Rollup")
 
 	def test_task_manager_admin_metrics_tab_query_is_honored(self):
 		self.client.login(username="engineer@example.com", password="testpass123")
@@ -170,6 +182,99 @@ class PolishTaskManagerIntegrationTests(TestCase):
 		payload = response.json()
 		self.assertIn("events", payload)
 		self.assertIsInstance(payload["events"], list)
+
+	def test_task_manager_assignment_timeline_api_returns_replay_events(self):
+		self.client.login(username="engineer@example.com", password="testpass123")
+		assignment = TaskAssignment.objects.create(
+			title="Timeline Assignment",
+			assignment_type="linear",
+			created_by=self.user,
+			assigned_to=self.user,
+		)
+		item = TaskWorkflowItem.objects.create(
+			assignment=assignment,
+			content_type=ContentType.objects.get_for_model(Idea),
+			object_id=self.idea.id,
+		)
+		TaskWorkflowDriftSnapshot.objects.create(
+			assignment=assignment,
+			item=item,
+			slot_key="create:R:s1",
+			event_type="advance",
+			from_step_index=0,
+			to_step_index=1,
+			from_phase="create",
+			to_phase="create",
+			from_compartment="R",
+			to_compartment="B",
+			status_before="received",
+			status_after="working",
+			drift_payload={"slot_drift": {"status": "stable"}},
+		)
+
+		response = self.client.get(reverse("task-manager-assignment-timeline-api", args=[assignment.id]))
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["assignment"]["id"], assignment.id)
+		self.assertEqual(payload["event_count"], 1)
+		self.assertEqual(payload["events"][0]["event_type"], "advance")
+		self.assertIn("drift", payload["events"][0])
+		self.assertIn(str(item.id), payload["item_trends"])
+		self.assertIn("status", payload["item_trends"][str(item.id)])
+
+	def test_task_manager_assignment_timeline_api_filters(self):
+		self.client.login(username="engineer@example.com", password="testpass123")
+		assignment = TaskAssignment.objects.create(
+			title="Timeline Filter Assignment",
+			assignment_type="linear",
+			created_by=self.user,
+			assigned_to=self.user,
+		)
+		item = TaskWorkflowItem.objects.create(
+			assignment=assignment,
+			content_type=ContentType.objects.get_for_model(Idea),
+			object_id=self.idea.id,
+		)
+		TaskWorkflowDriftSnapshot.objects.create(
+			assignment=assignment,
+			item=item,
+			slot_key="create:R:s1",
+			event_type="advance",
+			from_step_index=0,
+			to_step_index=1,
+			from_phase="create",
+			to_phase="create",
+			from_compartment="R",
+			to_compartment="B",
+			status_before="received",
+			status_after="working",
+			drift_payload={"slot_drift": {"status": "stable"}},
+		)
+		TaskWorkflowDriftSnapshot.objects.create(
+			assignment=assignment,
+			item=item,
+			slot_key="post:T:s5",
+			event_type="skip",
+			from_step_index=1,
+			to_step_index=4,
+			from_phase="create",
+			to_phase="post",
+			from_compartment="B",
+			to_compartment="T",
+			status_before="working",
+			status_after="working",
+			drift_payload={"slot_drift": {"status": "watch"}},
+		)
+
+		response = self.client.get(
+			reverse("task-manager-assignment-timeline-api", args=[assignment.id]),
+			{"event_type": "skip", "slot_prefix": "post", "limit": "10"},
+		)
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["event_count"], 1)
+		self.assertEqual(payload["events"][0]["event_type"], "skip")
+		self.assertTrue(payload["events"][0]["slot_key"].startswith("post"))
 
 	def test_staff_can_download_operational_analytics_csv_and_pdf(self):
 		self.client.force_login(self.user)

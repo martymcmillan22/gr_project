@@ -1,7 +1,88 @@
+from django.db import models
+
 from project_middle_layer.models import ProjectEvolutionSnapshot, ProjectNode, SemanticAlert, SemanticLineageRecord
 from project_middle_layer.pipelines import build_project_creation_payload
 from project_middle_layer.semantic import build_semantic_alerts
 from project_middle_layer.webhooks import dispatch_semantic_webhook_event
+from polish.task_manager.constants import ASSIGNMENT_TWELVE_POINT
+from polish.task_manager.routing import build_middle_layer_compartment_drift_detection
+from platform_core.models import MLASClassificationRecord
+from platform_reference.models import PlatformReferenceGICSReferenceSchema
+from platform_reference.models import PlatformReferenceNAICSReferenceSchema
+from platform_reference.services.reference_sync import get_gics_source_status
+
+
+def get_project_middle_layer_activation_payload() -> dict[str, object]:
+    gics_total = PlatformReferenceGICSReferenceSchema.objects.count()
+    naics_total = PlatformReferenceNAICSReferenceSchema.objects.count()
+    gics_source_status = get_gics_source_status()
+
+    classified_total = MLASClassificationRecord.objects.count()
+    classified_with_gics = MLASClassificationRecord.objects.exclude(gics_sub_industry_code="").count()
+    classified_with_naics = MLASClassificationRecord.objects.exclude(naics_code_6="").count()
+
+    project_total = ProjectNode.objects.count()
+    snapshot_total = ProjectEvolutionSnapshot.objects.count()
+    lineage_total = SemanticLineageRecord.objects.count()
+    alert_total = SemanticAlert.objects.count()
+
+    reference_ready = gics_total > 0 and naics_total > 0 and gics_source_status != "missing"
+    drift_signal_ready = snapshot_total > 0 and lineage_total > 0
+    classification_ready = classified_total == 0 or (classified_with_gics > 0 and classified_with_naics > 0)
+
+    capability_flags = {
+        "canonical_reference_truth": reference_ready,
+        "classification_truth_binding": classification_ready,
+        "drift_signal_readiness": drift_signal_ready,
+        "compile_export_chain": project_total > 0 or snapshot_total > 0,
+        "analytics_alert_surface": alert_total > 0 or snapshot_total > 0,
+    }
+
+    recent_snapshots = list(ProjectEvolutionSnapshot.objects.order_by("-created_at", "-id")[:12])
+    avg_drift_risk = 0.0
+    if recent_snapshots:
+        avg_drift_risk = sum(float(item.drift_risk or 0.0) for item in recent_snapshots) / len(recent_snapshots)
+
+    severity_weights = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+    for row in SemanticAlert.objects.values("severity").annotate(total=models.Count("id")):
+        severity = str(row.get("severity", "")).lower()
+        if severity in severity_weights:
+            severity_weights[severity] = int(row.get("total", 0) or 0)
+
+    compartment_drift_detection = build_middle_layer_compartment_drift_detection(
+        assignment_type=ASSIGNMENT_TWELVE_POINT,
+        deliverable_name="project middle layer governance",
+        drift_risk=avg_drift_risk,
+        alert_count=alert_total,
+        severity_weights=severity_weights,
+    )
+    capability_flags["compartment_drift_governance"] = bool(compartment_drift_detection.get("compartments"))
+
+    return {
+        "app": "project_middle_layer",
+        "boundary": "project-middle-layer",
+        "status": "active",
+        "reference_truth": {
+            "gics_source_status": gics_source_status,
+            "gics_total": gics_total,
+            "naics_total": naics_total,
+        },
+        "classification_truth": {
+            "total": classified_total,
+            "gics_mapped": classified_with_gics,
+            "naics_mapped": classified_with_naics,
+        },
+        "semantic_state": {
+            "projects": project_total,
+            "snapshots": snapshot_total,
+            "lineage_records": lineage_total,
+            "alerts": alert_total,
+            "drift_baseline": round(avg_drift_risk, 3),
+        },
+        "capability_flags": capability_flags,
+        "compartment_drift_detection": compartment_drift_detection,
+        "deterministic_ready": all(capability_flags.values()),
+    }
 
 
 def _record_project_evolution_snapshot(*, project: ProjectNode, compiled: dict[str, object]) -> ProjectEvolutionSnapshot:

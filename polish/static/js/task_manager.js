@@ -14,9 +14,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebarLinks = Array.from(root.querySelectorAll(".tm-sidebar-content [data-tab]"));
     const quickActionTabs = Array.from(root.querySelectorAll(".tm-quick-action[data-tab]"));
     const sectionAnchors = Array.from(root.querySelectorAll(".tm-section-anchor[data-tab]"));
-    const order = ["create", "attach", "assignment", "item", "metrics", "ops-metrics", "quarantine", "activity"];
+    const order = ["create", "attach", "assignment", "item", "metrics", "ops-metrics", "quarantine", "activity", "timeline"];
     const metricsUrl = root.dataset.metricsUrl;
     const activityUrl = root.dataset.activityUrl;
+    const timelineUrlTemplate = root.dataset.timelineUrlTemplate;
+    let timelineTrendFilter = "all";
+    let timelineLastPayload = null;
     const themeStorageKey = "bt.dashboard.theme";
     const themeToggles = Array.from(new Set([
         root.querySelector("#tm-theme-toggle"),
@@ -549,6 +552,225 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+    function timelineUrlForAssignment(assignmentId) {
+        if (!timelineUrlTemplate || !assignmentId) {
+            return null;
+        }
+        const baseUrl = timelineUrlTemplate.replace("/0/timeline/", "/" + assignmentId + "/timeline/");
+
+        const eventType = document.getElementById("tm-timeline-filter-event-type");
+        const itemId = document.getElementById("tm-timeline-filter-item-id");
+        const slotPrefix = document.getElementById("tm-timeline-filter-slot-prefix");
+        const sinceHours = document.getElementById("tm-timeline-filter-since-hours");
+        const limit = document.getElementById("tm-timeline-filter-limit");
+
+        const query = new URLSearchParams();
+        if (eventType && eventType.value) {
+            query.set("event_type", eventType.value.trim());
+        }
+        if (itemId && itemId.value) {
+            query.set("item_id", itemId.value.trim());
+        }
+        if (slotPrefix && slotPrefix.value) {
+            query.set("slot_prefix", slotPrefix.value.trim());
+        }
+        if (sinceHours && sinceHours.value) {
+            query.set("since_hours", sinceHours.value.trim());
+        }
+        if (limit && limit.value) {
+            query.set("limit", limit.value.trim());
+        }
+
+        const queryString = query.toString();
+        return queryString ? (baseUrl + "?" + queryString) : baseUrl;
+    }
+
+    function renderTimelineEvents(payload) {
+        timelineLastPayload = payload || null;
+
+        const summary = document.getElementById("tm-timeline-summary");
+        const container = document.getElementById("tm-timeline-events");
+        if (!container) {
+            return;
+        }
+
+        const events = payload && Array.isArray(payload.events) ? payload.events : [];
+        const itemTrends = payload && payload.item_trends ? payload.item_trends : {};
+        container.innerHTML = "";
+
+        const trendValues = Object.values(itemTrends);
+        const stableCount = trendValues.filter(function (trend) { return trend && trend.status === "stable"; }).length;
+        const watchCount = trendValues.filter(function (trend) { return trend && trend.status === "watch"; }).length;
+        const riskCount = trendValues.filter(function (trend) { return trend && trend.status === "at_risk"; }).length;
+        const totalCount = trendValues.length;
+
+        const stableCounter = document.getElementById("tm-risk-stable-count");
+        const watchCounter = document.getElementById("tm-risk-watch-count");
+        const riskCounter = document.getElementById("tm-risk-at-risk-count");
+        const totalCounter = document.getElementById("tm-risk-total-count");
+        if (stableCounter) {
+            stableCounter.innerText = String(stableCount);
+        }
+        if (watchCounter) {
+            watchCounter.innerText = String(watchCount);
+        }
+        if (riskCounter) {
+            riskCounter.innerText = String(riskCount);
+        }
+        if (totalCounter) {
+            totalCounter.innerText = String(totalCount);
+        }
+
+        if (summary && payload && payload.assignment) {
+            summary.innerText =
+                "Assignment #" + payload.assignment.id +
+                " currently at " + payload.assignment.current_phase.toUpperCase() +
+                ":" + payload.assignment.current_compartment +
+                " (" + events.length + " events)" +
+                (timelineTrendFilter !== "all" ? " | filter: " + timelineTrendFilter : "");
+        }
+
+        if (!events.length) {
+            const empty = document.createElement("p");
+            empty.className = "is-size-7";
+            empty.innerText = "No transition events recorded yet for this assignment.";
+            container.appendChild(empty);
+            return;
+        }
+
+        const groupedByItem = {};
+        events.forEach(function (event) {
+            const key = String(event.item_id || "unknown");
+            if (!groupedByItem[key]) {
+                groupedByItem[key] = [];
+            }
+            groupedByItem[key].push(event);
+        });
+
+        Object.keys(groupedByItem).sort(function (a, b) {
+            return Number(a) - Number(b);
+        }).forEach(function (itemKey) {
+            const itemEvents = groupedByItem[itemKey];
+            const details = document.createElement("details");
+            details.className = "tm-timeline-group";
+            details.open = true;
+
+            const trend = itemTrends[itemKey] || {};
+            const status = trend.status || "stable";
+            if (timelineTrendFilter !== "all" && status !== timelineTrendFilter) {
+                return;
+            }
+            const direction = trend.direction || "flat";
+            const badgeClass = status === "at_risk" ? "at-risk" : status;
+
+            const blendedValues = itemEvents.map(function (event) {
+                const drift = event.drift && event.drift.slot_drift && event.drift.slot_drift.drift
+                    ? event.drift.slot_drift.drift
+                    : null;
+                return drift && typeof drift.blended === "number" ? drift.blended : 0;
+            });
+            const avgBlended = blendedValues.length
+                ? (blendedValues.reduce(function (acc, value) { return acc + value; }, 0) / blendedValues.length)
+                : 0;
+
+            const sparklineHtml =
+                "<span class='tm-sparkline'>" +
+                blendedValues.slice(-12).map(function (value) {
+                    const normalized = Math.max(2, Math.round(Math.min(1, Math.max(0, value)) * 16));
+                    return "<span style='height:" + normalized + "px'></span>";
+                }).join("") +
+                "</span>";
+
+            const summary = document.createElement("summary");
+            summary.innerHTML =
+                "Item #" + itemKey +
+                " - " + itemEvents.length + " events" +
+                " - avg blended drift " + avgBlended.toFixed(3) +
+                "<span class='tm-trend-badge " + badgeClass + "'>" + status.replace("_", " ") + " " + direction + "</span>" +
+                sparklineHtml;
+            details.appendChild(summary);
+
+            const meta = document.createElement("div");
+            meta.className = "tm-timeline-meta";
+            meta.innerText =
+                "Expanded timeline for replay and audit. " +
+                "Trend delta=" + (typeof trend.trend_delta === "number" ? trend.trend_delta : 0) +
+                " sample=" + (trend.sample_size || blendedValues.length);
+            details.appendChild(meta);
+
+            itemEvents.forEach(function (event) {
+                const fromState = event.from ? (event.from.phase + ":" + event.from.compartment + " step " + event.from.step_index) : "-";
+                const toState = event.to ? (event.to.phase + ":" + event.to.compartment + " step " + event.to.step_index) : "-";
+                const drift = event.drift && event.drift.slot_drift && event.drift.slot_drift.drift
+                    ? event.drift.slot_drift.drift
+                    : null;
+
+                const semantic = drift && typeof drift.semantic === "number" ? drift.semantic : 0;
+                const narrative = drift && typeof drift.narrative === "number" ? drift.narrative : 0;
+                const identity = drift && typeof drift.identity === "number" ? drift.identity : 0;
+                const deliverable = drift && typeof drift.deliverable === "number" ? drift.deliverable : 0;
+                const blended = drift && typeof drift.blended === "number" ? drift.blended : 0;
+
+                const card = document.createElement("div");
+                card.className = "box mb-2";
+                card.innerHTML =
+                    "<p><strong>" + event.timestamp + "</strong> - " + event.event_type + "</p>" +
+                    "<p class='is-size-7'>Slot " + event.slot_key + "</p>" +
+                    "<p class='is-size-7'>" + fromState + " -> " + toState + "</p>" +
+                    "<p class='is-size-7'>Drift semantic=" + semantic +
+                    " narrative=" + narrative +
+                    " identity=" + identity +
+                    " deliverable=" + deliverable +
+                    " blended=" + blended + "</p>";
+                details.appendChild(card);
+            });
+
+            container.appendChild(details);
+        });
+
+        if (!container.children.length) {
+            const emptyFiltered = document.createElement("p");
+            emptyFiltered.className = "is-size-7";
+            emptyFiltered.innerText = "No items match the selected risk filter.";
+            container.appendChild(emptyFiltered);
+        }
+    }
+
+    function setTrendFilter(nextFilter) {
+        timelineTrendFilter = nextFilter || "all";
+        const buttons = root.querySelectorAll("[data-trend-filter]");
+        buttons.forEach(function (button) {
+            if (button.getAttribute("data-trend-filter") === timelineTrendFilter) {
+                button.classList.add("is-active");
+            } else {
+                button.classList.remove("is-active");
+            }
+        });
+        if (timelineLastPayload) {
+            renderTimelineEvents(timelineLastPayload);
+        }
+    }
+
+    function refreshTimeline() {
+        const selector = document.getElementById("tm-timeline-assignment-select");
+        if (!selector) {
+            return;
+        }
+        const assignmentId = selector.value;
+        const url = timelineUrlForAssignment(assignmentId);
+        if (!url) {
+            return;
+        }
+
+        fetch(url)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                renderTimelineEvents(data);
+            });
+    }
+
     function toggleSidebar() {
         const container = root.querySelector("#tm-sidebar-content");
         const toggleButton = root.querySelector(".tm-sidebar-toggle");
@@ -595,6 +817,56 @@ document.addEventListener("DOMContentLoaded", function () {
         if (id && id !== activeTab) {
             activateTab(id, { scroll: true, updateHash: false });
         }
+    });
+
+    const timelineSelector = document.getElementById("tm-timeline-assignment-select");
+    if (timelineSelector) {
+        timelineSelector.addEventListener("change", function () {
+            refreshTimeline();
+        });
+    }
+
+    const timelineApply = document.getElementById("tm-timeline-apply-filters");
+    if (timelineApply) {
+        timelineApply.addEventListener("click", function () {
+            refreshTimeline();
+        });
+    }
+
+    const timelineClear = document.getElementById("tm-timeline-clear-filters");
+    if (timelineClear) {
+        timelineClear.addEventListener("click", function () {
+            const eventType = document.getElementById("tm-timeline-filter-event-type");
+            const itemId = document.getElementById("tm-timeline-filter-item-id");
+            const slotPrefix = document.getElementById("tm-timeline-filter-slot-prefix");
+            const sinceHours = document.getElementById("tm-timeline-filter-since-hours");
+            const limit = document.getElementById("tm-timeline-filter-limit");
+
+            if (eventType) {
+                eventType.value = "";
+            }
+            if (itemId) {
+                itemId.value = "";
+            }
+            if (slotPrefix) {
+                slotPrefix.value = "";
+            }
+            if (sinceHours) {
+                sinceHours.value = "";
+            }
+            if (limit) {
+                limit.value = "100";
+            }
+            setTrendFilter("all");
+            refreshTimeline();
+        });
+    }
+
+    const trendButtons = root.querySelectorAll("[data-trend-filter]");
+    trendButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            setTrendFilter(button.getAttribute("data-trend-filter") || "all");
+        });
     });
 
     const sidebarToggle = root.querySelector(".tm-sidebar-toggle");
@@ -661,10 +933,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     syncQuadrantRing();
+    setTrendFilter("all");
 
     activateTab(activeTab, { scroll: false });
     refreshMetrics();
     refreshActivity();
+    refreshTimeline();
     setInterval(refreshMetrics, 10000);
     setInterval(refreshActivity, 10000);
+    setInterval(refreshTimeline, 10000);
 });

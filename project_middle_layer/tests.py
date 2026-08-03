@@ -38,6 +38,8 @@ from project_middle_layer.models import (
     SemanticIntegration,
 )
 from project_middle_layer.pipelines import build_project_creation_payload
+from platform_reference.models import PlatformReferenceGICSReferenceSchema
+from platform_reference.models import PlatformReferenceNAICSReferenceSchema
 from users.models import User
 
 
@@ -101,6 +103,12 @@ class ProjectMiddleLayerRouteTests(SimpleTestCase):
         self.assertEqual(
             reverse("project_middle_layer:compile"),
             "/project-middle-layer/compile/",
+        )
+
+    def test_activation_page_route_resolves(self):
+        self.assertEqual(
+            reverse("project_middle_layer:activation"),
+            "/project-middle-layer/activation/",
         )
 
     def test_lineage_route_resolves(self):
@@ -432,6 +440,91 @@ class ProjectMiddleLayerRouteTests(SimpleTestCase):
             reverse("project_middle_layer:project-middle-layer-cross-sync-run"),
             "/project-middle-layer/api/cross-sync/run/",
         )
+
+
+class ProjectMiddleLayerActivationTests(TestCase):
+    def _seed_reference_truth(self):
+        PlatformReferenceGICSReferenceSchema.objects.create(
+            code="15101010",
+            name="Internet Services and Infrastructure",
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
+            source_version="GICS-LICENSED-2026",
+        )
+        PlatformReferenceNAICSReferenceSchema.objects.create(
+            code="518210",
+            title="Data Processing, Hosting, and Related Services",
+            sector_code="51",
+            source_version="NAICS-2022",
+        )
+
+    def _seed_semantic_state(self):
+        node = ProjectNode.objects.create(
+            slug="activation-node",
+            name="Activation Node",
+            semantic_intent="ExpandAndIntegrate",
+            mlas_tier="Semantic Utility",
+            btif_classification="ExpansionFlow",
+        )
+        snapshot = ProjectEvolutionSnapshot.objects.create(
+            project=node,
+            identity_payload={"identity": {"identity_uri": "cpndc://activation-node/activation-node"}},
+            drift_forecast={"risk": {"blended_semantic_drift_risk": 0.21}},
+            branch_resolution={"selected_branch": "stabilization_branch"},
+            specialized_path={"compile_status": "ready"},
+            semantic_tags=["project", "semantic"],
+            identity_uri="cpndc://activation-node/activation-node",
+            branch_name="stabilization_branch",
+            drift_risk=0.21,
+            confidence_score=90,
+            confidence_label="Stable",
+            schema_issue_count=0,
+            recommendations=["Keep cadence stable"],
+        )
+        SemanticLineageRecord.objects.create(
+            project=node,
+            lineage_tree={"node": "activation-node"},
+            semantic_clusters=["foundation"],
+            recommendations=["Monitor drift monthly"],
+        )
+        SemanticAlert.objects.create(
+            project=node,
+            source_snapshot=snapshot,
+            alert_type="low_confidence",
+            severity="low",
+            message="Confidence stable",
+            metadata={"score": 90},
+        )
+
+    def test_activation_endpoint_reports_expected_keys(self):
+        response = self.client.get("/project-middle-layer/activation/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        self.assertIn("reference_truth", payload)
+        self.assertIn("classification_truth", payload)
+        self.assertIn("semantic_state", payload)
+        self.assertIn("capability_flags", payload)
+        self.assertIn("compartment_drift_detection", payload)
+        self.assertIn("deterministic_ready", payload)
+
+    def test_activation_endpoint_can_become_deterministic_ready(self):
+        self._seed_reference_truth()
+        self._seed_semantic_state()
+
+        response = self.client.get("/project-middle-layer/activation/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        self.assertEqual(payload["reference_truth"]["gics_source_status"], "licensed")
+        self.assertTrue(payload["capability_flags"]["canonical_reference_truth"])
+        self.assertTrue(payload["capability_flags"]["classification_truth_binding"])
+        self.assertTrue(payload["capability_flags"]["drift_signal_readiness"])
+        self.assertTrue(payload["capability_flags"]["compile_export_chain"])
+        self.assertTrue(payload["capability_flags"]["analytics_alert_surface"])
+        self.assertTrue(payload["capability_flags"]["compartment_drift_governance"])
+        self.assertIn("drift_baseline", payload["semantic_state"])
+        self.assertTrue(len(payload["compartment_drift_detection"]["compartments"]) > 0)
+        self.assertTrue(payload["deterministic_ready"])
 
 
 class ProjectMiddleLayerWizardAPITests(APITestCase):

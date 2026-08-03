@@ -58,6 +58,111 @@
         max-height: min(62vh, 620px);
         overflow-y: auto;
     }
+
+    .tm-timeline-group {
+        border: 1px solid #d4deeb;
+        border-radius: 8px;
+        background: #ffffff;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    .tm-timeline-group summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #213548;
+    }
+
+    .tm-sparkline {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 18px;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
+    .tm-sparkline span {
+        width: 5px;
+        border-radius: 2px;
+        background: #2f6fcd;
+        opacity: 0.85;
+    }
+
+    .tm-timeline-meta {
+        font-size: 0.78rem;
+        color: #4c5f73;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+
+    .tm-trend-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        border: 1px solid transparent;
+    }
+
+    .tm-trend-badge.stable {
+        color: #0f5132;
+        background: #d1e7dd;
+        border-color: #a3cfbb;
+    }
+
+    .tm-trend-badge.watch {
+        color: #664d03;
+        background: #fff3cd;
+        border-color: #ffecb5;
+    }
+
+    .tm-trend-badge.at-risk {
+        color: #842029;
+        background: #f8d7da;
+        border-color: #f1aeb5;
+    }
+
+    .tm-risk-rollup {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .tm-risk-cell {
+        border: 1px solid #d6dfeb;
+        border-radius: 8px;
+        background: #f8fbff;
+        padding: 8px 10px;
+        font-size: 0.78rem;
+    }
+
+    .tm-risk-cell strong {
+        display: block;
+        font-size: 1rem;
+        margin-top: 2px;
+    }
+
+    .tm-risk-filter-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .tm-risk-filter-row .is-active {
+        box-shadow: inset 0 0 0 1px #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+        .tm-risk-rollup {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
 </style>
 
 <details class="bt-rail bt-rail-collapsed tm-rail" aria-label="Task Manager shortcuts">
@@ -70,6 +175,7 @@
         <a href="{% url 'task-manager-admin:index' %}?active_tab=ops-metrics">Ops</a>
         <a href="{% url 'task-manager-admin:index' %}?active_tab=quarantine">Quarantine</a>
         <a href="{% url 'task-manager-admin:index' %}?active_tab=activity">Activity</a>
+        <a href="{% url 'task-manager-admin:index' %}?active_tab=timeline">Timeline</a>
         <a href="{% url 'admin:basetrue-insights' %}">Insights</a>
         <a href="{% url 'admin:dashboard' %}">Platform</a>
         <a href="{% url 'admin:executive-dashboard' %}">Executive</a>
@@ -83,6 +189,7 @@
     data-active-tab="{{ active_tab|default:'create'|escape }}"
     data-metrics-url="{% url 'task-manager-metrics-api' %}"
     data-activity-url="{% url 'task-manager-activity-api' %}"
+    data-timeline-url-template="{% url 'task-manager-assignment-timeline-api' 0 %}"
 >
 
 <div class="tm-sidebar">
@@ -96,6 +203,7 @@
         <a data-tab="ops-metrics">Operational Analytics</a>
         <a data-tab="quarantine">Quarantine</a>
         <a data-tab="activity">Recent Activity</a>
+        <a data-tab="timeline">Governance Timeline</a>
     </div>
 </div>
 
@@ -127,6 +235,7 @@
     <button class="bt-action bt-q-red tm-quick-action" type="button" data-tab="ops-metrics">Operational Analytics</button>
     <button class="bt-action bt-q-yellow tm-quick-action" type="button" data-tab="quarantine">Quarantine</button>
     <button class="bt-action bt-q-green tm-quick-action" type="button" data-tab="activity">Recent Activity</button>
+    <button class="bt-action bt-q-blue tm-quick-action" type="button" data-tab="timeline">Governance Timeline</button>
 </div>
 
 <div class="tm-section-anchors" aria-label="Task Manager section anchors">
@@ -137,6 +246,7 @@
     <a class="tm-section-anchor" href="#ops-metrics" data-tab="ops-metrics">#Ops</a>
     <a class="tm-section-anchor" href="#quarantine" data-tab="quarantine">#Quarantine</a>
     <a class="tm-section-anchor" href="#activity" data-tab="activity">#Activity</a>
+    <a class="tm-section-anchor" href="#timeline" data-tab="timeline">#Timeline</a>
     <a class="tm-section-anchor" href="#metrics" data-tab="metrics">#Metrics</a>
 </div>
 
@@ -674,6 +784,78 @@
 <div id="activity" class="tm-tab-content" style="display:none;">
     <h2 class="title is-5">Recent Activity</h2>
     <ul id="tm-activity-feed" class="tm-activity-list"></ul>
+</div>
+
+<div id="timeline" class="tm-tab-content" style="display:none;">
+    <h2 class="title is-5">Governance Timeline</h2>
+    {% if assignment_cards %}
+    <div class="field">
+        <label class="label">Assignment</label>
+        <div class="control">
+            <div class="select is-fullwidth">
+                <select id="tm-timeline-assignment-select">
+                    {% for card in assignment_cards %}
+                    <option value="{{ card.assignment.id }}" {% if card.assignment.id == timeline_default_assignment_id %}selected{% endif %}>
+                        #{{ card.assignment.id }} {{ card.assignment.title }} ({{ card.assignment.assignment_type }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="columns is-multiline">
+        <div class="column is-3">
+            <label class="label is-size-7">Event Type</label>
+            <div class="select is-fullwidth is-small">
+                <select id="tm-timeline-filter-event-type">
+                    <option value="">All</option>
+                    <option value="advance">advance</option>
+                    <option value="skip">skip</option>
+                    <option value="complete">complete</option>
+                    <option value="resume">resume</option>
+                </select>
+            </div>
+        </div>
+        <div class="column is-3">
+            <label class="label is-size-7">Item ID</label>
+            <input id="tm-timeline-filter-item-id" class="input is-small" type="number" min="1" placeholder="Any item">
+        </div>
+        <div class="column is-3">
+            <label class="label is-size-7">Slot Prefix</label>
+            <input id="tm-timeline-filter-slot-prefix" class="input is-small" type="text" placeholder="e.g. create:r">
+        </div>
+        <div class="column is-3">
+            <label class="label is-size-7">Since (Hours)</label>
+            <input id="tm-timeline-filter-since-hours" class="input is-small" type="number" min="1" placeholder="Any time window">
+        </div>
+        <div class="column is-3">
+            <label class="label is-size-7">Limit</label>
+            <input id="tm-timeline-filter-limit" class="input is-small" type="number" min="1" max="500" value="100">
+        </div>
+        <div class="column is-9 is-flex is-align-items-flex-end">
+            <button id="tm-timeline-apply-filters" class="button is-small is-link is-light mr-2" type="button">Apply Filters</button>
+            <button id="tm-timeline-clear-filters" class="button is-small is-light" type="button">Clear</button>
+        </div>
+    </div>
+    <p class="is-size-7 mb-2">Grouped by item for replay and audit readability.</p>
+    <h3 class="title is-6 mb-2">Risk Rollup</h3>
+    <div class="tm-risk-rollup" id="tm-risk-rollup">
+        <div class="tm-risk-cell">Stable<strong id="tm-risk-stable-count">0</strong></div>
+        <div class="tm-risk-cell">Watch<strong id="tm-risk-watch-count">0</strong></div>
+        <div class="tm-risk-cell">At Risk<strong id="tm-risk-at-risk-count">0</strong></div>
+        <div class="tm-risk-cell">Total Items<strong id="tm-risk-total-count">0</strong></div>
+    </div>
+    <div class="tm-risk-filter-row">
+        <button class="button is-small is-light is-active" type="button" data-trend-filter="all">All</button>
+        <button class="button is-small is-light" type="button" data-trend-filter="stable">Stable</button>
+        <button class="button is-small is-light" type="button" data-trend-filter="watch">Watch</button>
+        <button class="button is-small is-light" type="button" data-trend-filter="at_risk">At Risk</button>
+    </div>
+    <p class="is-size-7 mb-2" id="tm-timeline-summary">Select an assignment to view deterministic transition history.</p>
+    <div id="tm-timeline-events" class="tm-activity-list"></div>
+    {% else %}
+    <p class="is-size-7">No assignments available for timeline replay.</p>
+    {% endif %}
 </div>
 
 </div>

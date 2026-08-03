@@ -95,6 +95,7 @@ from .semantic_search import run_semantic_search
 from .webhooks import retry_webhook_delivery
 from .semantic import build_semantic_diff
 from .services import compile_and_store_project_node
+from .services import get_project_middle_layer_activation_payload
 from .audit import record_semantic_audit_log
 from .collaboration import acquire_edit_session
 from .permissions import has_semantic_capability, resolve_actor_by_username
@@ -202,6 +203,11 @@ class ProjectMiddleLayerStatusView(View):
             semantic_tags=["project", "semantic", "identity", "pipeline", "tier", "compiler"],
         )
         return JsonResponse(payload)
+
+
+class ProjectMiddleLayerActivationView(View):
+    def get(self, request):
+        return JsonResponse(get_project_middle_layer_activation_payload())
 
 
 class ProjectMiddleLayerCompileView(ProjectMiddleLayerAdminRequiredMixin, FormView):

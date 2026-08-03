@@ -38,6 +38,7 @@ from .models import (
     TaskAttachmentQuarantine,
     TaskManagerAnalyticsExportRun,
     TaskObjective,
+    TaskWorkflowDriftSnapshot,
     TaskWorkflowItem,
 )
 from .task_manager.assignment_engine import build_assignment_sequence
@@ -48,6 +49,7 @@ from .task_manager.constants import (
     ASSIGNMENT_LINEAR,
     BTIF_COMPARTMENTS_BY_PHASE,
 )
+from .task_manager.constants import list_task_archetype_definitions
 from .task_manager.permissions import allowed_assignment_types_for_user, user_can_download_attachment
 from .task_manager.workflow_tracking import (
     advance_item,
@@ -85,7 +87,7 @@ WORKFLOW_SOURCE_MODELS = {
     "corporation": CorporationItem,
 }
 
-ALLOWED_TASK_MANAGER_TABS = {"create", "attach", "assignment", "item", "metrics", "ops-metrics", "quarantine", "activity"}
+ALLOWED_TASK_MANAGER_TABS = {"create", "attach", "assignment", "item", "metrics", "ops-metrics", "quarantine", "activity", "timeline"}
 ALLOWED_ATTACHMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".md", ".xlsx", ".csv", ".png", ".jpg", ".jpeg"}
 POLISH_ADMIN_GROUP_NAME = "polish_admin"
 ALLOWED_MIME_TYPES = {
@@ -679,9 +681,15 @@ def _build_task_manager_context(user, selected_quarantine_id=None, export_status
         "assignment_type_options": [
             (value, assignment_type_labels.get(value, value)) for value in allowed_assignment_types
         ],
+        "task_archetype_catalog": [
+            archetype
+            for archetype in list_task_archetype_definitions()
+            if archetype.get("key") in allowed_assignment_types
+        ],
         "task_assignments": assignments,
         "assignment_cards": assignment_cards,
         "task_workflow_items": TaskWorkflowItem.objects.filter(assignment__created_by=user)[:16],
+        "timeline_default_assignment_id": assignment_cards[0]["assignment"].id if assignment_cards else None,
         "metrics": _build_task_manager_metrics(user),
         "clamscan_available": is_clamscan_available(),
         "storage_used_bytes": storage_used_bytes,
@@ -928,23 +936,170 @@ def task_manager_activity_api(request):
     return JsonResponse({"events": _build_task_manager_activity(request.user)})
 
 
+@require_GET
+@login_required
+def task_manager_assignment_timeline_api(request, assignment_id: int):
+    if not user_is_polish_admin(request.user):
+        return JsonResponse({"detail": "Polish admin access required."}, status=403)
+
+    assignment = get_object_or_404(TaskAssignment, pk=assignment_id)
+    if not _assignment_accessible_to_user(assignment, request.user) and not user_is_polish_admin(request.user):
+        return JsonResponse({"detail": "You cannot access this assignment timeline."}, status=403)
+
+    event_type = (request.GET.get("event_type") or "").strip().lower()
+    slot_prefix = (request.GET.get("slot_prefix") or "").strip().lower()
+    item_id_raw = (request.GET.get("item_id") or "").strip()
+    since_hours_raw = (request.GET.get("since_hours") or "").strip()
+    limit_raw = (request.GET.get("limit") or "").strip()
+
+    snapshots_qs = TaskWorkflowDriftSnapshot.objects.filter(assignment=assignment)
+
+    if event_type in {
+        TaskWorkflowDriftSnapshot.EVENT_ADVANCE,
+        TaskWorkflowDriftSnapshot.EVENT_SKIP,
+        TaskWorkflowDriftSnapshot.EVENT_COMPLETE,
+        TaskWorkflowDriftSnapshot.EVENT_RESUME,
+    }:
+        snapshots_qs = snapshots_qs.filter(event_type=event_type)
+
+    if item_id_raw:
+        try:
+            item_id = int(item_id_raw)
+            snapshots_qs = snapshots_qs.filter(item_id=item_id)
+        except (TypeError, ValueError):
+            pass
+
+    if slot_prefix:
+        snapshots_qs = snapshots_qs.filter(slot_key__istartswith=slot_prefix)
+
+    if since_hours_raw:
+        try:
+            since_hours = max(int(since_hours_raw), 1)
+            cutoff = timezone.now() - timedelta(hours=since_hours)
+            snapshots_qs = snapshots_qs.filter(created_at__gte=cutoff)
+        except (TypeError, ValueError):
+            pass
+
+    snapshots_qs = snapshots_qs.select_related("item").order_by("created_at", "id")
+
+    if limit_raw:
+        try:
+            limit_value = max(1, min(int(limit_raw), 500))
+            snapshots_qs = snapshots_qs[:limit_value]
+        except (TypeError, ValueError):
+            pass
+
+    snapshots = list(snapshots_qs)
+
+    events = [
+        {
+            "id": snapshot.id,
+            "timestamp": snapshot.created_at.isoformat(timespec="seconds"),
+            "event_type": snapshot.event_type,
+            "item_id": snapshot.item_id,
+            "slot_key": snapshot.slot_key,
+            "from": {
+                "step_index": snapshot.from_step_index,
+                "phase": snapshot.from_phase,
+                "compartment": snapshot.from_compartment,
+                "status": snapshot.status_before,
+            },
+            "to": {
+                "step_index": snapshot.to_step_index,
+                "phase": snapshot.to_phase,
+                "compartment": snapshot.to_compartment,
+                "status": snapshot.status_after,
+            },
+            "drift": snapshot.drift_payload,
+            "metadata": snapshot.metadata,
+        }
+        for snapshot in snapshots
+    ]
+
+    item_buckets: dict[str, list[float]] = {}
+    for event in events:
+        item_key = str(event.get("item_id", ""))
+        drift = event.get("drift", {}) if isinstance(event.get("drift", {}), dict) else {}
+        slot_drift = drift.get("slot_drift", {}) if isinstance(drift.get("slot_drift", {}), dict) else {}
+        drift_scores = slot_drift.get("drift", {}) if isinstance(slot_drift.get("drift", {}), dict) else {}
+        blended = float(drift_scores.get("blended", 0.0) or 0.0)
+        item_buckets.setdefault(item_key, []).append(blended)
+
+    item_trends: dict[str, object] = {}
+    for item_key, values in item_buckets.items():
+        if not values:
+            continue
+        recent = values[-6:]
+        average = sum(recent) / len(recent)
+        trend_delta = recent[-1] - recent[0] if len(recent) > 1 else 0.0
+        if average >= 0.7:
+            status = "at_risk"
+        elif average >= 0.35:
+            status = "watch"
+        else:
+            status = "stable"
+
+        if trend_delta >= 0.05:
+            direction = "rising"
+        elif trend_delta <= -0.05:
+            direction = "falling"
+        else:
+            direction = "flat"
+
+        item_trends[item_key] = {
+            "status": status,
+            "direction": direction,
+            "average_blended": round(average, 3),
+            "trend_delta": round(trend_delta, 3),
+            "sample_size": len(recent),
+        }
+
+    return JsonResponse(
+        {
+            "assignment": {
+                "id": assignment.id,
+                "title": assignment.title,
+                "assignment_type": assignment.assignment_type,
+                "current_step_index": assignment.current_step_index,
+                "current_phase": assignment.current_phase,
+                "current_compartment": assignment.current_compartment,
+                "is_closed": assignment.is_closed,
+            },
+            "event_count": len(events),
+            "item_trends": item_trends,
+            "applied_filters": {
+                "event_type": event_type,
+                "item_id": item_id_raw,
+                "slot_prefix": slot_prefix,
+                "since_hours": since_hours_raw,
+                "limit": limit_raw,
+            },
+            "events": events,
+        }
+    )
+
+
 class TaskManagerAssignmentCreateView(LoginRequiredMixin, PolishAdminRequiredMixin, View):
     def post(self, request):
         assignment_type = request.POST.get("assignment_type") or ASSIGNMENT_LINEAR
         title = request.POST.get("title") or "Task Manager Assignment"
+        operating_phase = request.POST.get("operating_phase") or "project"
+        deliverable_name = request.POST.get("deliverable_name") or title
         try:
             create_assignment(
                 created_by=request.user,
                 assignment_type=assignment_type,
                 title=title,
                 assigned_to=request.user,
+                operating_phase=operating_phase,
+                deliverable_name=deliverable_name,
             )
             messages.success(request, "Task assignment created.")
         except PermissionDenied:
             if assignment_type == "perpetual":
                 messages.error(request, "Perpetual assignments require a premium subscription. Upgrade at /users/subscription/upgrade/.")
             else:
-                messages.error(request, "You do not have permission to create this assignment type.")
+                messages.error(request, "You do not have permission to create this assignment in the selected phase.")
         return _redirect_to_task_manager_admin(request, default_tab="create")
 
 

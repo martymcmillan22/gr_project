@@ -29,6 +29,7 @@ from .views import (
     ProjectMiddleLayerLineageExplorerView,
     ProjectMiddleLayerRecommendationsView,
     ProjectMiddleLayerStatusView,
+    ProjectMiddleLayerActivationView,
     ProjectMiddleLayerTimelineView,
     ProjectMiddleLayerReplicationView,
     ProjectMiddleLayerFederationView,
@@ -50,6 +51,7 @@ app_name = "project_middle_layer"
 
 urlpatterns = [
     path("", ProjectMiddleLayerStatusView.as_view(), name="status"),
+    path("activation/", ProjectMiddleLayerActivationView.as_view(), name="activation"),
     path("compile/", ProjectMiddleLayerCompileView.as_view(), name="compile"),
     path("batch-compile/", ProjectMiddleLayerBatchCompileView.as_view(), name="batch-compile"),
     path("export/", ProjectMiddleLayerExportView.as_view(), name="export"),

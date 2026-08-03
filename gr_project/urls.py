@@ -17,8 +17,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from platform_core.activation import phase4_activation_view
+from platform_core.activation import phase4_orchestration_view
 
-from polish.views import TaskManagerAdminView, task_manager_activity_api, task_manager_metrics_api
+from polish.views import (
+    TaskManagerAdminView,
+    task_manager_activity_api,
+    task_manager_assignment_timeline_api,
+    task_manager_metrics_api,
+)
 from homepage_backend.views import HomepageAppView
 
 
@@ -35,6 +42,7 @@ urlpatterns = [
     ),
     path('admin/task-manager/metrics/', task_manager_metrics_api, name='task-manager-metrics-api'),
     path('admin/task-manager/activity/', task_manager_activity_api, name='task-manager-activity-api'),
+    path('admin/task-manager/assignments/<int:assignment_id>/timeline/', task_manager_assignment_timeline_api, name='task-manager-assignment-timeline-api'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
@@ -49,6 +57,14 @@ urlpatterns = [
     path('basetruenews/', include('baseTrue_news.urls')),
     path('seeds/', include('seeds.urls')),
     path('contracts/', include('platform_core.urls')),
+    path('ispe/', HomepageAppView.as_view(), name='ispe-app'),
+    path('platform/reference/', include('platform_reference.urls')),
+    path('platform/semantic/', include('platform_semantic.urls')),
+    path('platform/quadrant/', include('platform_quadrant.urls')),
+    path('platform/activation/', phase4_activation_view, name='platform-phase4-activation'),
+    path('platform/orchestration/', phase4_orchestration_view, name='platform-phase4-orchestration'),
+    path('ispe/', include('ispe.urls')),
+    path('platform/billing/', include('platform_billing.urls')),
     path('storytelling-dashboard/', include('storytelling_dashboard.urls')),
     path('baseture-engine/', include('baseture_engine.urls')),
     path('diagnostics/', HomepageAppView.as_view(), name='diagnostics'),

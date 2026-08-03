@@ -62,5 +62,6 @@ from .task_manager.models import (  # noqa: E402,F401
 	TaskAttachmentQuarantine,
 	TaskManagerAnalyticsExportRun,
 	TaskObjective,
+	TaskWorkflowDriftSnapshot,
 	TaskWorkflowItem,
 )

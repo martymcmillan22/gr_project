@@ -307,3 +307,56 @@ class TaskWorkflowItem(models.Model):
             self.assignment_type = self.assignment.assignment_type
         self.sync_position_from_step()
         super().save(*args, **kwargs)
+
+
+class TaskWorkflowDriftSnapshot(models.Model):
+    EVENT_ADVANCE = "advance"
+    EVENT_SKIP = "skip"
+    EVENT_COMPLETE = "complete"
+    EVENT_RESUME = "resume"
+    EVENT_CHOICES = (
+        (EVENT_ADVANCE, "Advance"),
+        (EVENT_SKIP, "Skip"),
+        (EVENT_COMPLETE, "Complete"),
+        (EVENT_RESUME, "Resume"),
+    )
+
+    assignment = models.ForeignKey(
+        TaskAssignment,
+        on_delete=models.CASCADE,
+        related_name="drift_snapshots",
+    )
+    item = models.ForeignKey(
+        TaskWorkflowItem,
+        on_delete=models.CASCADE,
+        related_name="drift_snapshots",
+    )
+    slot_key = models.CharField(max_length=64)
+    event_type = models.CharField(max_length=16, choices=EVENT_CHOICES)
+
+    from_step_index = models.PositiveSmallIntegerField(default=0)
+    to_step_index = models.PositiveSmallIntegerField(default=0)
+    from_phase = models.CharField(max_length=16, default=PHASE_CREATE)
+    to_phase = models.CharField(max_length=16, default=PHASE_CREATE)
+    from_compartment = models.CharField(max_length=8, default="R")
+    to_compartment = models.CharField(max_length=8, default="R")
+    status_before = models.CharField(max_length=16, choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_RECEIVED)
+    status_after = models.CharField(max_length=16, choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_RECEIVED)
+
+    drift_payload = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
+        indexes = [
+            models.Index(fields=("assignment", "created_at"), name="idx_task_drift_assignment_ts"),
+            models.Index(fields=("item", "created_at"), name="idx_task_drift_item_ts"),
+            models.Index(fields=("assignment", "slot_key", "created_at"), name="idx_task_drift_slot_ts"),
+        ]
+
+    def __str__(self):
+        return (
+            f"assignment={self.assignment_id} item={self.item_id} "
+            f"{self.event_type} {self.from_phase}:{self.from_compartment} -> {self.to_phase}:{self.to_compartment}"
+        )
