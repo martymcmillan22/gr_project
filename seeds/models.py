@@ -54,6 +54,7 @@ class Business(models.Model):
 	seed = models.OneToOneField(Seed, on_delete=models.CASCADE, related_name="business")
 	brand_name = models.CharField(max_length=160)
 	market_status = models.CharField(max_length=80)
+	project_notes = models.JSONField(default=dict, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

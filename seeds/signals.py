@@ -1,5 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+
+from peringram.pip_state import IDEA_TO_SEED_ALLOWED_TIME_FRAMES
+from peringram.srl import SRLService
 
 from .models import Idea
 from .services import RawToSeedPolishService
@@ -19,6 +23,20 @@ def idea_transition_precheck(sender, instance, **kwargs):
     )
     if should_validate:
         RawToSeedPolishService(instance).validate_transition()
+
+        # Phase 4 (PIP): RAW -> SEED is only allowed in "analysis/planning"
+        # Convection-Cycle slots (present_past/present_future).
+        current_slot = SRLService.current_convection_compartment()
+        current_time_frame = SRLService.convection_time_frame(current_slot)
+        if current_time_frame not in IDEA_TO_SEED_ALLOWED_TIME_FRAMES:
+            raise ValidationError(
+                {
+                    "status": (
+                        "RAW -> SEED is only allowed during present_past/present_future "
+                        f"Convection slots; current time_frame={current_time_frame}."
+                    )
+                }
+            )
 
 
 @receiver(post_save, sender=Idea)

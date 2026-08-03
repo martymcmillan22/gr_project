@@ -19,6 +19,10 @@ concretely specified beyond what Phase 2 already built.
 
 Project -> Enterprise promotion is explicitly deferred to Phase 4 (Enterprise
 does not exist as a seeds lifecycle state yet).
+
+Phase 4: RR now also requires a forward-looking Convection-Cycle slot
+(present_future or future), in addition to CCPP+ tier - see
+pip_state.rr_allowed_now / RRService.can_invoke().
 """
 
 from .srl import PIPSRLValidator
@@ -33,20 +37,22 @@ class RRService:
 
     @staticmethod
     def can_invoke(pip_state):
-        """RR unlocks at CCPP tier or higher (see pip_state.rr_unlocked)."""
-        return pip_state.rr_unlocked
+        """RR unlocks at CCPP tier or higher, in a forward-looking Convection slot (see pip_state.rr_allowed_now)."""
+        return pip_state.rr_allowed_now
 
     @staticmethod
-    def promote_seed_to_project(pip_state, seed, brand_name, market_status="draft", metadata=None):
+    def promote_seed_to_project(pip_state, seed, brand_name, market_status="draft", metadata=None, project_notes=None):
         """
         Promote a seeds.Seed to a seeds.Business ("Project"), gated at CCPP tier
-        and validated against the user's SRL compartment (capacity/time_frame/tags).
+        plus a forward-looking Convection slot, and validated against the
+        user's SRL compartment (capacity/time_frame/tags).
         """
         from seeds.models import Business  # deferred: avoid circular import
 
         if not RRService.can_invoke(pip_state):
             raise RRAccessDeniedError(
-                f"RR requires CCPP tier or higher; current tier is {pip_state.final_tier}."
+                f"RR requires CCPP+ tier and a present_future/future Convection slot; "
+                f"current tier={pip_state.final_tier}, time_frame={pip_state.time_slot_time_frame}."
             )
 
         if pip_state.territory is not None:
@@ -60,7 +66,11 @@ class RRService:
 
         business, _ = Business.objects.update_or_create(
             seed=seed,
-            defaults={"brand_name": brand_name, "market_status": market_status},
+            defaults={
+                "brand_name": brand_name,
+                "market_status": market_status,
+                "project_notes": project_notes or {},
+            },
         )
         seed.idea.status = "PROJECT"
         seed.idea.save(update_fields=["status", "updated_at"])

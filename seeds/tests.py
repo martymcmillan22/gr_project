@@ -1,15 +1,30 @@
+from datetime import datetime
+from decimal import Decimal
+from unittest.mock import patch
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from peringram.models import Industry, IndustryGroup, LatticeCompartment
+from peringram.models import ConvectionCompartment, Industry, IndustryGroup, LatticeCompartment
+from peringram.models import Recycle3Profile
+from peringram.views import seed_peringram_structure
 from users.models import User
 
 from .models import Business, CrossReference, Idea, Seed
 from .services import validate_idea_submission
+
+# Phase 4 (PIP): RAW->SEED is now temporally gated (see seeds/signals.py),
+# based on timezone.localtime() -> Convection-Cycle time_frame. Tests that
+# transition an Idea to SEED must freeze the clock to a deterministic,
+# allowed slot (hour 10 -> Convection compartment 11 -> lattice index 11 ->
+# time_frame="present_future", which is in IDEA_TO_SEED_ALLOWED_TIME_FRAMES),
+# so they don't flake depending on real-world wall-clock time.
+FROZEN_ALLOWED_SLOT = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.get_current_timezone())
 
 
 class IdeaLifecycleTests(TestCase):
@@ -17,8 +32,26 @@ class IdeaLifecycleTests(TestCase):
 		self.user = User.objects.create_user(username="seed-user", password="testpass123")
 		self.group = IndustryGroup.objects.create(code=1, sector=IndustryGroup.SECTOR_PRIMARY, name="Math")
 		self.industry = Industry.objects.create(group=self.group, code=1, name="Food Tech")
+		# Phase 4: seed only the specific ConvectionCompartment/LatticeCompartment
+		# rows the frozen-clock test needs (not the full seed_peringram_structure(),
+		# which would rename this test's custom "Food Tech" industry back to the
+		# default "Math - Foundation" via its own IndustryGroup/Industry seeding).
+		ConvectionCompartment.objects.get_or_create(
+			compartment_index=11,
+			defaults={"world_clock_hour": 10, "label": "Compartment 11", "lattice_coordinate": "R11"},
+		)
+		LatticeCompartment.objects.get_or_create(
+			index=11,
+			defaults={
+				"color": "Amber",
+				"time_frame": LatticeCompartment.TIME_PRESENT_FUTURE,
+				"capacity": 4 ** 11,
+				"category": "Architecture",
+			},
+		)
 
-	def test_raw_to_seed_transition_creates_seed_with_json_metadata(self):
+	@patch("django.utils.timezone.localtime", return_value=FROZEN_ALLOWED_SLOT)
+	def test_raw_to_seed_transition_creates_seed_with_json_metadata(self, mock_localtime):
 		idea = Idea.objects.create(
 			user=self.user,
 			industry=self.industry,
@@ -176,6 +209,13 @@ class SeedsApiTests(APITestCase):
 		self.user = User.objects.create_user(username="api-user", password="testpass123")
 		self.group = IndustryGroup.objects.create(code=1, sector=IndustryGroup.SECTOR_PRIMARY, name="Math")
 		self.industry = Industry.objects.create(group=self.group, code=1, name="Technology")
+		self.recycle3 = Recycle3Profile.objects.create(
+			user=self.user,
+			corporation_rnd_pct=Decimal("40.00"),
+			people_qcqa_pct=Decimal("40.00"),
+			government_infra_pct=Decimal("40.00"),
+			isea_pct=Decimal("0.01"),
+		)
 		self.client.force_authenticate(user=self.user)
 
 		idea_a = Idea.objects.create(
@@ -200,6 +240,7 @@ class SeedsApiTests(APITestCase):
 			relationship_type=CrossReference.RELATION_SIMILAR,
 			score=0.91,
 		)
+		seed_peringram_structure()
 
 	def test_capture_endpoint_creates_raw_idea_and_returns_candidates(self):
 		url = reverse("idea-capture")
@@ -239,3 +280,83 @@ class SeedsApiTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(len(response.data["results"]), 1)
 		self.assertEqual(response.data["results"][0]["relationship_type"], CrossReference.RELATION_SIMILAR)
+
+	@patch("django.utils.timezone.localtime", return_value=FROZEN_ALLOWED_SLOT)
+	def test_seed_promotion_endpoint_creates_seed_and_returns_project_ready_payload(self, mock_localtime):
+		url = reverse("seed-promote")
+		response = self.client.post(
+			url,
+			{
+				"purpose": "Basetrue Newsletter",
+				"industry": "Media / Publishing",
+				"audience": "Readers and contributors",
+				"narrative": "A deterministic editorial project.",
+				"notes": "Annual plan demo flow for ISPE.",
+				"identity_name": "Basetrue Newsletter",
+				"identity_type": "Editorial Identity",
+				"identity_purpose": "Create a guided editorial identity.",
+				"identity_structure": "Sections, themes, recurring elements.",
+				"deliverables": "Monthly newsletter issues, annual summary",
+				"deliverable_structure": "Lead story, recurring sections, checkpoints",
+				"deliverable_cadence": "Monthly",
+			},
+			format="json",
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+		self.assertTrue(response.data["project_ready"])
+		self.assertEqual(response.data["next_phase"], "project")
+		self.assertEqual(response.data["idea"]["status"], Idea.STATUS_SEED)
+		self.assertIn("promotion_context", response.data["seed"]["polish_notes"])
+		self.assertEqual(
+			response.data["seed"]["polish_notes"]["promotion_context"]["identity"]["name"],
+			"Basetrue Newsletter",
+		)
+
+	@patch("django.utils.timezone.localtime", return_value=FROZEN_ALLOWED_SLOT)
+	@patch("seeds.views.SRLService.assign_compartment")
+	def test_project_activation_endpoint_creates_business_and_updates_seed_status(self, mock_assign_compartment, mock_localtime):
+		mock_assign_compartment.return_value = LatticeCompartment.objects.get(index=3)
+		seed_response = self.client.post(
+			reverse("seed-promote"),
+			{
+				"purpose": "A",
+				"industry": "Media / Publishing",
+				"audience": "B",
+				"narrative": "C",
+				"notes": "D",
+				"identity_name": "Basetrue Newsletter",
+				"identity_type": "Editorial Identity",
+				"identity_purpose": "Editorial identity",
+				"identity_structure": "Sections",
+				"deliverables": "Newsletter",
+				"deliverable_structure": "Lead story",
+				"deliverable_cadence": "Monthly",
+			},
+			format="json",
+		)
+
+		seed_id = seed_response.data["seed"]["id"]
+		project_response = self.client.post(
+			reverse("project-activate"),
+			{
+				"seed_id": seed_id,
+				"project_name": "Basetrue Newsletter",
+				"market_status": "live",
+				"project_notes": {
+					"annual_plan": "Editorial calendar, theme tracking, issue rhythm",
+					"quarterly_objectives": "Q1 launch, Q2 consistency, Q3 refinement, Q4 recap",
+					"monthly_deliverables": "Monthly newsletter issues, annual summary",
+					"task_archetypes": ["Linear", "Perpetual"],
+					"governance_tiers": ["PIP", "Polish", "Task Manager"],
+				},
+			},
+			format="json",
+		)
+
+		self.assertEqual(project_response.status_code, status.HTTP_201_CREATED, project_response.data)
+		self.assertTrue(project_response.data["project_ready"])
+		self.assertEqual(project_response.data["business"]["brand_name"], "Basetrue Newsletter")
+		self.assertEqual(project_response.data["business"]["market_status"], "live")
+		self.assertEqual(project_response.data["business"]["project_notes"]["phase"], "project")
+		self.assertEqual(Seed.objects.get(pk=seed_id).idea.status, Idea.STATUS_PROJECT)

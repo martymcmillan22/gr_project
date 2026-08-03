@@ -9,6 +9,12 @@ concept of user/tier/SRL/Convection (confirmed during Phase 3 investigation).
 
 Phase 4 will add: temporal routing, SRL->QPU mapping, Convection->QPU mapping,
 and the Enterprise lifecycle state.
+
+Phase 4 update: QPU now also requires a forward-looking Convection-Cycle slot
+(present_future or future) in addition to DCHD tier. If the tier check fails,
+`run()` still raises QPUAccessDeniedError (unchanged from Phase 3). If tier is
+fine but the time slot isn't forward-looking, `run()` returns a structured
+{"status": "temporally_gated", ...} result instead of invoking the engine.
 """
 
 import json
@@ -42,13 +48,24 @@ class QPUService:
 
     @staticmethod
     def run(pip_state, payload):
-        """Gate on DCHD tier, then execute the existing StrictModeEngine unmodified."""
+        """Gate on DCHD tier (raises) and a forward-looking time slot (returns a
+        structured result), then execute the existing StrictModeEngine unmodified.
+        """
         from workflow.engine.strict_mode_engine import StrictModeEngine  # deferred: keep workflow/ decoupled
 
         if not QPUService.can_invoke(pip_state):
             raise QPUAccessDeniedError(
                 f"QPU requires DCHD tier; current tier is {pip_state.final_tier}."
             )
+
+        if not pip_state.qpu_allowed_now:
+            return {
+                "status": "temporally_gated",
+                "reason": (
+                    "QPU requires a present_future/future Convection slot; "
+                    f"current time_frame={pip_state.time_slot_time_frame}."
+                ),
+            }
 
         definition = json.loads(STRICT_MODE_DEFINITION_PATH.read_text(encoding="utf-8"))
         engine = StrictModeEngine(definition)

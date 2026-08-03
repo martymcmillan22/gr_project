@@ -1,13 +1,86 @@
+from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from peringram.models import Industry
+from peringram.pip_state import PIPState
+from peringram.rr import RRAccessDeniedError, RRService
+from peringram.srl import SRLService
+from peringram.views import seed_peringram_structure
+from peringram.models import Recycle3Profile
 
-from .models import CrossReference, Idea
-from .serializers import CrossReferenceSerializer, IdeaCaptureSerializer, IdeaSerializer
+from .models import Business, CrossReference, Idea, Seed
+from .serializers import (
+	CrossReferenceSerializer,
+	BusinessSerializer,
+	IdeaCaptureSerializer,
+	IdeaSerializer,
+	ProjectActivationSerializer,
+	SeedPromotionSerializer,
+	SeedSerializer,
+)
 from .services import find_similar_ideas, validate_idea_submission
+
+
+ISPE_INDUSTRY_ALIASES = {
+	"media / publishing": "Language - Foundation",
+	"media publishing": "Language - Foundation",
+	"newsletter": "Language - Foundation",
+	"editorial": "Language - Foundation",
+	"editorial identity": "Language - Foundation",
+}
+
+
+def _resolve_canonical_industry(industry_label):
+	seed_peringram_structure()
+	normalized_label = " ".join((industry_label or "").split()).strip()
+	if not normalized_label:
+		raise ValueError("Industry label is required.")
+	target_name = ISPE_INDUSTRY_ALIASES.get(normalized_label.casefold(), normalized_label)
+	industry = Industry.objects.select_related("group").filter(name__iexact=target_name).first()
+	if industry is not None:
+		return industry
+	raise ValueError(
+		f"Unknown industry '{industry_label}'. Use a canonical Peringram industry name or a supported ISPE alias."
+	)
+
+
+def _build_raw_content(payload):
+	parts = [
+		f"Purpose: {payload['purpose']}",
+		f"Audience: {payload.get('audience') or 'unspecified'}",
+		f"Narrative: {payload.get('narrative') or 'unspecified'}",
+		f"Notes: {payload.get('notes') or 'none'}",
+	]
+	return "\n".join(parts)
+
+
+def _build_project_notes(payload, activation_snapshot):
+	project_notes = payload.get("project_notes", {}) or {}
+	project_notes.setdefault("phase", "project")
+	project_notes.setdefault("metadata", payload.get("metadata", {}) or {})
+	project_notes.setdefault("activation_snapshot", activation_snapshot)
+	return project_notes
+
+
+def _build_project_activation_snapshot(pip_state, request):
+	return {
+		"mode": request.query_params.get("mode", "assistive"),
+		"include_va": request.query_params.get("include_va", "1") in {"1", "true", "True"},
+		"final_tier": pip_state.final_tier,
+		"lifecycle_stage": pip_state.lifecycle_stage,
+		"territory_index": pip_state.territory.index if pip_state.territory is not None else None,
+		"time_slot_time_frame": pip_state.time_slot_time_frame,
+		"rr_allowed_now": pip_state.rr_allowed_now,
+	}
+
+
+def _build_pip_state_for_user(user):
+	recycle, _ = Recycle3Profile.objects.get_or_create(user=user)
+	territory = SRLService.assign_compartment(user)
+	return PIPState.from_recycle3(recycle, territory=territory)
 
 
 class CrossReferenceReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
@@ -75,6 +148,129 @@ class IdeaCaptureAPIView(APIView):
 				"idea": IdeaSerializer(idea).data,
 				"cross_reference_candidate_ids": candidates,
 				"lattice_validation": lattice_validation,
+			},
+			status=status.HTTP_201_CREATED,
+		)
+
+
+class SeedPromotionAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def post(self, request):
+		serializer = SeedPromotionSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+		payload = serializer.validated_data
+
+		try:
+			industry = _resolve_canonical_industry(payload["industry"])
+		except ValueError as error:
+			return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+		promotion_context = {
+			"source": "ispe",
+			"phase": "seed",
+			"purpose": payload["purpose"],
+			"industry": payload["industry"],
+			"audience": payload.get("audience", ""),
+			"narrative": payload.get("narrative", ""),
+			"notes": payload.get("notes", ""),
+			"identity": {
+				"name": payload["identity_name"],
+				"type": payload["identity_type"],
+				"purpose": payload.get("identity_purpose", ""),
+				"structure": payload.get("identity_structure", ""),
+			},
+			"deliverables": {
+				"summary": payload.get("deliverables", ""),
+				"structure": payload.get("deliverable_structure", ""),
+				"cadence": payload.get("deliverable_cadence", ""),
+			},
+			"workflow": {
+				"next_phase": "project",
+				"project_ready": True,
+			},
+			"metadata": payload.get("metadata", {}),
+		}
+
+		raw_content = _build_raw_content(payload)
+		with transaction.atomic():
+			idea = Idea(
+				user=request.user,
+				industry=industry,
+				raw_content=raw_content,
+				status=Idea.STATUS_SEED,
+			)
+			idea._seed_promotion_payload = promotion_context
+			idea.save()
+			seed = idea.seed
+
+		return Response(
+			{
+				"idea": IdeaSerializer(idea).data,
+				"seed": SeedSerializer(seed).data,
+				"project_ready": True,
+				"next_phase": "project",
+				"orchestration_hint": {
+					"mode": "assistive",
+					"surface": "/platform/orchestration/",
+					"query": "mode=assistive&include_va=1",
+				},
+			},
+			status=status.HTTP_201_CREATED,
+		)
+
+
+class ProjectActivationAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def post(self, request):
+		serializer = ProjectActivationSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+		payload = serializer.validated_data
+
+		seed = Seed.objects.select_related("idea__industry", "idea__user").filter(
+			pk=payload["seed_id"],
+			idea__user=request.user,
+		).first()
+		if seed is None:
+			return Response({"detail": "Seed not found for the current user."}, status=status.HTTP_404_NOT_FOUND)
+
+		pip_state = _build_pip_state_for_user(request.user)
+		project_notes = _build_project_notes(payload, _build_project_activation_snapshot(pip_state, request))
+
+		try:
+			with transaction.atomic():
+				business = RRService.promote_seed_to_project(
+					pip_state,
+					seed,
+					brand_name=payload["project_name"],
+					market_status=payload.get("market_status", "draft"),
+					metadata=payload.get("metadata", {}),
+					project_notes=project_notes,
+				)
+		except RRAccessDeniedError as error:
+			return Response(
+				{
+					"detail": str(error),
+					"project_ready": False,
+					"next_phase": "project",
+				},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		return Response(
+			{
+				"business": BusinessSerializer(business).data,
+				"project_ready": True,
+				"next_phase": "project",
+				"activation_hint": {
+					"surface": "/platform/activation/",
+					"mode": "assistive",
+				},
+				"orchestration_hint": {
+					"surface": "/platform/orchestration/",
+					"query": "mode=assistive&include_va=1",
+				},
 			},
 			status=status.HTTP_201_CREATED,
 		)

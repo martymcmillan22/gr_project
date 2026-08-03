@@ -1,6 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from decimal import Decimal
+from datetime import datetime
+from unittest.mock import patch
 
 from users.models import User
 
@@ -45,7 +48,7 @@ class PIPViewTests(TestCase):
 		self.assertEqual(ConvectionCompartment.objects.count(), 24)
 		self.assertEqual(LatticeCompartment.objects.count(), 12)
 		self.assertEqual(LatticeCompartment.objects.get(index=10).capacity, 1048576)
-		self.assertEqual(LatticeCompartment.objects.get(index=11).category, "Philosophy/Ethics")
+		self.assertEqual(LatticeCompartment.objects.get(index=11).category, "Architecture")
 
 	def test_isea_helper_computes_100_percent_total(self):
 		allocation = Recycle3Profile(
@@ -100,7 +103,7 @@ class PIPViewTests(TestCase):
 		self.assertEqual(IndustryGroup.objects.get(code=2).name, "Language")
 		self.assertEqual(IndustryGroup.objects.get(code=3).name, "Arts")
 		self.assertEqual(IndustryGroup.objects.get(code=4).name, "Science")
-		self.assertEqual(IndustryGroup.objects.get(code=10).name, "Geology")
+		self.assertEqual(IndustryGroup.objects.get(code=10).name, "Geography")
 
 	def test_srl_service_assigns_deterministic_compartment(self):
 		seed_peringram_structure()
@@ -216,7 +219,14 @@ class PIPViewTests(TestCase):
 		self.assertFalse(PIPWorkflowService.can_access_bureau("boe", pip_state))
 		self.assertFalse(PIPWorkflowService.can_access_bureau("bop", pip_state))
 
-	def test_rr_service_gates_seed_to_project_promotion(self):
+	@patch(
+		"django.utils.timezone.localtime",
+		return_value=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.get_current_timezone()),
+	)
+	def test_rr_service_gates_seed_to_project_promotion(self, mock_localtime):
+		# Frozen at hour 10 -> Convection compartment 11 -> lattice index 11 ->
+		# time_frame="present_future", which satisfies BOTH the RAW->SEED gate
+		# (seeds/signals.py) and the RR forward-looking gate (present_future/future).
 		from seeds.models import Idea
 
 		seed_peringram_structure()

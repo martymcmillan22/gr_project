@@ -1,6 +1,7 @@
+import re
+
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-import re
 
 from peringram.models import LatticeCompartment
 
@@ -10,8 +11,9 @@ from .models import Idea, Seed
 class RawToSeedPolishService:
     """Validates and materializes seed metadata when an idea is promoted."""
 
-    def __init__(self, idea):
+    def __init__(self, idea, promotion_context=None):
         self.idea = idea
+        self.promotion_context = promotion_context or getattr(idea, "_seed_promotion_payload", {}) or {}
 
     def validate_transition(self):
         if not self.idea.raw_content or not self.idea.raw_content.strip():
@@ -28,11 +30,26 @@ class RawToSeedPolishService:
         return ["problem statement", "target user", "success metric"]
 
     def build_polish_notes(self):
+        identity = self.promotion_context.get("identity", {})
+        deliverables = self.promotion_context.get("deliverables", {})
+        workflow = self.promotion_context.get("workflow", {})
         return {
             "industry": {
                 "group_code": self.idea.industry.group.code,
                 "industry_code": self.idea.industry.code,
                 "name": self.idea.industry.name,
+            },
+            "promotion_context": {
+                "source": self.promotion_context.get("source", "manual"),
+                "phase": self.promotion_context.get("phase", "seed"),
+                "purpose": self.promotion_context.get("purpose", ""),
+                "audience": self.promotion_context.get("audience", ""),
+                "narrative": self.promotion_context.get("narrative", ""),
+                "notes": self.promotion_context.get("notes", ""),
+                "identity": identity,
+                "deliverables": deliverables,
+                "workflow": workflow,
+                "metadata": self.promotion_context.get("metadata", {}),
             },
             "requirements": self._industry_specific_requirements(),
             "notes": [],

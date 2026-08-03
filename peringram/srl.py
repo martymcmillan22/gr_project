@@ -46,8 +46,15 @@ class SRLService:
 
     @staticmethod
     def current_convection_compartment():
-        """The ConvectionCompartment matching the current UTC hour (world clock)."""
-        current_hour = timezone.now().hour
+        """
+        The ConvectionCompartment matching the current hour.
+
+        Uses timezone.localtime() (Django's TIME_ZONE-aware wall clock), NOT
+        bare timezone.now() (which is always raw UTC regardless of TIME_ZONE).
+        This is the same canonical clock platform_core.resolvers.quadrant
+        already uses for AM/PM routing (Phase 4: single clock source).
+        """
+        current_hour = timezone.localtime().hour
         return ConvectionCompartment.objects.filter(world_clock_hour=current_hour).first()
 
     @staticmethod

@@ -2,21 +2,6 @@
 Unified PIP (Peringram) context and workflow-gating layer.
 
 `PIPState` is a lightweight, read-only snapshot of a user's current Recycle3
-allocation, SRL territory, derived sector tier, and lifecycle stage. It is
-attached to view context as `pip_state` (e.g. `pip_state.recycle3`,
-`pip_state.sector_tier`, `pip_state.territory`).
-
-Later phases will extend `PIPState` further:
-- Phase 4 (Convection-Cycle): richer temporal automation hooks
-
-`PIPWorkflowService` gates PIP lifecycle actions (Idea -> Seed -> Project ->
-Enterprise) based on the user's current sector tier.
-"""
-
-"""
-Unified PIP (Peringram) context and workflow-gating layer.
-
-`PIPState` is a lightweight, read-only snapshot of a user's current Recycle3
 allocation, SRL territory, sector-group tier, combined final tier, and
 lifecycle stage. It is attached to view context as `pip_state` (e.g.
 `pip_state.recycle3`, `pip_state.final_tier`, `pip_state.territory`).
@@ -30,8 +15,14 @@ Tier signals (Phase 1-3):
   DCHD. This is now the AUTHORITATIVE tier for `lifecycle_stage`,
   `rr_unlocked`, `qpu_unlocked`, and bureau access.
 
+Temporal signals (Phase 4): `time_slot`/`time_slot_time_frame` and the
+"allowed now" flags below all derive from the single canonical clock
+(timezone.localtime(), Django's TIME_ZONE-aware wall clock) shared with
+platform_core.resolvers.quadrant.
+
 `PIPWorkflowService` gates PIP lifecycle actions (Idea -> Seed -> Project ->
-Enterprise) and bureau access (BOS/BOL/BOE/BOP) based on `final_tier`.
+Enterprise), bureau access (BOS/BOL/BOE/BOP, including alias slugs), based on
+`final_tier` and (for RR/QPU) the current temporal slot.
 """
 
 from .models import (
@@ -53,6 +44,25 @@ BUREAU_TIER_REQUIREMENTS = {
     "boe": SectorTier.CCPP,
     "bop": SectorTier.DCHD,
 }
+
+# Bureau alias slugs (center/views.py::CENTER_CELL_ALIASES) -> canonical
+# bureau code. Phase 3's gating checked only the canonical slugs, so these
+# aliases bypassed tier gating entirely - fixed in Phase 4 by normalizing
+# through this mapping before checking BUREAU_TIER_REQUIREMENTS.
+BUREAU_ALIAS_TO_CANONICAL = {
+    "bridge": "bol",
+    "openfields": "boe",
+    "seedlings": "bop",
+}
+
+# time_frame values considered "forward-looking" enough to unlock RR/QPU
+# actions (Phase 4 Sections C/D).
+FORWARD_LOOKING_TIME_FRAMES = {"present_future", "future"}
+
+# time_frame values allowed for the RAW -> SEED idea transition (Phase 4
+# Section C; enforced in seeds/signals.py, per explicit user confirmation to
+# modify that app for Phase 4 - see pip-phase-build-status.md).
+IDEA_TO_SEED_ALLOWED_TIME_FRAMES = {"present_past", "present_future"}
 
 
 class PIPState:
@@ -114,6 +124,12 @@ class PIPState:
         self.enterprise_planning_unlocked = self.time_slot_time_frame == "future"
         self.archival_analysis_unlocked = self.time_slot_time_frame == "past"
 
+        # Phase 4: "allowed now" temporal flags, combining tier + time_frame.
+        forward_looking_now = self.time_slot_time_frame in FORWARD_LOOKING_TIME_FRAMES
+        self.idea_to_seed_allowed_now = self.time_slot_time_frame in IDEA_TO_SEED_ALLOWED_TIME_FRAMES
+        self.rr_allowed_now = self.rr_unlocked and forward_looking_now
+        self.qpu_allowed_now = self.qpu_unlocked and forward_looking_now
+
     @classmethod
     def from_recycle3(cls, recycle3_profile, territory=None):
         sector_tier = recycle3_profile.calculate_sector_tier(territory)
@@ -147,8 +163,13 @@ class PIPWorkflowService:
 
     @staticmethod
     def can_access_bureau(bureau_code, pip_state):
-        """Return True if pip_state's final_tier meets the bureau's minimum tier requirement."""
-        required_tier = BUREAU_TIER_REQUIREMENTS.get(bureau_code.lower())
+        """Return True if pip_state's final_tier meets the bureau's minimum tier requirement.
+
+        Normalizes alias slugs (e.g. 'bridge' -> 'bol') before checking, so
+        aliases can't bypass gating (Phase 4 fix).
+        """
+        normalized = BUREAU_ALIAS_TO_CANONICAL.get(bureau_code.lower(), bureau_code.lower())
+        required_tier = BUREAU_TIER_REQUIREMENTS.get(normalized)
         if required_tier is None:
             return True  # not a gated bureau
         return TIER_ORDER.index(pip_state.final_tier) >= TIER_ORDER.index(required_tier)
