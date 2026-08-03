@@ -154,9 +154,9 @@ graph TD
     C6 --> C7[7: Orange/Present-Future - Crafts - 16384]
     C7 --> C8[8: Lime/Future - Technology - 65536]
     C8 --> C9[9: Pink/Past - History - 262144]
-    C9 --> C10[10: Cyan/Present-Past - Geology - 1048576]
-    C10 --> C11[11: Amber/Present-Future - Philosophy/Ethics - 4194304]
-    C11 --> C12[12: Green-Lime/Future - Systems/Synthesis - 16777216]
+    C9 --> C10[10: Cyan/Present-Past - Geography - 1048576]
+    C10 --> C11[11: Amber/Present-Future - Architecture - 4194304]
+    C11 --> C12[12: Green-Lime/Future - Ecology - 16777216]
     end
 
     style C1 fill:#f96,stroke:#333
@@ -175,9 +175,9 @@ graph TD
 | 7 | Orange | Present/Future | 16,384 | Crafts |
 | 8 | Lime | Future | 65,536 | Technology |
 | 9 | Pink | Past | 262,144 | History |
-| 10 | Cyan | Present/Past | 1,048,576 | Geology |
-| 11 | Amber | Present/Future | 4,194,304 | Philosophy/Ethics |
-| 12 | Green-Lime | Future | 16,777,216 | Systems/Synthesis |
+| 10 | Cyan | Present/Past | 1,048,576 | Geography |
+| 11 | Amber | Present/Future | 4,194,304 | Architecture |
+| 12 | Green-Lime | Future | 16,777,216 | Ecology |
 
 ## Presentation Pipeline
 

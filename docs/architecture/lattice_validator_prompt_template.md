@@ -24,6 +24,6 @@ Expected metadata tags:
 - `forecast` for Future compartments
 
 ## Example Prompt
-I am building an ingestion module for Lattice Compartment 10 (Geology).
+I am building an ingestion module for Lattice Compartment 10 (Geography).
 Use the lattice registry capacity 1,048,576 and Present/Past time-frame constraints.
 Implement a Django service using `validate_idea_submission` and return deterministic errors for missing tags or capacity overflow.

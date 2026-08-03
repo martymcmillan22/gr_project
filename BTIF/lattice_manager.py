@@ -8,14 +8,14 @@ class LatticeManager:
         2:  {"color": "Blue", "category": "Language", "time": "Pres-Past", "capacity": 16},
         3:  {"color": "Yellow", "category": "Arts", "time": "Pres-Fut", "capacity": 64},
         4:  {"color": "Green", "category": "Science", "time": "Future", "capacity": 256},
-        5:  {"color": "Purple", "category": "GenInfo", "time": "Past", "capacity": 1024},
+        5:  {"color": "Purple", "category": "General Information", "time": "Past", "capacity": 1024},
         6:  {"color": "Teal", "category": "Literature", "time": "Pres-Past", "capacity": 4096},
         7:  {"color": "Orange", "category": "Crafts", "time": "Pres-Fut", "capacity": 16384},
         8:  {"color": "Lime", "category": "Technology", "time": "Future", "capacity": 65536},
         9:  {"color": "Pink", "category": "History", "time": "Past", "capacity": 262144},
-        10: {"color": "Cyan", "category": "Geology", "time": "Pres-Past", "capacity": 1048576},
-        11: {"color": "Amber", "category": "Philosophy", "time": "Pres-Fut", "capacity": 4194304},
-        12: {"color": "Green-Lime", "category": "Systems", "time": "Future", "capacity": 16777216},
+        10: {"color": "Cyan", "category": "Geography", "time": "Pres-Past", "capacity": 1048576},
+        11: {"color": "Amber", "category": "Architecture", "time": "Pres-Fut", "capacity": 4194304},
+        12: {"color": "Green-Lime", "category": "Ecology", "time": "Future", "capacity": 16777216},
     }
 
     @classmethod

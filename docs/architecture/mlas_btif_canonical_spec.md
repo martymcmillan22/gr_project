@@ -1,5 +1,32 @@
 # MLAS + BTIF Canonical Specification
 
+## Canonical Identity Engine (Updated)
+This specification now uses the deterministic Basetrue identity model below as the authoritative structure for reasoning, generation, validation, and governance.
+
+### 1. SRL Table (12-Compartment Grid)
+- SRL compartments 1-12 map to MLAS + GLCT + HGAE only.
+- Phase 1 (MLAS): Math, Language, Arts, Science.
+- Phase 2 (GLCT): General Information, Literature, Crafts, Technology.
+- Phase 3 (HGAE): History, Geography, Architecture, Ecology.
+- Phase 4 subjects are enterprise-only meta governors and do not replace SRL compartments 1-12.
+
+### 2. Phase-to-Sector Map (4x4 = 16 Subjects)
+- 16 subjects align to 16 industry groups, 4 sectors, 64 industries, and 256 sub-industries.
+- Phase 1 -> Primary sector.
+- Phase 2 -> Secondary sector.
+- Phase 3 -> Tertiary sector.
+- Phase 4 -> Quaternary sector.
+
+### 3. Full 4-Phase Identity Engine
+- Phase 1 (Idea): MLAS -> Red, Blue, Yellow, Green.
+- Phase 2 (Seed): GLCT -> Purple, Teal, Orange, Lime.
+- Phase 3 (Project): HGAE -> Pink, Cyan, Amber, Green-Lime.
+- Phase 4 (Meta): Philosophy, Law and Governance, Economics, Systemics -> Deep Crimson, Deep Indigo, Gold-Ochre, Deep Forest.
+
+### 4. Deterministic Rule
+- Novice and Intermediate tiers operate on SRL 1-12.
+- Advanced and Enterprise tiers extend with Phase 4 quaternary governors.
+
 ## Purpose
 This document is the canonical, consolidated specification for the captured MLAS and BTIF rules.
 

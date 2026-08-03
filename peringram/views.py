@@ -26,13 +26,13 @@ GROUP_DOMAIN_ORDER = [
     "Crafts",
     "Technology",
     "History",
-    "Geology",
-    "Policy and Governance",
-    "Infrastructure Systems",
-    "Operations and Logistics",
-    "Quality and Safety",
-    "Innovation and Optimization",
-    "Cross-Sector Integration (ISEA)",
+    "Geography",
+    "Architecture",
+    "Ecology",
+    "Philosophy",
+    "Law and Governance",
+    "Economics",
+    "Systemics",
 ]
 
 INDUSTRY_SLOT_LABELS = ["Foundation", "Development", "Operations", "Optimization"]
