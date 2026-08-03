@@ -870,6 +870,8 @@ def build_admin_metrics():
     for model in apps.get_models():
         if model._meta.app_label.startswith("django"):
             continue
+        if not getattr(model._meta, "managed", True):
+            continue
         try:
             count = model.objects.count()
         except Exception:

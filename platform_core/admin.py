@@ -12,9 +12,7 @@ from .models import (
     ContractUsageEvent,
     InsightsDailySnapshot,
     InsightsNarrativeSnapshot,
-    GICSReference,
     MLASClassificationRecord,
-    NAICSReference,
     QuadrantUsageEvent,
     SemanticPreset,
     Slide,
@@ -379,17 +377,3 @@ class MLASClassificationRecordAdmin(admin.ModelAdmin):
         return format_html('<span style="color:#b00020;font-weight:600;">Red</span>')
 
 
-@admin.register(NAICSReference)
-class NAICSReferenceAdmin(admin.ModelAdmin):
-    list_display = ("code", "title", "sector_code", "source_version", "is_active", "updated_at")
-    list_filter = ("is_active", "source_version")
-    search_fields = ("code", "title", "sector_code")
-    ordering = ("code",)
-
-
-@admin.register(GICSReference)
-class GICSReferenceAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "level", "parent_code", "source_version", "is_active", "updated_at")
-    list_filter = ("level", "is_active", "source_version")
-    search_fields = ("code", "name", "parent_code")
-    ordering = ("level", "code")

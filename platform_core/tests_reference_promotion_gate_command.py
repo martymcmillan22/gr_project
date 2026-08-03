@@ -6,16 +6,16 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
-from platform_core.models import GICSReference
+from platform_reference.models import PlatformReferenceGICSReferenceSchema
 
 
 class ReferencePromotionGateCommandTests(TestCase):
     @override_settings(DEBUG=True)
     def test_skips_in_non_production_even_with_demo_data(self):
-        GICSReference.objects.create(
+        PlatformReferenceGICSReferenceSchema.objects.create(
             code="10101010",
             name="Demo Sub Industry",
-            level=GICSReference.LEVEL_SUB_INDUSTRY,
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
             source_version="DEMO-GICS-UNLICENSED",
         )
 
@@ -27,10 +27,10 @@ class ReferencePromotionGateCommandTests(TestCase):
 
     @override_settings(DEBUG=False)
     def test_fails_in_production_when_gics_is_demo(self):
-        GICSReference.objects.create(
+        PlatformReferenceGICSReferenceSchema.objects.create(
             code="10101010",
             name="Demo Sub Industry",
-            level=GICSReference.LEVEL_SUB_INDUSTRY,
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
             source_version="DEMO-GICS-UNLICENSED",
         )
 
@@ -41,10 +41,10 @@ class ReferencePromotionGateCommandTests(TestCase):
 
     @override_settings(DEBUG=False)
     def test_passes_in_production_with_licensed_gics(self):
-        GICSReference.objects.create(
+        PlatformReferenceGICSReferenceSchema.objects.create(
             code="10101010",
             name="Licensed Sub Industry",
-            level=GICSReference.LEVEL_SUB_INDUSTRY,
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
             source_version="GICS-LICENSED-2026",
         )
 

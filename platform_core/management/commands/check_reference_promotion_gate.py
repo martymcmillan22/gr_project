@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from platform_core.reference_sync import get_gics_source_status, is_production_environment
+from platform_reference.services.reference_sync import get_gics_source_status, is_production_environment
 
 
 class Command(BaseCommand):

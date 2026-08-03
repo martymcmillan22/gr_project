@@ -2,7 +2,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 
-from platform_core.models import GICSReference, MLASClassificationRecord, NAICSReference
+from platform_core.models import MLASClassificationRecord
+from platform_reference.models import PlatformReferenceGICSReferenceSchema
+from platform_reference.models import PlatformReferenceNAICSReferenceSchema
 
 
 class ClassificationExecutiveConsoleTests(TestCase):
@@ -66,8 +68,13 @@ class ClassificationExecutiveConsoleTests(TestCase):
         self.assertEqual(response.context["reference_sync"]["gics"]["source_status"], "missing")
 
     def test_returns_kpis_for_staff(self):
-        NAICSReference.objects.create(code="111110", title="Soybean Farming", sector_code="11", source_version="NAICS-2022")
-        GICSReference.objects.create(code="10101010", name="Energy Equipment and Services", level=GICSReference.LEVEL_SUB_INDUSTRY, source_version="GICS-LICENSED")
+        PlatformReferenceNAICSReferenceSchema.objects.create(code="111110", title="Soybean Farming", sector_code="11", source_version="NAICS-2022")
+        PlatformReferenceGICSReferenceSchema.objects.create(
+            code="10101010",
+            name="Energy Equipment and Services",
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
+            source_version="GICS-LICENSED",
+        )
 
         MLASClassificationRecord.objects.create(
             **self._record_payload(
@@ -150,8 +157,16 @@ class ClassificationExecutiveConsoleTests(TestCase):
 
         links = response.context["admin_links"]
         self.assertIn("/admin/platform_core/mlasclassificationrecord/", links["all"])
-        self.assertIn("/admin/platform_core/naicsreference/", links["naics_reference"])
-        self.assertIn("/admin/platform_core/gicsreference/", links["gics_reference"])
+        self.assertTrue(
+            "/admin/platform_core/naicsreference/" in links["naics_reference"]
+            or "/admin/platform_reference/naicsreference/" in links["naics_reference"]
+            or "/admin/platform_reference/platformreferencenaicsreferenceschema/" in links["naics_reference"]
+        )
+        self.assertTrue(
+            "/admin/platform_core/gicsreference/" in links["gics_reference"]
+            or "/admin/platform_reference/gicsreference/" in links["gics_reference"]
+            or "/admin/platform_reference/platformreferencegicsreferenceschema/" in links["gics_reference"]
+        )
         self.assertIn("validation_band=red", links["red_band"])
         self.assertIn("review_status__exact=candidate", links["candidate_queue"])
         self.assertIn("external_alignment=missing", links["missing_external"])
@@ -208,10 +223,10 @@ class ClassificationExecutiveConsoleTests(TestCase):
         self.assertEqual(heat["label"], "Caution")
 
     def test_gics_demo_source_status_when_non_licensed_data_loaded(self):
-        GICSReference.objects.create(
+        PlatformReferenceGICSReferenceSchema.objects.create(
             code="10101010",
             name="Demo Sub Industry",
-            level=GICSReference.LEVEL_SUB_INDUSTRY,
+            level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY,
             source_version="DEMO-GICS-UNLICENSED",
         )
 

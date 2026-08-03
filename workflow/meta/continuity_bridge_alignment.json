@@ -1,0 +1,497 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-08-01",
+  "status_values": [
+    "Complete",
+    "In Progress",
+    "Planned"
+  ],
+  "checklist": [
+    {
+      "section": "Semantic Foundation",
+      "items": [
+        {
+          "name": "BTIF/",
+          "status": "Complete"
+        },
+        {
+          "name": "domain/",
+          "status": "Complete"
+        },
+        {
+          "name": "platform_semantic/",
+          "status": "In Progress"
+        },
+        {
+          "name": "platform_reference/",
+          "status": "In Progress"
+        },
+        {
+          "name": "Consolidate semantic and reference logic out of platform_core/",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "Pattern Engine (BTPE)",
+      "items": [
+        {
+          "name": "Normalize naming (basetrue_engine vs baseture_engine)",
+          "status": "In Progress"
+        },
+        {
+          "name": "Create platform_runtime/ for pipelines and schedulers",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "Workflow Layer (Idea -> Seed -> Project)",
+      "items": [
+        {
+          "name": "peringram/",
+          "status": "Complete"
+        },
+        {
+          "name": "workflow/",
+          "status": "Complete"
+        },
+        {
+          "name": "polish/",
+          "status": "Complete"
+        },
+        {
+          "name": "Task Manager under task_manager/",
+          "status": "Complete"
+        },
+        {
+          "name": "Promote Polish and Task Manager to Governance Tier 1",
+          "status": "In Progress"
+        }
+      ]
+    },
+    {
+      "section": "Governance Layer (Project -> Identity -> Narrative -> Delivery)",
+      "items": [
+        {
+          "name": "project_middle_layer/",
+          "status": "Complete"
+        },
+        {
+          "name": "VA orchestration (conceptual)",
+          "status": "Complete"
+        },
+        {
+          "name": "VA Django app implementation",
+          "status": "Planned"
+        },
+        {
+          "name": "VA URL routing",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "Platform Core Split",
+      "items": [
+        {
+          "name": "Current monolith: platform_core/",
+          "status": "Complete"
+        },
+        {
+          "name": "platform_semantic/",
+          "status": "In Progress"
+        },
+        {
+          "name": "platform_quadrant/",
+          "status": "In Progress"
+        },
+        {
+          "name": "platform_billing/",
+          "status": "In Progress"
+        },
+        {
+          "name": "platform_reference/",
+          "status": "In Progress"
+        },
+        {
+          "name": "Migration strategy",
+          "status": "In Progress"
+        }
+      ]
+    },
+    {
+      "section": "Home as True Index (Public / Personal / Enterprise)",
+      "items": [
+        {
+          "name": "home/ as index",
+          "status": "Complete"
+        },
+        {
+          "name": "Public entry",
+          "status": "Complete"
+        },
+        {
+          "name": "Personal entry",
+          "status": "Complete"
+        },
+        {
+          "name": "Enterprise entry",
+          "status": "Planned"
+        },
+        {
+          "name": "Enterprise routing",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "Narrative + POV Layer",
+      "items": [
+        {
+          "name": "povs/",
+          "status": "Complete"
+        },
+        {
+          "name": "storytelling-engine/",
+          "status": "Complete"
+        },
+        {
+          "name": "storytelling_dashboard/",
+          "status": "Complete"
+        },
+        {
+          "name": "Enterprise POVs",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "UI Delivery Layer (4-Block UI)",
+      "items": [
+        {
+          "name": "ui/",
+          "status": "Complete"
+        },
+        {
+          "name": "ui_apps/",
+          "status": "Complete"
+        },
+        {
+          "name": "ui_template_library/",
+          "status": "Complete"
+        },
+        {
+          "name": "home/",
+          "status": "Complete"
+        },
+        {
+          "name": "Add Enterprise UI surfaces",
+          "status": "Planned"
+        }
+      ]
+    },
+    {
+      "section": "Documentation Layer",
+      "items": [
+        {
+          "name": "README.md",
+          "status": "Complete"
+        },
+        {
+          "name": "Master Architecture Document",
+          "status": "Complete"
+        },
+        {
+          "name": "Continuity Bridge Alignment",
+          "status": "Complete"
+        },
+        {
+          "name": "Add migration timeline",
+          "status": "Planned"
+        }
+      ]
+    }
+  ],
+  "migration_timeline": {
+    "phases": [
+      {
+        "phase": 0,
+        "name": "Foundation Locked",
+        "focus": "Semantic foundation, governance tier 2, narrative layer, UI layer, and documentation spine are stable.",
+        "status": "Complete"
+      },
+      {
+        "phase": 1,
+        "name": "Naming and Early Governance",
+        "focus": "Normalize BTPE naming, promote Polish and Task Manager to Governance Tier 1, and advance Platform Core migration strategy.",
+        "status": "In Progress"
+      },
+      {
+        "phase": 2,
+        "name": "Enterprise Entry",
+        "focus": "Add Enterprise entry button and routing from home, plus Enterprise POV and UI surfaces.",
+        "status": "Planned",
+        "next_status": "In Progress"
+      },
+      {
+        "phase": 3,
+        "name": "VA Implementation",
+        "focus": "Create VA Django app, register settings and URLs, add views, and connect to both governance tiers.",
+        "status": "Planned",
+        "next_status": "In Progress"
+      },
+      {
+        "phase": 4,
+        "name": "Platform Core Split",
+        "focus": "Create platform_semantic, platform_quadrant, platform_billing, and platform_reference apps, then migrate logic out of platform_core.",
+        "status": "In Progress",
+        "next_status": "In Progress"
+      },
+      {
+        "phase": 5,
+        "name": "Runtime Layer",
+        "focus": "Create platform_runtime and move pipelines, schedulers, background tasks, and semantic jobs.",
+        "status": "Planned"
+      },
+      {
+        "phase": 6,
+        "name": "Migration Timeline Publication",
+        "focus": "Publish migration timeline in README, docs, JSON tracker, and GRASSROOTS_AI_WORKFLOW.md.",
+        "status": "Planned"
+      }
+    ]
+  },
+  "enterprise_entry_point": {
+    "status": "Planned",
+    "domains": [
+      "Public",
+      "Personal",
+      "Enterprise"
+    ],
+    "pipeline": [
+      "Idea",
+      "Seed",
+      "Project",
+      "Identity",
+      "Narrative",
+      "Delivery"
+    ],
+    "home_entry": {
+      "label": "Enterprise Center",
+      "route": "/enterprise/",
+      "status": "Planned"
+    },
+    "app_structure": {
+      "app_folder": "enterprise/",
+      "subfolders": [
+        "views/",
+        "templates/enterprise/",
+        "urls.py",
+        "povs/enterprise/",
+        "workflows/enterprise/",
+        "storytelling_dashboard/enterprise/"
+      ],
+      "app_config": "EnterpriseConfig",
+      "installed_apps_registration": "Planned"
+    },
+    "routes": [
+      "/enterprise/ideas/",
+      "/enterprise/seeds/",
+      "/enterprise/projects/",
+      "/enterprise/story/",
+      "/enterprise/pov/",
+      "/enterprise/dashboard/"
+    ],
+    "integration_checklist": [
+      {
+        "name": "Add Enterprise button to home/index.html",
+        "status": "Planned"
+      },
+      {
+        "name": "Create enterprise app",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise URLs",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise POVs",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise storytelling dashboard",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise workflows",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise governance hooks",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise UI surfaces",
+        "status": "Planned"
+      },
+      {
+        "name": "Add enterprise routing to VA",
+        "status": "Planned"
+      },
+      {
+        "name": "Update JSON tracker statuses",
+        "status": "Planned"
+      }
+    ]
+  },
+  "va_dual_governance": {
+    "status": "Planned",
+    "takeaway": "VA acts as a two-tier semantic orchestrator across early-stage and late-stage deterministic pipelines.",
+    "pipeline_coverage": {
+      "tier_1": [
+        "Idea",
+        "Seed",
+        "Project"
+      ],
+      "tier_2": [
+        "Project",
+        "Identity",
+        "Narrative",
+        "Delivery"
+      ],
+      "domains": [
+        "Public",
+        "Personal",
+        "Enterprise"
+      ]
+    },
+    "app_structure": {
+      "app_folder": "va/",
+      "subfolders": [
+        "views/",
+        "services/",
+        "governance/",
+        "routes/",
+        "templates/va/",
+        "analytics/",
+        "intent/"
+      ],
+      "app_config": "VAConfig",
+      "installed_apps_registration": "Planned"
+    },
+    "routes": [
+      "/va/intent/",
+      "/va/idea/",
+      "/va/seed/",
+      "/va/project/",
+      "/va/identity/",
+      "/va/narrative/",
+      "/va/delivery/",
+      "/va/enterprise/"
+    ],
+    "intent_engine": {
+      "intent_categories": [
+        "Idea creation",
+        "Seed refinement",
+        "Seed to Project promotion",
+        "Project governance",
+        "Identity alignment",
+        "Narrative strengthening",
+        "Delivery readiness",
+        "Enterprise workflows"
+      ],
+      "responsibilities": [
+        "classify user action",
+        "map to deterministic pipeline",
+        "route to correct governance tier",
+        "apply POV lens",
+        "trigger storytelling updates",
+        "maintain semantic continuity"
+      ]
+    },
+    "governance_integrations": {
+      "tier_1": [
+        "VA to Polish",
+        "VA to Task Manager",
+        "VA to PIP"
+      ],
+      "tier_2": [
+        "VA to Project Middle Layer",
+        "VA to Storytelling Engine",
+        "VA to POVs"
+      ],
+      "enterprise": [
+        "VA to Enterprise POVs",
+        "VA to Enterprise Storytelling Dashboard"
+      ]
+    },
+    "analytics_inputs": [
+      "semantic drift",
+      "narrative strength",
+      "delivery readiness",
+      "project health",
+      "seed viability",
+      "idea clarity",
+      "enterprise alignment"
+    ],
+    "ui_surfaces": [
+      "VA dashboard",
+      "VA intent history",
+      "VA semantic nudges",
+      "VA governance timeline",
+      "VA enterprise insights"
+    ],
+    "integration_checklist": [
+      {
+        "name": "Create va app",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA to settings.py",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA URLs",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA views",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA intent engine",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA governance tier 1 routing",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA governance tier 2 routing",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA enterprise routing",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA analytics layer",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA POV integration",
+        "status": "Planned"
+      },
+      {
+        "name": "Add VA storytelling integration",
+        "status": "Planned"
+      },
+      {
+        "name": "Update JSON tracker statuses",
+        "status": "Planned"
+      }
+    ]
+  }
+}

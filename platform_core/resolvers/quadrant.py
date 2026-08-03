@@ -34,7 +34,12 @@ PM_DOMAINS = {
 
 def get_current_hour():
     """
-    Returns the current hour in 12-hour format (1-12) using server-local time.
+    Returns the current hour in 12-hour format (1-12).
+
+    Uses timezone.localtime() (Django's TIME_ZONE-aware wall clock) - this is
+    the canonical clock for PIP as well (see peringram.srl.SRLService); PIP's
+    Convection-Cycle and this quadrant resolver both derive from the same
+    settings.TIME_ZONE-based hour (Phase 4: single clock source).
     """
     now = timezone.localtime()
     hour = now.hour % 12

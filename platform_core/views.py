@@ -8,6 +8,7 @@ from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.urls import NoReverseMatch
 from django.views.decorators.http import require_http_methods
 
 from platform_core.resolvers.quadrant import get_current_hour, is_pm, resolve_domain, resolve_url
@@ -15,9 +16,7 @@ from platform_core.resolvers.quadrant import AM_DOMAINS, PM_DOMAINS
 from platform_core.resolvers.quadrant_inversion import HINGE_HOUR, build_inversion_payload
 
 from .models import (
-    GICSReference,
     MLASClassificationRecord,
-    NAICSReference,
     SemanticBundle,
     SemanticBundleRevision,
     SemanticBundleRevisionTag,
@@ -27,7 +26,9 @@ from .models import (
     Slide,
 )
 from .routing import apply_resolved_route
-from .reference_sync import get_gics_source_status
+from platform_reference.models import PlatformReferenceGICSReferenceSchema
+from platform_reference.models import PlatformReferenceNAICSReferenceSchema
+from platform_reference.services.reference_sync import get_gics_source_status
 
 from .unified_admin import (
     _billing_access_link_anomalies_payload,
@@ -287,11 +288,11 @@ def classification_executive_view(request):
     )
     term_goal = 64
 
-    naics_ref_count = NAICSReference.objects.count()
-    gics_ref_count = GICSReference.objects.count()
+    naics_ref_count = PlatformReferenceNAICSReferenceSchema.objects.count()
+    gics_ref_count = PlatformReferenceGICSReferenceSchema.objects.count()
     gics_source_status = get_gics_source_status()
-    naics_ref_last_updated = NAICSReference.objects.order_by("-updated_at").values_list("updated_at", flat=True).first()
-    gics_ref_last_updated = GICSReference.objects.order_by("-updated_at").values_list("updated_at", flat=True).first()
+    naics_ref_last_updated = PlatformReferenceNAICSReferenceSchema.objects.order_by("-updated_at").values_list("updated_at", flat=True).first()
+    gics_ref_last_updated = PlatformReferenceGICSReferenceSchema.objects.order_by("-updated_at").values_list("updated_at", flat=True).first()
 
     naics_codes_in_records = list(
         records.exclude(naics_code_6="")
@@ -303,8 +304,8 @@ def classification_executive_view(request):
         .values_list("gics_sub_industry_code", flat=True)
         .distinct()
     )
-    naics_matched_count = NAICSReference.objects.filter(code__in=naics_codes_in_records).count() if naics_codes_in_records else 0
-    gics_matched_count = GICSReference.objects.filter(level=GICSReference.LEVEL_SUB_INDUSTRY, code__in=gics_codes_in_records).count() if gics_codes_in_records else 0
+    naics_matched_count = PlatformReferenceNAICSReferenceSchema.objects.filter(code__in=naics_codes_in_records).count() if naics_codes_in_records else 0
+    gics_matched_count = PlatformReferenceGICSReferenceSchema.objects.filter(level=PlatformReferenceGICSReferenceSchema.LEVEL_SUB_INDUSTRY, code__in=gics_codes_in_records).count() if gics_codes_in_records else 0
 
     green_count = records.filter(confidence_overall__gte=0.90).count()
     yellow_count = records.filter(confidence_overall__gte=0.75, confidence_overall__lt=0.90).count()
@@ -367,8 +368,24 @@ def classification_executive_view(request):
     else:
         readiness_status = "Ready" if approved_term_count >= term_goal and red_count == 0 else "In Progress"
     admin_changelist_url = reverse("admin:platform_core_mlasclassificationrecord_changelist")
-    naics_admin_changelist_url = reverse("admin:platform_core_naicsreference_changelist")
-    gics_admin_changelist_url = reverse("admin:platform_core_gicsreference_changelist")
+
+    def _reverse_admin_changelist(model_names: list[str]) -> str:
+        for app_label in ("platform_core", "platform_reference"):
+            for model_name in model_names:
+                try:
+                    return reverse(f"admin:{app_label}_{model_name}_changelist")
+                except NoReverseMatch:
+                    continue
+        raise NoReverseMatch(f"No admin changelist found for models: {', '.join(model_names)}")
+
+    naics_admin_changelist_url = _reverse_admin_changelist([
+        "naicsreference",
+        "platformreferencenaicsreferenceschema",
+    ])
+    gics_admin_changelist_url = _reverse_admin_changelist([
+        "gicsreference",
+        "platformreferencegicsreferenceschema",
+    ])
 
     def _admin_link(params: dict) -> str:
         query = urlencode(params)
