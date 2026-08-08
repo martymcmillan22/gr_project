@@ -258,8 +258,32 @@ class PIPViewTests(TestCase):
 		)
 		high_pip_state = PIPState.from_recycle3(high_profile)  # CCPP tier, no territory
 		self.assertTrue(RRService.can_invoke(high_pip_state))
-		business = RRService.promote_seed_to_project(high_pip_state, seed, brand_name="Test Co")
+		business = RRService.promote_seed_to_project(
+			high_pip_state,
+			seed,
+			brand_name="Test Co",
+			project_notes={
+				"ontology_path": {
+					"sector": "Primary (Create Phase)",
+					"subject": "Math",
+					"industry": "Capital Markets",
+					"subindustry": "Algorithmic Trading Systems & Quantitative Analysis",
+					"node_index": 2,
+				}
+			},
+		)
 		self.assertEqual(business.brand_name, "Test Co")
+		self.assertIsNotNone(business.color_code)
+		self.assertIsNotNone(business.compartment_id)
+		self.assertEqual(set(business.display_rgb.keys()), {"r", "g", "b"})
+
+		integrity_ok = RRService.verify_business_color_integrity(business)
+		self.assertEqual(integrity_ok["status"], "ok")
+
+		business.color_code = 1
+		business.save(update_fields=["color_code", "updated_at"])
+		integrity_mismatch = RRService.verify_business_color_integrity(business)
+		self.assertEqual(integrity_mismatch["status"], "mismatch")
 		idea.refresh_from_db()
 		self.assertEqual(idea.status, "PROJECT")
 

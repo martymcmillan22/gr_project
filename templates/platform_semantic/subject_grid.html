@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Semantic Subject Grid{% endblock %}
+
+{% block content %}
+<style>
+  .semantic-grid-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 36px;
+  }
+
+  .semantic-grid-header {
+    margin-bottom: 20px;
+  }
+
+  .semantic-grid-header h1 {
+    margin: 0 0 8px;
+    font-size: 1.8rem;
+    letter-spacing: 0.02em;
+  }
+
+  .semantic-grid-header p {
+    margin: 0;
+    color: #334155;
+    line-height: 1.5;
+  }
+
+  .semantic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+  }
+
+  .semantic-card {
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #f8fafc;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  }
+
+  .semantic-swatch {
+    height: 46px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .semantic-body {
+    padding: 10px 12px 12px;
+  }
+
+  .semantic-label {
+    font-weight: 700;
+    font-size: 0.98rem;
+    margin-bottom: 6px;
+    color: #0f172a;
+  }
+
+  .semantic-meta {
+    margin: 0;
+    display: grid;
+    gap: 4px;
+    font-size: 0.86rem;
+    color: #334155;
+  }
+
+  .semantic-meta span {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: #0f172a;
+  }
+
+  .semantic-footer {
+    margin-top: 18px;
+    font-size: 0.86rem;
+    color: #475569;
+  }
+</style>
+
+<div class="semantic-grid-wrap">
+  <div class="semantic-grid-header">
+    <h1>{{ title }}</h1>
+    <p>Deterministic 16-subject semantic catalog rendered from anchor-band metadata.</p>
+  </div>
+
+  <section class="semantic-grid" aria-label="Semantic subject catalog">
+    {% for item in catalog %}
+      <article class="semantic-card">
+        <div class="semantic-swatch" style="background: rgb({{ item.anchor_band.0 }}, {{ item.anchor_band.1 }}, {{ item.anchor_band.2 }});"></div>
+        <div class="semantic-body">
+          <div class="semantic-label">{{ item.subject }}</div>
+          <p class="semantic-meta">
+            <span>phase: {{ item.phase }}</span>
+            <span>compartment: {{ item.compartment_id }}</span>
+            <span>anchor: rgb({{ item.anchor_band.0 }}, {{ item.anchor_band.1 }}, {{ item.anchor_band.2 }})</span>
+          </p>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <div class="semantic-footer">
+    Data source: <a href="{{ catalog_api }}">{{ catalog_api }}</a>
+  </div>
+</div>
+{% endblock %}

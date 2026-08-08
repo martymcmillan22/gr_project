@@ -43,6 +43,9 @@ class BusinessSerializer(serializers.Serializer):
     brand_name = serializers.CharField(read_only=True)
     market_status = serializers.CharField(read_only=True)
     project_notes = serializers.DictField(read_only=True)
+    color_code = serializers.IntegerField(read_only=True)
+    compartment_id = serializers.IntegerField(read_only=True)
+    display_rgb = serializers.DictField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 

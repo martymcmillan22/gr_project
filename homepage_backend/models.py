@@ -64,6 +64,7 @@ class HomepageFlow(OwnedModel, BaseModel):
 class HomepagePreference(OwnedModel, BaseModel):
     notifications = models.BooleanField(default=True)
     dark_mode = models.BooleanField(default=False)
+    view_state = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ["-updated_at"]

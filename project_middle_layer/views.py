@@ -95,6 +95,7 @@ from .semantic_search import run_semantic_search
 from .webhooks import retry_webhook_delivery
 from .semantic import build_semantic_diff
 from .services import compile_and_store_project_node
+from .services import build_middle_layer_rr_color_context
 from .services import get_project_middle_layer_activation_payload
 from .audit import record_semantic_audit_log
 from .collaboration import acquire_edit_session
@@ -1043,6 +1044,7 @@ class ProjectMiddleLayerDashboardView(ProjectMiddleLayerAdminRequiredMixin, View
         branch_filter = (request.GET.get("branch_filter") or "").strip()
         tier_filter = (request.GET.get("tier_filter") or "").strip()
         dashboard = build_semantic_analytics_dashboard(limit=20, branch_filter=branch_filter, tier_filter=tier_filter)
+        rr_color_context = build_middle_layer_rr_color_context()
         context = {
             **admin.site.each_context(request),
             "title": "Semantic System Dashboard",
@@ -1053,6 +1055,7 @@ class ProjectMiddleLayerDashboardView(ProjectMiddleLayerAdminRequiredMixin, View
             "filters": dashboard.get("filters", {}),
             "available_branches": dashboard.get("available_branches", []),
             "available_tiers": dashboard.get("available_tiers", []),
+            "rr_color_context": rr_color_context,
         }
         return TemplateResponse(request, self.template_name, context)
 

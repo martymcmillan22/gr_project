@@ -55,6 +55,9 @@ class Business(models.Model):
 	brand_name = models.CharField(max_length=160)
 	market_status = models.CharField(max_length=80)
 	project_notes = models.JSONField(default=dict, blank=True)
+	color_code = models.PositiveIntegerField(null=True, blank=True, db_index=True)
+	compartment_id = models.PositiveSmallIntegerField(null=True, blank=True, db_index=True)
+	display_rgb = models.JSONField(default=dict, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

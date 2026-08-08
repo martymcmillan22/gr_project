@@ -137,3 +137,71 @@ class PlatformSemanticActivationTests(TestCase):
 		self.assertTrue(payload["capability_flags"]["semantic_merge"])
 		self.assertTrue(payload["capability_flags"]["semantic_versioning"])
 		self.assertTrue(payload["deterministic_ready"])
+
+
+class PlatformSemanticColorPreviewTests(TestCase):
+	def test_subject_grid_view_renders_catalog(self):
+		response = self.client.get("/platform/semantic/subject-grid/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Semantic Subject Grid")
+		self.assertContains(response, "Math")
+		self.assertContains(response, "Systemics")
+
+	def test_color_preview_catalog_mode(self):
+		response = self.client.get("/platform/semantic/color-preview/", {"catalog": "1"})
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["mode"], "catalog")
+		self.assertEqual(len(payload["compartments"]), 16)
+		self.assertEqual(payload["compartments"][0]["subject"], "Math")
+		self.assertEqual(payload["compartments"][15]["subject"], "Systemics")
+
+	def test_color_preview_from_ontology_path(self):
+		response = self.client.get(
+			"/platform/semantic/color-preview/",
+			{
+				"sector": "Primary",
+				"subject": "Math",
+				"industry": "Capital Markets",
+				"subindustry": "Algorithmic Trading Systems & Quantitative Analysis",
+				"node_index": 0,
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["mode"], "ontology_path")
+		self.assertEqual(payload["compartment_id"], 0)
+		self.assertEqual(payload["identity_rgb"], [0, 0, 0])
+		self.assertEqual(payload["display_rgb"], [192, 0, 0])
+
+	def test_color_preview_from_color_code(self):
+		response = self.client.get("/platform/semantic/color-preview/", {"color_code": 9})
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["mode"], "color_code")
+		self.assertEqual(payload["compartment_id"], 0)
+		self.assertEqual(payload["local_index_fields"]["node_index"], 9)
+		self.assertEqual(payload["identity_rgb"], [0, 0, 9])
+
+	def test_color_preview_from_phase4_ontology_path(self):
+		response = self.client.get(
+			"/platform/semantic/color-preview/",
+			{
+				"sector": "Quaternary",
+				"subject": "Economics",
+				"industry": "Banking",
+				"subindustry": "Central Bank Reserve Interventions & Fractional Lending Math",
+				"node_index": 5,
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		payload = response.json()
+		self.assertEqual(payload["mode"], "ontology_path")
+		self.assertEqual(payload["compartment_id"], 14)
+		self.assertEqual(payload["identity_rgb"], [224, 0, 5])
+
+	def test_color_preview_missing_inputs_returns_400(self):
+		response = self.client.get("/platform/semantic/color-preview/")
+		self.assertEqual(response.status_code, 400)
+		payload = response.json()
+		self.assertIn("detail", payload)

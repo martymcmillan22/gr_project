@@ -21,6 +21,15 @@ from .serializers import (
 	SeedPromotionSerializer,
 	SeedSerializer,
 )
+from .rr_visual_system import build_operating_stack_payload
+from .rr_visual_system import build_rr_card_spec_payload
+from .rr_visual_system import build_rr_dashboard_payload
+from .rr_visual_system import build_rr_industry_map_payload
+from .rr_visual_system import build_rr_node_detail_payload
+from .rr_visual_system import build_semantic_action_engine_payload
+from .rr_visual_system import build_semantic_intelligence_payload
+from .rr_visual_system import build_va_guidance_payload
+from .rr_visual_system import execute_semantic_action
 from .services import find_similar_ideas, validate_idea_submission
 
 
@@ -274,3 +283,104 @@ class ProjectActivationAPIView(APIView):
 			},
 			status=status.HTTP_201_CREATED,
 		)
+
+
+class RRDashboardAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		phase_filter = (request.query_params.get("phase") or "").strip()
+		limit = request.query_params.get("limit")
+		try:
+			limit_value = int(limit) if limit is not None else 10
+		except ValueError:
+			return Response({"detail": "limit must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+		payload = build_rr_dashboard_payload(user=request.user, phase_filter=phase_filter, limit_per_lane=max(limit_value, 0))
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRIndustryMapAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		phase_filter = (request.query_params.get("phase") or "").strip()
+		payload = build_rr_industry_map_payload(user=request.user, phase_filter=phase_filter)
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRCardSpecAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		compartment_id = request.query_params.get("compartment_id")
+		if compartment_id is None:
+			payload = build_rr_card_spec_payload()
+			return Response(payload, status=status.HTTP_200_OK)
+
+		try:
+			parsed = int(compartment_id)
+		except ValueError:
+			return Response({"detail": "compartment_id must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+		try:
+			payload = build_rr_card_spec_payload(compartment_id=parsed)
+		except ValueError as exc:
+			return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRVAGuidanceAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		payload = build_va_guidance_payload(user=request.user)
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RROperatingStackAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		payload = build_operating_stack_payload()
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRNodeDetailAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request, business_id):
+		try:
+			payload = build_rr_node_detail_payload(business_id=int(business_id), user=request.user)
+		except ValueError as exc:
+			return Response({"detail": str(exc)}, status=status.HTTP_404_NOT_FOUND)
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRSemanticIntelligenceAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		payload = build_semantic_intelligence_payload(user=request.user)
+		return Response(payload, status=status.HTTP_200_OK)
+
+
+class RRSemanticActionEngineAPIView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		payload = build_semantic_action_engine_payload(user=request.user)
+		return Response(payload, status=status.HTTP_200_OK)
+
+	def post(self, request):
+		payload = request.data if isinstance(request.data, dict) else {}
+		result = execute_semantic_action(payload=payload, user=request.user)
+		result_status = str(result.get("status") or "")
+		if result_status == "executed":
+			return Response(result, status=status.HTTP_200_OK)
+		if result_status == "blocked":
+			return Response(result, status=status.HTTP_409_CONFLICT)
+		if result_status == "failed":
+			return Response(result, status=status.HTTP_409_CONFLICT)
+		if result_status == "rejected":
+			return Response(result, status=status.HTTP_400_BAD_REQUEST)
+		return Response(result, status=status.HTTP_400_BAD_REQUEST)

@@ -66,6 +66,25 @@
   {% endif %}
 </section>
 
+<section class="bt-overview-card bt-q-green" style="padding:14px;margin-bottom:12px;">
+  <h3 style="margin-top:0;">RR Color Identity Context</h3>
+  <p style="margin:0 0 8px 0;">Lane Count: {{ rr_color_context.lane_count }} | Integrity OK: {{ rr_color_context.integrity_strip.ok|default:0 }} | Mismatch: {{ rr_color_context.integrity_strip.mismatch|default:0 }}</p>
+  <p style="margin:0 0 10px 0;">Status Bands: Idea {{ rr_color_context.status_bands.Idea|default:0 }}, Seed {{ rr_color_context.status_bands.Seed|default:0 }}, Project {{ rr_color_context.status_bands.Project|default:0 }}, Archived {{ rr_color_context.status_bands.Archived|default:0 }}</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;">
+    {% for lane in rr_color_context.dominant_lanes %}
+      {% with band=lane.display_anchor_band %}
+      <article class="bt-overview-card" style="padding:10px;border-left:8px solid rgb({{ band.r.0|default:0 }}, {{ band.g.0|default:0 }}, {{ band.b.0|default:0 }});">
+        <p style="margin:0 0 4px 0;"><strong>{{ lane.subject }}</strong> (C{{ lane.compartment_id }})</p>
+        <p style="margin:0 0 4px 0;">Phase: {{ lane.phase }} | Nodes: {{ lane.node_count }}</p>
+        <p style="margin:0;">Integrity: ok {{ lane.integrity.ok|default:0 }}, mismatch {{ lane.integrity.mismatch|default:0 }}, unavailable {{ lane.integrity.unavailable|default:0 }}</p>
+      </article>
+      {% endwith %}
+    {% empty %}
+      <p>No RR projects available for color context yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="bt-overview-card bt-q-yellow" style="padding:14px;">
   <h3 style="margin-top:0;">Overlays</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">

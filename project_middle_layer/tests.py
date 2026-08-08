@@ -503,6 +503,7 @@ class ProjectMiddleLayerActivationTests(TestCase):
         self.assertIn("reference_truth", payload)
         self.assertIn("classification_truth", payload)
         self.assertIn("semantic_state", payload)
+        self.assertIn("rr_color_context", payload)
         self.assertIn("capability_flags", payload)
         self.assertIn("compartment_drift_detection", payload)
         self.assertIn("deterministic_ready", payload)
@@ -524,6 +525,8 @@ class ProjectMiddleLayerActivationTests(TestCase):
         self.assertTrue(payload["capability_flags"]["compartment_drift_governance"])
         self.assertIn("drift_baseline", payload["semantic_state"])
         self.assertTrue(len(payload["compartment_drift_detection"]["compartments"]) > 0)
+        self.assertEqual(payload["rr_color_context"]["lane_count"], 16)
+        self.assertIn("integrity_strip", payload["rr_color_context"])
         self.assertTrue(payload["deterministic_ready"])
 
 

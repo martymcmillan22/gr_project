@@ -1,0 +1,104 @@
+{
+  "version": "phase-31",
+  "generated_from": "engine_truth",
+  "tracks": {
+    "rr_visual_system": {
+      "dashboard_layout": {
+        "lane_key": "compartment_id",
+        "lane_count": 16,
+        "status_bands": ["Idea", "Seed", "Project", "Archived"],
+        "required_card_fields": [
+          "title",
+          "subject",
+          "phase",
+          "industry_path",
+          "display_rgb",
+          "integrity_state"
+        ]
+      },
+      "industry_map": {
+        "rows": ["Primary", "Secondary", "Tertiary", "Meta"],
+        "columns": "subject_group_1_to_16",
+        "density_metric": "rr_node_count",
+        "overlay_metric": "integrity_mismatch_ratio"
+      },
+      "card_color_spec": {
+        "accent_source": "display_rgb",
+        "compartment_tag": "subject + compartment_id",
+        "integrity_states": {
+          "ok": "green",
+          "mismatch": "amber_or_red",
+          "unavailable": "slate"
+        },
+        "hierarchy": {
+          "color": "subject",
+          "icon": "phase",
+          "typography": "importance"
+        }
+      }
+    },
+    "middle_layer_integration": {
+      "rules": [
+        "All RR-aware widgets must consume display_rgb from persisted Business fields.",
+        "No local color invention is allowed for RR subjects.",
+        "Drift and integrity views must expose mismatch clustering by compartment."
+      ],
+      "surfaces": ["pipeline", "schedule", "analytics", "dashboard"]
+    },
+    "va_guidance_mode": {
+      "mode": "semantic_color_aware",
+      "signals": [
+        "dominant_compartments",
+        "sector_distribution",
+        "integrity_mismatch_hotspots"
+      ],
+      "behaviors": [
+        "suggest_sops_by_dominant_subject",
+        "warn_on_subject_imbalance",
+        "propose_color_balanced_work_blocks"
+      ]
+    },
+    "operational_architecture": {
+      "sop_unit_schema": {
+        "fields": [
+          "sop_id",
+          "title",
+          "purpose",
+          "inputs",
+          "steps",
+          "outputs",
+          "subject",
+          "compartment_id",
+          "phase",
+          "tags",
+          "difficulty",
+          "time_budget_minutes"
+        ]
+      },
+      "workflow_schema": {
+        "macro": ["workflow_id", "name", "goal", "subject_mix", "phase"],
+        "micro": ["step_id", "sop_id", "dependencies", "triggers", "display_rgb"],
+        "provenance": ["rr_node_id", "business_id", "compiled_at"]
+      }
+    },
+    "publishing_layer": {
+      "investor_ebook": {
+        "sections": ["Narrative", "Architecture", "Evidence", "Roadmap"],
+        "color_rule": "subject colors reinforce semantic map"
+      },
+      "product_usage_ebook": {
+        "sections": ["Onboarding", "Workflows", "VA Guidance", "Operations Playbook"],
+        "color_rule": "all diagrams inherit display_rgb where RR entities appear"
+      },
+      "sop_to_ebook_pipeline": {
+        "chain": ["SOPs", "Workflows", "Usage Logs", "Insights", "Chapter Assembly"],
+        "required_inputs": [
+          "sop_definitions",
+          "workflow_sequences",
+          "rr_color_snapshots",
+          "va_guidance_logs"
+        ]
+      }
+    }
+  }
+}

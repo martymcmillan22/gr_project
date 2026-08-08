@@ -10,6 +10,31 @@ from platform_core.models import MLASClassificationRecord
 from platform_reference.models import PlatformReferenceGICSReferenceSchema
 from platform_reference.models import PlatformReferenceNAICSReferenceSchema
 from platform_reference.services.reference_sync import get_gics_source_status
+from seeds.rr_visual_system import build_rr_dashboard_payload
+
+
+def build_middle_layer_rr_color_context() -> dict[str, object]:
+    rr_payload = build_rr_dashboard_payload(limit_per_lane=3)
+    active_lanes = [lane for lane in rr_payload.get("lanes", []) if lane.get("node_count", 0) > 0]
+    active_lanes.sort(key=lambda lane: int(lane.get("node_count", 0)), reverse=True)
+    dominant = [
+        {
+            "compartment_id": lane.get("compartment_id"),
+            "subject": lane.get("subject"),
+            "phase": lane.get("phase"),
+            "node_count": lane.get("node_count"),
+            "integrity": lane.get("integrity", {}),
+            "display_anchor_band": lane.get("display_anchor_band", {}),
+        }
+        for lane in active_lanes[:6]
+    ]
+
+    return {
+        "lane_count": rr_payload.get("lane_count", 0),
+        "status_bands": rr_payload.get("status_bands", {}),
+        "integrity_strip": rr_payload.get("integrity_strip", {}),
+        "dominant_lanes": dominant,
+    }
 
 
 def get_project_middle_layer_activation_payload() -> dict[str, object]:
@@ -37,6 +62,7 @@ def get_project_middle_layer_activation_payload() -> dict[str, object]:
         "compile_export_chain": project_total > 0 or snapshot_total > 0,
         "analytics_alert_surface": alert_total > 0 or snapshot_total > 0,
     }
+    rr_color_context = build_middle_layer_rr_color_context()
 
     recent_snapshots = list(ProjectEvolutionSnapshot.objects.order_by("-created_at", "-id")[:12])
     avg_drift_risk = 0.0
@@ -79,6 +105,7 @@ def get_project_middle_layer_activation_payload() -> dict[str, object]:
             "alerts": alert_total,
             "drift_baseline": round(avg_drift_risk, 3),
         },
+        "rr_color_context": rr_color_context,
         "capability_flags": capability_flags,
         "compartment_drift_detection": compartment_drift_detection,
         "deterministic_ready": all(capability_flags.values()),

@@ -42,7 +42,7 @@ class HomepageBackendItemApiTests(APITestCase):
     def test_overview_returns_flow_tasks_and_settings(self):
         HomepageFlow.objects.create(owner=self.user, name="Daily Flow", status="active", progress=42)
         HomepageTask.objects.create(owner=self.user, title="Review Notes", description="Check today's flow")
-        HomepagePreference.objects.create(owner=self.user, notifications=True, dark_mode=False)
+        HomepagePreference.objects.create(owner=self.user, notifications=True, dark_mode=False, view_state={"active_panel": "rr_dashboard"})
 
         url = reverse("homepage-overview")
         response = self.client.get(url)
@@ -51,6 +51,27 @@ class HomepageBackendItemApiTests(APITestCase):
         self.assertEqual(response.data["flow"]["name"], "Daily Flow")
         self.assertEqual(len(response.data["tasks"]), 1)
         self.assertEqual(response.data["settings"]["notifications"], True)
+        self.assertEqual(response.data["settings"]["view_state"]["active_panel"], "rr_dashboard")
+
+    def test_preferences_view_state_round_trip(self):
+        url = reverse("homepage-preferences-list")
+        create_response = self.client.post(
+            url,
+            {"notifications": True, "dark_mode": False, "view_state": {"rr": {"phase_filter": "SEED"}}},
+            format="json",
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        preference_id = create_response.data["id"]
+        patch_response = self.client.patch(
+            reverse("homepage-preferences-detail", args=[preference_id]),
+            {"view_state": {"rr": {"phase_filter": "PROJECT", "selected_lane": 4}}},
+            format="json",
+        )
+
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_response.data["view_state"]["rr"]["phase_filter"], "PROJECT")
+        self.assertEqual(patch_response.data["view_state"]["rr"]["selected_lane"], 4)
 
     def test_create_action_writes_homepage_action(self):
         url = reverse("homepage-actions-list")

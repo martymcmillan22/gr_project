@@ -131,6 +131,150 @@ export async function activateProject(payload) {
   return data;
 }
 
+export async function fetchRrDashboard(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/seeds/api/rr/dashboard/?${query.toString()}` : "/seeds/api/rr/dashboard/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR dashboard");
+  }
+  return response.json();
+}
+
+export async function fetchRrIndustryMap(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/seeds/api/rr/industry-map/?${query.toString()}` : "/seeds/api/rr/industry-map/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR industry map");
+  }
+  return response.json();
+}
+
+export async function fetchRrCardSpec(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  const url = query.toString() ? `/seeds/api/rr/card-spec/?${query.toString()}` : "/seeds/api/rr/card-spec/";
+  const response = await fetch(url, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR card color spec");
+  }
+  return response.json();
+}
+
+export async function fetchRrVaGuidance() {
+  const response = await fetch("/seeds/api/rr/va-guidance/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR VA guidance");
+  }
+  return response.json();
+}
+
+export async function fetchRrOperatingStack() {
+  const response = await fetch("/seeds/api/rr/operating-stack/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR operating stack");
+  }
+  return response.json();
+}
+
+export async function fetchRrSemanticIntelligence() {
+  const response = await fetch("/seeds/api/rr/semantic-intelligence/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR semantic intelligence");
+  }
+  return response.json();
+}
+
+export async function fetchRrSemanticActionEngine() {
+  const response = await fetch("/seeds/api/rr/semantic-actions/execute/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR semantic action engine");
+  }
+  return response.json();
+}
+
+export async function executeRrSemanticAction(payload) {
+  const response = await fetch("/seeds/api/rr/semantic-actions/execute/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || "Unable to execute RR semantic action");
+  }
+
+  return data;
+}
+
+export async function fetchRrNodeDetail(businessId) {
+  const id = Number(businessId);
+  if (!Number.isFinite(id) || id <= 0) {
+    throw new Error("Invalid RR node id");
+  }
+
+  const response = await fetch(`/seeds/api/rr/nodes/${id}/`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load RR node detail");
+  }
+  return response.json();
+}
+
+export async function fetchProjectMiddleLayerActivation() {
+  const response = await fetch("/project-middle-layer/activation/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to load Project Middle Layer activation");
+  }
+  return response.json();
+}
+
 export async function postAction(label) {
   const response = await fetch("/homepage/api/actions/", {
     method: "POST",
@@ -184,6 +328,44 @@ export async function savePreferences(payload) {
     throw new Error("Unable to update preferences");
   }
   return patchRes.json();
+}
+
+export async function fetchPreferences() {
+  const response = await fetch("/homepage/api/preferences/", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to read preferences");
+  }
+  return response.json();
+}
+
+export async function saveViewState(viewState) {
+  const existing = await fetchPreferences();
+  const current = Array.isArray(existing?.results) ? existing.results[0] : null;
+  const currentViewState = current?.view_state && typeof current.view_state === "object" ? current.view_state : {};
+
+  const mergePlainObject = (base, next) => {
+    const output = { ...(base || {}) };
+    Object.entries(next || {}).forEach(([key, value]) => {
+      const existingValue = output[key];
+      if (
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        existingValue &&
+        typeof existingValue === "object" &&
+        !Array.isArray(existingValue)
+      ) {
+        output[key] = mergePlainObject(existingValue, value);
+      } else {
+        output[key] = value;
+      }
+    });
+    return output;
+  };
+
+  return savePreferences({ view_state: mergePlainObject(currentViewState, viewState || {}) });
 }
 
 export async function fetchPresentationSlides() {

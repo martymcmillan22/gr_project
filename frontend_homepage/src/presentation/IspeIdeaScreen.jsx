@@ -5,8 +5,23 @@ import {
   fetchIspeActivation,
   fetchPhase4Activation,
   fetchPhase4Orchestration,
+  fetchRrOperatingStack,
+  fetchRrSemanticIntelligence,
+  fetchPreferences,
+  saveViewState,
   promoteSeed,
 } from "../api/homepageApi";
+import MiddleLayerColorContextPanel from "./MiddleLayerColorContextPanel";
+import PublishingLayerHooksPanel from "./PublishingLayerHooksPanel";
+import RrCardSpecPanel from "./RrCardSpecPanel";
+import RrDashboardPanel from "./RrDashboardPanel";
+import RrDetailPanel from "./RrDetailPanel";
+import RrIndustryMapPanel from "./RrIndustryMapPanel";
+import SemanticActionLogPanel from "./SemanticActionLogPanel";
+import SemanticIntelligencePanel from "./SemanticIntelligencePanel";
+import SopWorkflowScaffoldPanel from "./SopWorkflowScaffoldPanel";
+import VaSemanticGuidancePanel from "./VaSemanticGuidancePanel";
+import { buildDriftReflection, buildOptimizationReflection, mergeSemanticActionHistory, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
 
 const PHASE_OPTIONS = [
   {
@@ -52,6 +67,19 @@ const DEFAULT_FORM = {
   governanceTiers: "PIP, Polish, Task Manager",
 };
 
+const SEMANTIC_PANELS = [
+  { id: "rr_intelligence", label: "Intelligence", panelId: "rr-intelligence-panel" },
+  { id: "rr_dashboard", label: "RR Dashboard", panelId: "rr-dashboard-panel" },
+  { id: "rr_card_spec", label: "RR Card Spec", panelId: "rr-card-spec-panel" },
+  { id: "rr_industry_map", label: "RR Map", panelId: "rr-industry-map-panel" },
+  { id: "rr_detail", label: "RR Detail", panelId: "rr-detail-panel" },
+  { id: "middle_layer", label: "Middle Layer", panelId: "middle-layer-panel" },
+  { id: "rr_va", label: "VA Guidance", panelId: "va-guidance-panel" },
+  { id: "rr_workflows", label: "Workflows", panelId: "sop-workflow-panel" },
+  { id: "rr_publishing", label: "Publishing", panelId: "publishing-layer-panel" },
+  { id: "semantic_action_log", label: "Action Log", panelId: "semantic-action-log-panel" },
+];
+
 function renderReadableList(items = []) {
   return Array.isArray(items) ? items.filter(Boolean) : [];
 }
@@ -72,6 +100,14 @@ export default function IspeIdeaScreen() {
   const [promotingSeed, setPromotingSeed] = useState(false);
   const [currentSeedId, setCurrentSeedId] = useState(null);
   const [activatingProject, setActivatingProject] = useState(false);
+  const [rrDashboardPayload, setRrDashboardPayload] = useState(null);
+  const [operatingStackPayload, setOperatingStackPayload] = useState(null);
+  const [semanticIntelligencePayload, setSemanticIntelligencePayload] = useState(null);
+  const [semanticIntelligenceLoading, setSemanticIntelligenceLoading] = useState(true);
+  const [semanticActionHistory, setSemanticActionHistory] = useState([]);
+  const [semanticActionFeedback, setSemanticActionFeedback] = useState({});
+  const [activeSemanticPanel, setActiveSemanticPanel] = useState("rr_dashboard");
+  const [semanticViewHydrated, setSemanticViewHydrated] = useState(false);
   const [form, setForm] = useState(DEFAULT_FORM);
 
   const selectedPhase = useMemo(() => PHASE_OPTIONS.find((item) => item.key === phase) || PHASE_OPTIONS[0], [phase]);
@@ -89,6 +125,10 @@ export default function IspeIdeaScreen() {
   const semanticCatalogs = semanticReadiness.semantic_catalogs || {};
   const referenceTruth = semanticReadiness.reference_truth || {};
   const classificationTruth = semanticReadiness.classification_truth || {};
+  const semanticHostHealth = semanticIntelligencePayload?.semantic_os_health || {};
+  const semanticHostDrift = buildDriftReflection(semanticActionFeedback);
+  const semanticHostOptimization = buildOptimizationReflection(semanticActionFeedback);
+  const semanticHostReady = Boolean(semanticHostHealth.ready) && !semanticIntelligenceLoading && Boolean(operatingStackPayload);
   const isSeedPhase = phase === "seed";
   const isProjectPhase = phase === "project";
   const isIdeaPhase = phase === "idea";
@@ -152,6 +192,179 @@ export default function IspeIdeaScreen() {
       setVaEnabled(apiIncludeVa);
     }
   }, [activation, vaEnabled]);
+
+  useEffect(() => {
+    let active = true;
+    fetchRrOperatingStack()
+      .then((payload) => {
+        if (!active) {
+          return;
+        }
+        setOperatingStackPayload(payload);
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setOperatingStackPayload(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    setSemanticIntelligenceLoading(true);
+
+    fetchRrSemanticIntelligence()
+      .then((payload) => {
+        if (!active) {
+          return;
+        }
+        setSemanticIntelligencePayload(payload);
+        const seededHistory = mergeSemanticActionHistory([], payload?.semantic_action_log?.entries || []);
+        setSemanticActionHistory(seededHistory);
+        setSemanticActionFeedback(
+          normalizeSemanticFeedbackLoop(
+            payload?.semantic_feedback_loop || {},
+            {
+              actionLog: seededHistory,
+              semanticHealth: payload?.semantic_os_health || {},
+            },
+          ),
+        );
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setSemanticIntelligencePayload(null);
+      })
+      .finally(() => {
+        if (active) {
+          setSemanticIntelligenceLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleSemanticActionResult = (event) => {
+      const detail = event?.detail || {};
+      const incomingEntries = Array.isArray(detail?.action_log_tail)
+        ? detail.action_log_tail
+        : detail?.action_log_entry
+          ? [detail.action_log_entry]
+          : [detail];
+
+      setSemanticActionHistory((previous) => {
+        const merged = mergeSemanticActionHistory(previous, incomingEntries);
+        setSemanticActionFeedback((existing) => normalizeSemanticFeedbackLoop(
+          detail?.semantic_feedback_loop || existing,
+          {
+            actionLog: merged,
+            semanticHealth: detail?.semantic_os_health || semanticIntelligencePayload?.semantic_os_health || {},
+          },
+        ));
+        return merged;
+      });
+
+      setSemanticIntelligencePayload((previous) => {
+        if (!previous) {
+          return previous;
+        }
+        const mergedEntries = mergeSemanticActionHistory(previous?.semantic_action_log?.entries || [], incomingEntries);
+        return {
+          ...previous,
+          semantic_feedback_loop: detail?.semantic_feedback_loop || previous.semantic_feedback_loop,
+          semantic_os_health: detail?.semantic_os_health || previous.semantic_os_health,
+          semantic_action_log: {
+            ...(previous.semantic_action_log || {}),
+            entries: mergedEntries,
+          },
+        };
+      });
+    };
+
+    window.addEventListener("grassroots:semantic-action-result", handleSemanticActionResult);
+    return () => {
+      window.removeEventListener("grassroots:semantic-action-result", handleSemanticActionResult);
+    };
+  }, [semanticIntelligencePayload]);
+
+  useEffect(() => {
+    const persistedRaw = window.localStorage.getItem("grassroots.semantic-stack.view-state.v1");
+    if (persistedRaw) {
+      try {
+        const persisted = JSON.parse(persistedRaw);
+        const nextPanel = persisted?.semantic_stack?.active_panel;
+        if (typeof nextPanel === "string" && nextPanel) {
+          setActiveSemanticPanel(nextPanel);
+        }
+      } catch (_error) {
+        // Ignore malformed local view state.
+      }
+    }
+
+    fetchPreferences()
+      .then((payload) => {
+        const preference = Array.isArray(payload?.results) ? payload.results[0] : null;
+        const nextPanel = preference?.view_state?.semantic_stack?.active_panel;
+        if (typeof nextPanel === "string" && nextPanel) {
+          setActiveSemanticPanel(nextPanel);
+        }
+      })
+      .catch(() => {
+        // Server sync is additive; localStorage remains available.
+      })
+      .finally(() => {
+        setSemanticViewHydrated(true);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!semanticViewHydrated) {
+      return;
+    }
+    const nextState = {
+      semantic_stack: {
+        active_panel: activeSemanticPanel,
+      },
+    };
+    window.localStorage.setItem("grassroots.semantic-stack.view-state.v1", JSON.stringify(nextState));
+    saveViewState(nextState).catch(() => {
+      // Local state remains available if server sync fails.
+    });
+  }, [activeSemanticPanel, semanticViewHydrated]);
+
+  useEffect(() => {
+    const handlePanelSelect = (event) => {
+      const panelId = String(event?.detail?.panelId || "");
+      if (panelId) {
+        setActiveSemanticPanel(panelId);
+      }
+    };
+
+    window.addEventListener("grassroots:semantic-panel-select", handlePanelSelect);
+    return () => {
+      window.removeEventListener("grassroots:semantic-panel-select", handlePanelSelect);
+    };
+  }, []);
+
+  useEffect(() => {
+    const target = SEMANTIC_PANELS.find((item) => item.id === activeSemanticPanel);
+    if (!target) {
+      return;
+    }
+    const element = document.getElementById(target.panelId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [activeSemanticPanel]);
 
   const handleToggleVa = async () => {
     if (!isProjectPhase) {
@@ -333,6 +546,9 @@ export default function IspeIdeaScreen() {
           </span>
           <span className={`ispe-chip ${decisionGo ? "ispe-chip-go" : "ispe-chip-blocked"}`}>
             Decision {statusLabel(decisionGo)}
+          </span>
+          <span className={`ispe-chip ${semanticHostReady ? "ispe-chip-ready" : "ispe-chip-warm"}`}>
+            Semantic OS {semanticHostReady ? "ready" : "hydrating"}
           </span>
           <span className="ispe-chip">Mode {requestContext.mode || "assistive"}</span>
           <span className="ispe-chip">VA {requestContext.include_va ? "on" : "off"}</span>
@@ -681,6 +897,84 @@ export default function IspeIdeaScreen() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="semantic-stack-layout">
+        <div className="semantic-stack-nav panel">
+          {SEMANTIC_PANELS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={activeSemanticPanel === item.id ? "is-active" : ""}
+              onClick={() => {
+                setActiveSemanticPanel(item.id);
+                window.dispatchEvent(new CustomEvent("grassroots:semantic-panel-select", { detail: { panelId: item.id } }));
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <section className="panel semantic-intelligence-panel">
+          <h3>Semantic Host Health</h3>
+          <p className="status-line">
+            {semanticHostReady
+              ? "Payload propagation is stable across RR, middle layer, VA, workflows, publishing, and timeline surfaces."
+              : "One or more semantic surfaces are still hydrating; the host will keep the shared payload fan-out deterministic."}
+          </p>
+          <div className="rr-node-chip-row">
+            {(semanticHostHealth.checks || []).map((item) => (
+              <span key={`${item.surface}-${item.status}`}>{item.surface}: {item.status}</span>
+            ))}
+          </div>
+          <div className="rr-node-chip-row">
+            <span>Drift severity {semanticHostDrift.severity}</span>
+            <span>Drift score {semanticHostDrift.score}</span>
+            <span>Stabilization {semanticHostDrift.stabilization?.status || "monitor"}</span>
+            <span>Pending corrections {semanticHostDrift.stabilization?.progress?.pending_corrections || 0}</span>
+          </div>
+          <div className="rr-node-chip-row">
+            <span>Optimization {semanticHostOptimization.status}</span>
+            <span>Subject mix {semanticHostOptimization.subjectMixScore}</span>
+            <span>Workflow efficiency {semanticHostOptimization.workflowEfficiencyScore}</span>
+            <span>Publishing readiness {semanticHostOptimization.publishingReadinessScore}</span>
+            <span>Pending optimizations {semanticHostOptimization.progress.pendingOptimizations}</span>
+          </div>
+        </section>
+        <SemanticIntelligencePanel
+          panelId="rr-intelligence-panel"
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticIntelligenceLoading={semanticIntelligenceLoading}
+          semanticActionHistory={semanticActionHistory}
+          semanticActionFeedback={semanticActionFeedback}
+        />
+        <RrDashboardPanel panelId="rr-dashboard-panel" onDataChange={setRrDashboardPayload} />
+        <RrCardSpecPanel panelId="rr-card-spec-panel" />
+        <RrIndustryMapPanel panelId="rr-industry-map-panel" />
+        <RrDetailPanel panelId="rr-detail-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} semanticActionFeedback={semanticActionFeedback} />
+        <MiddleLayerColorContextPanel panelId="middle-layer-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} />
+        <VaSemanticGuidancePanel panelId="va-guidance-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} semanticActionFeedback={semanticActionFeedback} />
+        <SopWorkflowScaffoldPanel
+          panelId="sop-workflow-panel"
+          rrDashboard={rrDashboardPayload}
+          operatingStack={operatingStackPayload}
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticActionHistory={semanticActionHistory}
+          semanticActionFeedback={semanticActionFeedback}
+        />
+        <PublishingLayerHooksPanel
+          panelId="publishing-layer-panel"
+          rrDashboard={rrDashboardPayload}
+          operatingStack={operatingStackPayload}
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticActionHistory={semanticActionHistory}
+          semanticActionFeedback={semanticActionFeedback}
+        />
+        <SemanticActionLogPanel
+          panelId="semantic-action-log-panel"
+          actionHistory={semanticActionHistory}
+          feedbackLoop={semanticActionFeedback}
+        />
       </section>
     </main>
   );
