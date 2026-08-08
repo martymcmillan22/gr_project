@@ -81,6 +81,8 @@ Django models implementing BTIF ontology.
 
 Semantic bundles, presets, catalogs.
 
+Canonical industry-sector ontology: platform_semantic/catalogs/macro_map.json.
+
 ### platform_reference/
 
 GICS, NAICS, MLAS, CCCP, DCHD reference datasets.

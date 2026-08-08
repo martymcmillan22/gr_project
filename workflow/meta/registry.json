@@ -124,6 +124,106 @@
           "ui_component_design_system": "workflow/ui_components/penpot_components/generated/ProjectMiddleLayerCard.tsx"
         }
       }
+    },
+    {
+      "name": "Phase 34 Semantic Intelligence Expansion",
+      "slug": "phase-34-semantic-intelligence-expansion",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntelligenceFlow",
+      "semantic_intent": "SenseAndRecommend",
+      "semantic_tags": [
+        "analytics",
+        "intelligence",
+        "provenance",
+        "publishing",
+        "recommendation",
+        "semantic",
+        "timeline",
+        "workflow"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/phase-34-semantic-intelligence-expansion.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/phase-34-semantic-intelligence-expansion.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/phase-34-semantic-intelligence-expansion/template.md",
+        "ui_component": "ui_components/penpot_components/features/phase-34-semantic-intelligence-expansion/component.md"
+      },
+      "status": "scaffolded"
+    },
+    {
+      "name": "Phase 35 Semantic Timeline Expansion",
+      "slug": "phase-35-semantic-timeline-expansion",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntelligenceFlow",
+      "semantic_intent": "SenseAndRecommend",
+      "semantic_tags": [
+        "analytics",
+        "intelligence",
+        "provenance",
+        "publishing",
+        "recommendation",
+        "semantic",
+        "timeline",
+        "workflow"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/phase-35-semantic-timeline-expansion.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/phase-35-semantic-timeline-expansion.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/phase-35-semantic-timeline-expansion/template.md",
+        "ui_component": "ui_components/penpot_components/features/phase-35-semantic-timeline-expansion/component.md"
+      },
+      "status": "scaffolded"
+    },
+    {
+      "name": "Phase 36 Semantic OS Refinement",
+      "slug": "phase-36-semantic-os-refinement",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntelligenceFlow",
+      "semantic_intent": "SenseAndRecommend",
+      "semantic_tags": [
+        "analytics",
+        "intelligence",
+        "provenance",
+        "publishing",
+        "recommendation",
+        "semantic",
+        "semantic_os",
+        "timeline",
+        "workflow"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/phase-36-semantic-os-refinement.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/phase-36-semantic-os-refinement.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/phase-36-semantic-os-refinement/template.md",
+        "ui_component": "ui_components/penpot_components/features/phase-36-semantic-os-refinement/component.md"
+      },
+      "status": "scaffolded"
+    },
+    {
+      "name": "Phase 37 Semantic OS Automation",
+      "slug": "phase-37-semantic-os-automation",
+      "mlas_tier": "Semantic Utility",
+      "btif_classification": "IntelligenceFlow",
+      "semantic_intent": "SenseAndRecommend",
+      "semantic_tags": [
+        "actions",
+        "analytics",
+        "automation",
+        "intelligence",
+        "provenance",
+        "publishing",
+        "recommendation",
+        "semantic",
+        "semantic_os",
+        "timeline",
+        "workflow"
+      ],
+      "paths": {
+        "erd": "database_design/mermaid_erds/phase-37-semantic-os-automation.erd.mmd",
+        "sequence": "logic_design/mermaid_sequences/phase-37-semantic-os-automation.sequence.mmd",
+        "ui_template": "ui_templates/penpot_templates/features/phase-37-semantic-os-automation/template.md",
+        "ui_component": "ui_components/penpot_components/features/phase-37-semantic-os-automation/component.md"
+      },
+      "status": "scaffolded"
     }
   ]
 }

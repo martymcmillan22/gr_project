@@ -1,0 +1,6 @@
+# UI Template Scaffold: Phase 34 Semantic Intelligence Expansion
+
+- slug: phase-34-semantic-intelligence-expansion
+- mlas_tier: Semantic Utility
+- btif_classification: IntelligenceFlow
+- generated: 2026-08-05

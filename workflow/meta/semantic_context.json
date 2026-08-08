@@ -11,7 +11,8 @@
     "route_pattern": "btif://{btif_classification}/{semantic_intent}/{slug}",
     "known_classes": [
       "ExpansionFlow",
-      "IntakeFlow"
+      "IntakeFlow",
+      "IntelligenceFlow"
     ]
   },
   "semantic_intent_definitions": [
@@ -22,16 +23,29 @@
     {
       "name": "ExpandAndIntegrate",
       "definition": "Observed semantic intent from workflow registry"
+    },
+    {
+      "name": "SenseAndRecommend",
+      "definition": "Observed semantic intent from workflow registry"
     }
   ],
   "tag_ontology": [
+    "analytics",
     "expansion",
     "intake",
     "integration",
+    "intelligence",
     "pilot",
+    "publishing",
+    "provenance",
+    "recommendation",
     "routing",
+    "timeline",
     "workflow"
   ],
+  "canonical_assets": {
+    "industry_sector_map": "platform_semantic/catalogs/macro_map.json"
+  },
   "semantic_lineage": [
     {
       "slug": "pilot-intake",
@@ -52,6 +66,26 @@
         "semantic_tags": "expansion,integration,workflow"
       },
       "btif_route": "btif://expansionflow/expandandintegrate/workflow-expansion-hub"
+    },
+    {
+      "slug": "phase-34-semantic-intelligence-expansion",
+      "mlas": {
+        "slug": "phase-34-semantic-intelligence-expansion",
+        "mlas_tier": "Semantic Utility",
+        "semantic_intent": "SenseAndRecommend",
+        "semantic_tags": "analytics,intelligence,provenance,publishing,recommendation,semantic,timeline,workflow"
+      },
+      "btif_route": "btif://intelligenceflow/senseandrecommend/phase-34-semantic-intelligence-expansion"
+    },
+    {
+      "slug": "phase-35-semantic-timeline-expansion",
+      "mlas": {
+        "slug": "phase-35-semantic-timeline-expansion",
+        "mlas_tier": "Semantic Utility",
+        "semantic_intent": "SenseAndRecommend",
+        "semantic_tags": "analytics,intelligence,provenance,publishing,recommendation,semantic,timeline,workflow"
+      },
+      "btif_route": "btif://intelligenceflow/senseandrecommend/phase-35-semantic-timeline-expansion"
     }
   ],
   "drift_rules": [

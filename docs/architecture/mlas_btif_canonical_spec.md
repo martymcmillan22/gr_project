@@ -27,8 +27,129 @@ This specification now uses the deterministic Basetrue identity model below as t
 - Novice and Intermediate tiers operate on SRL 1-12.
 - Advanced and Enterprise tiers extend with Phase 4 quaternary governors.
 
+## Color Identity Engine Contract
+
+Canonical ontology + color assets:
+- platform_semantic/catalogs/macro_map.json (source of truth)
+- macroeconomic_map.csv (flattened export)
+
+### Identity Layer (global unique)
+24-bit identity is collision-free and reversible:
+
+color_code = (compartment_id << 20) | local_index
+
+- compartment_id: 0..11
+- compartment_id: 0..15
+- local_index: 0..1,048,575
+- total identity capacity used: 16 x 1,048,576 = 16,777,216
+
+Identity RGB is the raw 24-bit representation:
+- R = (color_code >> 16) & 255
+- G = (color_code >> 8) & 255
+- B = color_code & 255
+
+Inverse decode:
+- compartment_id = color_code >> 20
+- local_index = color_code & (2^20 - 1)
+
+### Presentation Layer (semantic display)
+Display RGB is human-facing and compartment-anchored.
+
+- Morton deinterleave is applied to lower 18 bits of local_index.
+- Output is placed in a 64x64x64 anchor band for each compartment.
+- This preserves local visual continuity while keeping identity math separate.
+
+### Local Index Packing
+local_index fields are deterministic:
+- industry_index: 2 bits
+- subindustry_index: 2 bits
+- node_index: 16 bits
+
+Packing:
+
+local_index = (industry_index << 18) | (subindustry_index << 16) | node_index
+
+### Ontology Resolver
+Resolver maps ontology path to identity indices:
+
+resolve_ontology_path_to_indices(sector, subject, industry, subindustry)
+-> (compartment_id, industry_index, subindustry_index)
+
+Then local_index is computed with node_index and encoded to color_code.
+
+Compartment scope for this lattice: groups 1..16 from macro_map.json.
+
+### Compartment IDs (16-compartment lattice)
+0 Math, 1 Language, 2 Arts, 3 Science,
+4 General Information, 5 Literature, 6 Crafts, 7 Technology,
+8 History, 9 Geography, 10 Architecture, 11 Ecology,
+12 Philosophy, 13 Law and Governance, 14 Economics, 15 Systemics.
+
+### Engine-Truth Anchor Bands
+These ranges are canonical and must match platform_semantic/services/color_identity_engine.py.
+
+| compartment_id | Subject | Phase | Label | R range | G range | B range |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | Math | Primary | Red | 192-255 | 0-63 | 0-63 |
+| 1 | Language | Primary | Blue | 0-63 | 0-63 | 192-255 |
+| 2 | Arts | Primary | Yellow | 192-255 | 192-255 | 0-63 |
+| 3 | Science | Primary | Green | 0-63 | 192-255 | 0-63 |
+| 4 | General Information | Secondary | Purple | 192-255 | 0-63 | 192-255 |
+| 5 | Literature | Secondary | Teal | 0-63 | 192-255 | 192-255 |
+| 6 | Crafts | Secondary | Orange | 128-191 | 64-127 | 0-63 |
+| 7 | Technology | Secondary | Lime | 64-127 | 192-255 | 0-63 |
+| 8 | History | Tertiary | Red-Purple | 128-191 | 0-63 | 128-191 |
+| 9 | Geography | Tertiary | Blue-Teal | 0-63 | 128-191 | 192-255 |
+| 10 | Architecture | Tertiary | Yellow-Orange | 192-255 | 128-191 | 0-63 |
+| 11 | Ecology | Tertiary | Green-Lime | 64-127 | 192-255 | 64-127 |
+| 12 | Philosophy | Meta | Deep Crimson | 192-255 | 0-63 | 64-127 |
+| 13 | Law and Governance | Meta | Deep Indigo | 64-127 | 0-63 | 128-191 |
+| 14 | Economics | Meta | Gold-Ochre | 192-255 | 128-191 | 64-127 |
+| 15 | Systemics | Meta | Deep Forest | 0-63 | 128-191 | 64-127 |
+
+Generated visualization artifact:
+- docs/architecture/assets/semantic_anchor_bands.svg
+
+### Preview API
+Endpoint:
+
+GET /platform/semantic/color-preview/
+
+Accepted modes:
+1. color_code mode:
+   - color_code
+2. node mode:
+   - compartment_id, local_index
+3. ontology path mode:
+   - sector, subject, industry, subindustry, optional node_index (default 0)
+
+Response contract:
+- color_code
+- identity_rgb
+- display_rgb
+- compartment_id
+- local_index
+- local_index_fields: industry_index, subindustry_index, node_index
+- compartment metadata
+- mode
+
+### Canonical Example
+Path:
+Primary -> Math -> Capital Markets -> Algorithmic Trading Systems & Quantitative Analysis
+
+With node_index = 0:
+- compartment_id = 0
+- industry_index = 0
+- subindustry_index = 0
+- local_index = 0
+- color_code = 0
+- identity_rgb = (0, 0, 0)
+- display_rgb = (192, 0, 0)
+
 ## Purpose
 This document is the canonical, consolidated specification for the captured MLAS and BTIF rules.
+
+The official industry-sector ontology lives at platform_semantic/catalogs/macro_map.json; macroeconomic_map.csv remains the flattened export.
 
 It defines:
 - Metadata model
