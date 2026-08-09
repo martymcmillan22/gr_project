@@ -21,9 +21,25 @@ class CenterBoardsTests(TestCase):
 		self.client.login(username="centeruser@example.com", password="testpass123")
 		response = self.client.get(reverse("center:index"))
 		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Public Matters Policy")
+		self.assertContains(response, "Public artifacts only")
 		self.assertContains(response, reverse("center:corporation_admin"))
 		self.assertContains(response, reverse("center:museum_social"))
 		self.assertContains(response, reverse("center:garden_board"))
+		self.assertNotContains(response, reverse("center:meta_interface"))
+		self.assertNotContains(response, reverse("center:cell_detail", kwargs={"slug": "philosophy"}))
+
+	def test_center_index_shows_meta_board_for_enterprise_users(self):
+		self.user.subscription_tier = self.user.SUBSCRIPTION_PREMIUM_ENTERPRISE
+		self.user.save(update_fields=["subscription_tier"])
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.get(reverse("center:index"))
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, reverse("center:meta_interface"))
+		self.assertContains(response, reverse("center:cell_detail", kwargs={"slug": "philosophy"}))
+		self.assertContains(response, reverse("center:cell_detail", kwargs={"slug": "law-governance-insurance"}))
+		self.assertContains(response, reverse("center:cell_detail", kwargs={"slug": "economics"}))
+		self.assertContains(response, reverse("center:cell_detail", kwargs={"slug": "systemics"}))
 
 	def test_corporation_admin_requires_login(self):
 		response = self.client.get(reverse("center:corporation_admin"))
@@ -90,6 +106,38 @@ class CenterBoardsTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Garden Board")
 
+	def test_meta_cell_detail_requires_enterprise_subscription(self):
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.get(reverse("center:cell_detail", kwargs={"slug": "philosophy"}))
+		self.assertEqual(response.status_code, 302)
+		self.assertRedirects(response, reverse("center:insufficient_tier"), fetch_redirect_response=False)
+
+	def test_meta_cell_detail_loads_for_enterprise_subscription(self):
+		self.user.subscription_tier = self.user.SUBSCRIPTION_PREMIUM_ENTERPRISE
+		self.user.save(update_fields=["subscription_tier"])
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.get(reverse("center:cell_detail", kwargs={"slug": "philosophy"}))
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Philosophy")
+		self.assertContains(response, "Visibility: Public")
+		self.assertContains(response, "Meta 1")
+
+	def test_meta_interface_requires_enterprise_subscription(self):
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.get(reverse("center:meta_interface"))
+		self.assertEqual(response.status_code, 302)
+		self.assertRedirects(response, reverse("center:insufficient_tier"), fetch_redirect_response=False)
+
+	def test_meta_interface_loads_for_enterprise_subscription(self):
+		self.user.subscription_tier = self.user.SUBSCRIPTION_PREMIUM_ENTERPRISE
+		self.user.save(update_fields=["subscription_tier"])
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.get(reverse("center:meta_interface"))
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Meta Interface")
+		self.assertContains(response, "Compartment 13")
+		self.assertContains(response, "Open compartment")
+
 	def test_corporation_create_item(self):
 		self.client.login(username="centeruser@example.com", password="testpass123")
 		response = self.client.post(
@@ -107,6 +155,45 @@ class CenterBoardsTests(TestCase):
 		item = CorporationItem.objects.get(title="Summer Exhibit Campaign")
 		self.assertEqual(item.owner, self.user)
 		self.assertEqual(item.status, CorporationItem.STATUS_DRAFT)
+		self.assertEqual(item.visibility, CorporationItem.VISIBILITY_PUBLIC)
+
+	def test_corporation_create_item_personal_scope_tags_visibility(self):
+		self.client.login(username="centeruser@example.com", password="testpass123")
+		response = self.client.post(
+			reverse("center:corporation_admin") + "?visibility=personal",
+			{
+				"action": "create",
+				"visibility": "personal",
+				"title": "Personal Scope Story",
+				"description": "Personal routing artifact.",
+				"item_type": CorporationItem.TYPE_GENERAL,
+				"priority": CorporationItem.PRIORITY_MEDIUM,
+			},
+		)
+		self.assertEqual(response.status_code, 302)
+		item = CorporationItem.objects.get(title="Personal Scope Story")
+		self.assertEqual(item.visibility, CorporationItem.VISIBILITY_PERSONAL)
+
+	def test_corporation_scope_filters_items(self):
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Public Item",
+			visibility=CorporationItem.VISIBILITY_PUBLIC,
+		)
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Personal Item",
+			visibility=CorporationItem.VISIBILITY_PERSONAL,
+		)
+		self.client.login(username="centeruser@example.com", password="testpass123")
+
+		public_response = self.client.get(reverse("center:corporation_admin"))
+		self.assertContains(public_response, "Public Item")
+		self.assertNotContains(public_response, "Personal Item")
+
+		personal_response = self.client.get(reverse("center:corporation_admin") + "?visibility=personal")
+		self.assertContains(personal_response, "Personal Item")
+		self.assertNotContains(personal_response, "Public Item")
 
 	def test_corporation_transition_to_approved_sets_timestamp(self):
 		self.client.login(username="centeruser@example.com", password="testpass123")
@@ -146,6 +233,7 @@ class CenterBoardsTests(TestCase):
 			title="Feature Reel",
 			item_type=CorporationItem.TYPE_CAMPAIGN,
 			status=CorporationItem.STATUS_APPROVED,
+			visibility=CorporationItem.VISIBILITY_PUBLIC,
 		)
 
 		response = self.client.post(
@@ -157,6 +245,29 @@ class CenterBoardsTests(TestCase):
 		self.assertEqual(item.status, CorporationItem.STATUS_POSTED)
 		self.assertEqual(item.work_status, CorporationItem.WORK_STATUS_TODO)
 
+	def test_museum_scope_filters_ready_items(self):
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Public Ready",
+			status=CorporationItem.STATUS_APPROVED,
+			visibility=CorporationItem.VISIBILITY_PUBLIC,
+		)
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Personal Ready",
+			status=CorporationItem.STATUS_APPROVED,
+			visibility=CorporationItem.VISIBILITY_PERSONAL,
+		)
+		self.client.login(username="centeruser@example.com", password="testpass123")
+
+		public_response = self.client.get(reverse("center:museum_social"))
+		self.assertContains(public_response, "Public Ready")
+		self.assertNotContains(public_response, "Personal Ready")
+
+		personal_response = self.client.get(reverse("center:museum_social") + "?visibility=personal")
+		self.assertContains(personal_response, "Personal Ready")
+		self.assertNotContains(personal_response, "Public Ready")
+
 	def test_garden_progression_from_todo_to_done(self):
 		self.client.login(username="centeruser@example.com", password="testpass123")
 		item = CorporationItem.objects.create(
@@ -164,6 +275,7 @@ class CenterBoardsTests(TestCase):
 			title="Launch Story Thread",
 			item_type=CorporationItem.TYPE_CAMPAIGN,
 			status=CorporationItem.STATUS_POSTED,
+			visibility=CorporationItem.VISIBILITY_PUBLIC,
 			work_status=CorporationItem.WORK_STATUS_TODO,
 		)
 
@@ -190,3 +302,23 @@ class CenterBoardsTests(TestCase):
 		item.refresh_from_db()
 		self.assertEqual(item.work_status, CorporationItem.WORK_STATUS_DONE)
 		self.assertIsNotNone(item.work_completed_at)
+
+	def test_meta_interface_personal_scope_filters_visibility_artifacts(self):
+		self.user.subscription_tier = self.user.SUBSCRIPTION_PREMIUM_ENTERPRISE
+		self.user.save(update_fields=["subscription_tier"])
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Public Meta Artifact",
+			visibility=CorporationItem.VISIBILITY_PUBLIC,
+		)
+		CorporationItem.objects.create(
+			owner=self.user,
+			title="Personal Meta Artifact",
+			visibility=CorporationItem.VISIBILITY_PERSONAL,
+		)
+		self.client.login(username="centeruser@example.com", password="testpass123")
+
+		personal_response = self.client.get(reverse("center:meta_interface") + "?visibility=personal")
+		self.assertContains(personal_response, "Visibility scope: Personal matters")
+		self.assertContains(personal_response, "Personal Meta Artifact")
+		self.assertNotContains(personal_response, "Public Meta Artifact")

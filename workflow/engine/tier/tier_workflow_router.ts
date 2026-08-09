@@ -1,11 +1,24 @@
 import { TierKey } from "../../tier/tier_types"
 import { getWorkflowById } from "./tier_workflow_map"
-import { InterfaceId, WorkflowId, WorkflowRules } from "./tier_workflow_rules"
+import {
+	InterfaceId,
+	resolveWorkflowCompartmentPhase,
+	WorkflowCompartmentPhase,
+	WorkflowId,
+	WorkflowRules,
+} from "./tier_workflow_rules"
 
 export interface WorkflowRouteInput {
 	tier: TierKey
 	interfaceId: string
 	compartmentId: number
+	timelineState?: {
+		completed_slots?: number[]
+		phase_gates?: Array<{
+			phase?: WorkflowCompartmentPhase | string
+			locked?: boolean
+		}>
+	}
 }
 
 export interface WorkflowRouteResult {
@@ -17,6 +30,18 @@ export interface WorkflowRouteResult {
 	reason?: string
 }
 
+function isGateLockedForCompartment(
+	compartmentId: number,
+	phaseGates: Array<{ phase?: WorkflowCompartmentPhase | string; locked?: boolean }>,
+): boolean {
+	const phase = resolveWorkflowCompartmentPhase(compartmentId)
+	if (!phase) {
+		return false
+	}
+	const gate = phaseGates.find((item) => String(item?.phase || "") === phase)
+	return gate ? Boolean(gate.locked) : false
+}
+
 function isWorkflowError(
 	value: WorkflowRules | null | { error: boolean; reason: string }
 ): value is { error: boolean; reason: string } {
@@ -24,7 +49,7 @@ function isWorkflowError(
 }
 
 export function routeWorkflow(input: WorkflowRouteInput): WorkflowRouteResult {
-	const { tier, interfaceId, compartmentId } = input
+	const { tier, interfaceId, compartmentId, timelineState } = input
 
 	let workflow: WorkflowId | null = "basic_navigation"
 
@@ -32,12 +57,25 @@ export function routeWorkflow(input: WorkflowRouteInput): WorkflowRouteResult {
 		workflow = "guided_creation"
 	}
 
-	if (tier === "advanced" && compartmentId > 12) {
+	if (tier === "advanced" && compartmentId > 16) {
 		workflow = "advanced_authoring"
 	}
 
 	if (tier === "veteran") {
 		workflow = "semantic_debugging"
+	}
+
+	const phaseGates = Array.isArray(timelineState?.phase_gates) ? timelineState.phase_gates : []
+	const resolvedPhase = resolveWorkflowCompartmentPhase(compartmentId)
+	if (phaseGates.length > 0 && isGateLockedForCompartment(compartmentId, phaseGates)) {
+		return {
+			workflow,
+			tier,
+			interfaceId,
+			compartmentId,
+			error: true,
+			reason: `Timeline phase gate is locked for ${resolvedPhase || "Unassigned"} compartment routing.`,
+		}
 	}
 
 	const rules = workflow ? getWorkflowById(workflow, tier) : null

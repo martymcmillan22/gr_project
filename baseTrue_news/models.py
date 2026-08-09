@@ -47,6 +47,10 @@ class Story(models.Model):
 		SCHEDULED = "scheduled", "Scheduled"
 		PUBLISHED = "published", "Published"
 
+	class Visibility(models.TextChoices):
+		PUBLIC = "public", "Public"
+		PERSONAL = "personal", "Personal"
+
 	issue = models.ForeignKey(Issue, related_name="stories", on_delete=models.CASCADE)
 	feature = models.CharField(max_length=20, choices=Feature.choices)
 	headline = models.CharField(max_length=220)
@@ -54,6 +58,7 @@ class Story(models.Model):
 	dek = models.CharField(max_length=280, blank=True)
 	body = models.TextField()
 	status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+	visibility = models.CharField(max_length=16, choices=Visibility.choices, default=Visibility.PUBLIC)
 	publish_at = models.DateTimeField(help_text="Set a future date to stage stories ahead of release.")
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

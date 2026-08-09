@@ -65,6 +65,12 @@ import { buildPhase30FinalizationPlan } from "../logic/ebooks/phase30/ebookPhase
 import { runPhase30Finalization } from "../logic/ebooks/phase30/ebookPhase30FinalizationEngine";
 import { buildPhase30FinalizationDiagnostics } from "../logic/ebooks/phase30/ebookPhase30FinalizationDiagnostics";
 import { buildPhase30ExportEnvelope } from "../logic/ebooks/phase30/ebookPhase30Export";
+import {
+  buildWorkspaceUnifiedPlatformIntelligenceState,
+  createWorkspaceTimelineSignalState,
+  hydrateWorkspaceTimelineFromRuntimePayload,
+  reduceWorkspaceTimelineSlotSignal,
+} from "../logic/calculusTimelineBinding";
 import type {
   GovernanceProfile,
   IdeaRecord,
@@ -121,6 +127,7 @@ export default function StudioWorkspace({
   const [idea, setIdea] = useState<IdeaRecord | null>(null);
   const [seed, setSeed] = useState<SeedRecord | null>(null);
   const [project, setProject] = useState<ProjectRecord | null>(null);
+  const [timelineSignalState, setTimelineSignalState] = useState(() => createWorkspaceTimelineSignalState());
 
   const [rrQuadrant, setRrQuadrant] = useState<RRQuadrant>("language");
   const [rrSubnode, setRrSubnode] = useState<RRSubnode>("A");
@@ -243,6 +250,55 @@ export default function StudioWorkspace({
       rrLogicMode,
     });
   }, [rrLogicMode, rrQuadrant, rrRoutePreview, rrSubnode]);
+
+  useEffect(() => {
+    const handleTimelineSlotSignal = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+      setTimelineSignalState((previous) => reduceWorkspaceTimelineSlotSignal(previous, detail));
+    };
+
+    window.addEventListener("grassroots:middle-layer-slot-state-change", handleTimelineSlotSignal);
+    return () => {
+      window.removeEventListener("grassroots:middle-layer-slot-state-change", handleTimelineSlotSignal);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof fetch !== "function") {
+      return undefined;
+    }
+    let active = true;
+    const selectedSlot = Math.max(1, Math.min(16, compartmentIndex));
+
+    fetch(`/project-middle-layer/api/timeline/calculus/?selected_slot=${selectedSlot}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Timeline runtime request failed (${response.status})`);
+        }
+        return response.json();
+      })
+      .then((payload) => {
+        if (!active) {
+          return;
+        }
+        setTimelineSignalState((previous) => hydrateWorkspaceTimelineFromRuntimePayload(previous, payload));
+      })
+      .catch(() => {
+        // Live runtime hydration is additive; event-driven updates still apply.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [compartmentIndex]);
+
+  const workspaceTimelineIntelligence = useMemo(
+    () => buildWorkspaceUnifiedPlatformIntelligenceState(timelineSignalState),
+    [timelineSignalState],
+  );
+  const latestTimelineEvent = workspaceTimelineIntelligence.latest_event;
+  const completedTimelineSlots = workspaceTimelineIntelligence.slot_progression.completed_slots;
+  const timelinePhaseGates = workspaceTimelineIntelligence.phase_gate_state.phase_gates;
 
   const phase18EBookSurfaces = ["list", "detail", "how_to", "present"] as const;
   const phase18StudioExportEnvelope = buildPhase18PlaceholderExportEnvelope("studio");
@@ -536,11 +592,16 @@ export default function StudioWorkspace({
 
       <section className="panel studio-panel phase18-ebook-placeholder" aria-label="Studio E-Book Phase 18 placeholder">
         <h3>Phase 18 E-Book Hooks</h3>
-        <p>Placeholder integration only. No routing or behavioral wiring.</p>
+        <p>Runtime-bound timeline hooks. Studio reflects live slot progression and gate state.</p>
         <ul>
           {phase18EBookSurfaces.map((surface) => (
             <li key={surface}>Studio surface: {surface}</li>
           ))}
+          <li>Completed slots: {completedTimelineSlots.length}/16</li>
+          <li>Latest slot: {latestTimelineEvent?.slot_index || "n/a"}</li>
+          <li>Latest phase: {latestTimelineEvent?.phase || "n/a"}</li>
+          <li>Risk level: {workspaceTimelineIntelligence.synthesis.risk_level}</li>
+          <li>Drift trend: {workspaceTimelineIntelligence.synthesis.drift_trend.direction}</li>
         </ul>
       </section>
 
@@ -549,8 +610,10 @@ export default function StudioWorkspace({
         aria-label="Studio Phase 18 export placeholder"
       >
         <h3>Phase 18 Export Hook</h3>
-        <p>Placeholder integration only. No routing, no behavior, no AV playback.</p>
+        <p>Deterministic export surface bound to timeline semantic state.</p>
         <p>Export ID: {phase18StudioExportEnvelope.exportId}</p>
+        <p>Drift Score: {latestTimelineEvent?.semantic_state?.drift_score ?? "n/a"}</p>
+        <p>Alignment Score: {latestTimelineEvent?.semantic_state?.alignment_score ?? "n/a"}</p>
       </section>
 
       <section
@@ -562,6 +625,8 @@ export default function StudioWorkspace({
         <p>Has Audio: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.hasAudio ? "yes" : "no"}</p>
         <p>Has AV: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.hasAV ? "yes" : "no"}</p>
         <p>Export ID: {phase18StudioExportEnvelope.exportId}</p>
+        <p>Industry Group: {latestTimelineEvent?.industry_metadata?.group_name || "n/a"}</p>
+        <p>Industry: {latestTimelineEvent?.industry_metadata?.industry || "n/a"}</p>
       </section>
 
       <section
@@ -569,10 +634,14 @@ export default function StudioWorkspace({
         aria-label="Studio Phase 18 debug console"
       >
         <h3>Phase 18 Debug Console</h3>
-        <p>Read-only diagnostic payload for deterministic Phase 18 export envelope.</p>
+        <p>Read-only diagnostic payload for deterministic timeline + export envelope fusion.</p>
         <details>
           <summary>Show Export Envelope JSON</summary>
           <pre>{JSON.stringify(phase18StudioExportEnvelope, null, 2)}</pre>
+        </details>
+        <details>
+          <summary>Show Timeline Signal JSON</summary>
+          <pre>{JSON.stringify(timelineSignalState, null, 2)}</pre>
         </details>
       </section>
 
@@ -596,6 +665,7 @@ export default function StudioWorkspace({
           Present Root OK: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.module.envelope.aggregate.presentRoot ? "yes" : "no"}
         </p>
         <p>AV Root OK: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.module.envelope.aggregate.avRoot ? "yes" : "no"}</p>
+        <p>Gate Status: {latestTimelineEvent?.gate_locked ? "locked" : "unlocked"}</p>
       </section>
 
       <section
@@ -606,7 +676,8 @@ export default function StudioWorkspace({
         <p>Runtime Mode: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.mode}</p>
         <p>Audio Capability: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.hasAudio ? "enabled" : "disabled"}</p>
         <p>AV Capability: {phase18StudioExportEnvelope.typeCheck.orchestrator.root.hasAV ? "enabled" : "disabled"}</p>
-        <p>This is a non-behavioral preview. No playback, no routing, no engine execution.</p>
+        <p>Latest Stability Score: {latestTimelineEvent?.semantic_state?.stability_score ?? "n/a"}</p>
+        <p>This runtime preview is timeline-driven and deterministic. No playback, no AV mutation.</p>
       </section>
 
       <section className="panel phase19-runtime-panel" aria-label="Phase 19 runtime placeholder">
@@ -615,6 +686,7 @@ export default function StudioWorkspace({
         <p>Placement ID: {phase19Placement.placementId}</p>
         <p>Mode: {phase19RuntimeEnvelope.mode}</p>
         <p>Region: {phase19Placement.region}</p>
+        <p>Runtime Slot: {latestTimelineEvent?.slot_index || "n/a"}</p>
       </section>
 
       <section className="panel phase19-export-panel" aria-label="Phase 19 export envelope">
@@ -624,6 +696,7 @@ export default function StudioWorkspace({
         <p>Orchestrator ID: {phase19Orchestrator.orchestratorId}</p>
         <p>Logic Spine ID: {phase19LogicSpine.spineId}</p>
         <p>Mode: {phase19ExportEnvelope.mode}</p>
+        <p>Phase Gates: {timelinePhaseGates.map((gate) => `${gate.phase}:${gate.locked ? "locked" : "open"}`).join(" | ")}</p>
       </section>
 
       <section className="panel phase20-export-panel" aria-label="Phase 20 export envelope">

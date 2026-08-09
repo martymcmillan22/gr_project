@@ -103,6 +103,13 @@ ALLOWED_MIME_TYPES = {
 }
 
 
+def _resolve_visibility_scope(request):
+    visibility_scope = (request.GET.get("visibility") or request.POST.get("visibility") or "public").strip().lower()
+    if visibility_scope not in {"public", "personal"}:
+        return "public"
+    return visibility_scope
+
+
 def user_is_polish_admin(user) -> bool:
     if not getattr(user, "is_authenticated", False):
         return False
@@ -719,6 +726,7 @@ class PolishDashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        visibility_scope = _resolve_visibility_scope(self.request)
         preference, _ = PolishReminderPreference.objects.get_or_create(user=self.request.user)
         context["task_form"] = kwargs.get("task_form") or PolishTaskForm()
         context["agenda_form"] = kwargs.get("agenda_form") or SectorAgendaForm()
@@ -727,12 +735,15 @@ class PolishDashboardView(LoginRequiredMixin, TemplateView):
         context["incomplete_tasks"] = PolishTask.objects.filter(
             user=self.request.user,
             is_completed=False,
+            visibility=visibility_scope,
         )
         context["completed_tasks"] = PolishTask.objects.filter(
             user=self.request.user,
             is_completed=True,
+            visibility=visibility_scope,
         )[:8]
-        context["recent_agendas"] = SectorAgenda.objects.filter(user=self.request.user)[:8]
+        context["recent_agendas"] = SectorAgenda.objects.filter(user=self.request.user, visibility=visibility_scope)[:8]
+        context["visibility_scope"] = visibility_scope
         return context
 
     def post(self, request, *args, **kwargs):
@@ -743,12 +754,13 @@ class PolishDashboardView(LoginRequiredMixin, TemplateView):
             if task_form.is_valid():
                 task = task_form.save(commit=False)
                 task.user = request.user
+                task.visibility = _resolve_visibility_scope(request)
                 task.save()
                 return redirect("polish:dashboard")
             return self.render_to_response(self.get_context_data(task_form=task_form))
 
         if action == "complete_task":
-            task = get_object_or_404(PolishTask, pk=request.POST.get("task_id"), user=request.user)
+            task = get_object_or_404(PolishTask, pk=request.POST.get("task_id"), user=request.user, visibility=_resolve_visibility_scope(request))
             task.is_completed = True
             task.save(update_fields=["is_completed", "updated_at"])
             return redirect("polish:dashboard")
@@ -758,6 +770,7 @@ class PolishDashboardView(LoginRequiredMixin, TemplateView):
             if agenda_form.is_valid():
                 agenda = agenda_form.save(commit=False)
                 agenda.user = request.user
+                agenda.visibility = _resolve_visibility_scope(request)
                 agenda.agenda_text = _build_agenda_text(
                     agenda.sector_name,
                     agenda.idea,

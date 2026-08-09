@@ -32,6 +32,8 @@ from .views import (
     ExternalAgentRegisterAPIView,
     ExternalAgentRunAPIView,
     CrossSyncAPIView,
+    ProjectMiddleLayerCalculusTimelineAPIView,
+    ProjectMiddleLayerLfoEngineAPIView,
 )
 
 router = DefaultRouter()
@@ -67,5 +69,7 @@ urlpatterns = [
     path("external-agents/register/", ExternalAgentRegisterAPIView.as_view(), name="project-middle-layer-external-agent-register"),
     path("external-agents/run/", ExternalAgentRunAPIView.as_view(), name="project-middle-layer-external-agent-run"),
     path("cross-sync/run/", CrossSyncAPIView.as_view(), name="project-middle-layer-cross-sync-run"),
+    path("timeline/calculus/", ProjectMiddleLayerCalculusTimelineAPIView.as_view(), name="project-middle-layer-calculus-timeline-runtime"),
+    path("lfo/engine/", ProjectMiddleLayerLfoEngineAPIView.as_view(), name="project-middle-layer-lfo-engine"),
     path("", include(router.urls)),
 ]

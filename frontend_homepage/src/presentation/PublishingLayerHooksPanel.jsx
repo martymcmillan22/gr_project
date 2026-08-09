@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { buildDriftReflection, buildOptimizationReflection, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
+import { buildDriftReflection, buildOptimizationReflection, buildTimelineSignalGroups, buildUnifiedPlatformIntelligenceState, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
 
 function gatherColorSubjects(rrDashboard) {
   const lanes = Array.isArray(rrDashboard?.lanes) ? rrDashboard.lanes : [];
@@ -16,7 +16,7 @@ function gatherColorSubjects(rrDashboard) {
     });
 }
 
-export default function PublishingLayerHooksPanel({ panelId = "publishing-layer-panel", operatingStack, rrDashboard, semanticIntelligence, semanticActionFeedback }) {
+export default function PublishingLayerHooksPanel({ panelId = "publishing-layer-panel", operatingStack, rrDashboard, semanticIntelligence, semanticActionFeedback, timelineSignalState, unifiedIntelligenceState }) {
   const publishing = operatingStack?.tracks?.publishing_layer || {};
   const investor = publishing.investor_ebook || {};
   const product = publishing.product_usage_ebook || {};
@@ -32,6 +32,19 @@ export default function PublishingLayerHooksPanel({ panelId = "publishing-layer-
   const optimizationReflection = buildOptimizationReflection(
     normalizeSemanticFeedbackLoop(semanticActionFeedback || semanticIntelligence?.semantic_feedback_loop || {}),
   );
+  const resolvedIntelligenceState = (unifiedIntelligenceState && typeof unifiedIntelligenceState === "object")
+    ? unifiedIntelligenceState
+    : buildUnifiedPlatformIntelligenceState(timelineSignalState || {});
+  const timelineGroups = buildTimelineSignalGroups(timelineSignalState || {});
+  const timelineOrchestrationGroups = resolvedIntelligenceState?.groupings || { slot_clusters: [], semantic_phases: [], drift_risk_groups: { high: [], medium: [], low: [] } };
+  const timelinePriorityQueue = Array.isArray(resolvedIntelligenceState?.orchestration?.priority_queue)
+    ? resolvedIntelligenceState.orchestration.priority_queue
+    : [];
+  const latestTimelineEvent = resolvedIntelligenceState?.latest_event || null;
+  const mbspSurface = resolvedIntelligenceState?.synthesis?.mbsp_surface || { surface_phase: "n/a", surface_tiers: {} };
+  const completedTimelineSlots = Array.isArray(resolvedIntelligenceState?.slot_progression?.completed_slots)
+    ? resolvedIntelligenceState.slot_progression.completed_slots
+    : [];
   const [previewMode, setPreviewMode] = useState("investor");
   const [activeChainStep, setActiveChainStep] = useState("");
   const [actionStatus, setActionStatus] = useState("");
@@ -163,6 +176,50 @@ export default function PublishingLayerHooksPanel({ panelId = "publishing-layer-
           <span>Pressure {optimizationReflection.optimizationPressure}</span>
           <span>Publishing readiness {optimizationReflection.publishingReadinessScore}</span>
           <span>Pending optimizations {optimizationReflection.progress.pendingOptimizations}</span>
+        </div>
+        <div className="rr-node-chip-row">
+          <span>Timeline slots {completedTimelineSlots.length}/16</span>
+          <span>Latest slot {latestTimelineEvent?.slot_index || "n/a"}</span>
+          <span>Phase {latestTimelineEvent?.phase || "n/a"}</span>
+          <span>Alignment {latestTimelineEvent?.semantic_state?.alignment_score ?? "n/a"}</span>
+        </div>
+        <div className="rr-node-chip-row">
+          <span>Timeline groups {timelineGroups.length}</span>
+          {timelineGroups.slice(0, 2).map((item) => (
+            <span key={`publishing-timeline-group-${item.subject}-${item.phase}`}>{item.subject} {item.phase} ({item.count})</span>
+          ))}
+        </div>
+        <div className="rr-node-chip-row">
+          <span>Policy triggers {timelinePriorityQueue.length}</span>
+          <span>Drift high {(timelineOrchestrationGroups.drift_risk_groups?.high || []).length}</span>
+          <span>Drift medium {(timelineOrchestrationGroups.drift_risk_groups?.medium || []).length}</span>
+          <span>Drift low {(timelineOrchestrationGroups.drift_risk_groups?.low || []).length}</span>
+        </div>
+        <div className="rr-node-chip-row">
+          <span data-intelligence-risk-level={resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}>Risk {resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}</span>
+          <span data-intelligence-drift-trend={resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}>Drift trend {resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}</span>
+          <span data-intelligence-alignment-trajectory={resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}>Alignment trajectory {resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}</span>
+        </div>
+        <div className="rr-node-chip-row">
+          <span data-intelligence-mbsp-phase={mbspSurface?.surface_phase || "n/a"}>MBSP phase {mbspSurface?.surface_phase || "n/a"}</span>
+          <span data-intelligence-mbsp-studio={mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}>Studio {mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}</span>
+          <span data-intelligence-mbsp-enterprise={mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}>Enterprise {mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}</span>
+        </div>
+        <div className="publishing-chain">
+          {timelinePriorityQueue.map((trigger) => (
+            <button
+              key={`publishing-policy-${trigger.id}`}
+              type="button"
+              data-orchestration-trigger={trigger.id}
+              data-orchestration-priority={trigger.priority}
+              onClick={() => {
+                setActiveChainStep(trigger.id);
+                dispatchSemanticNavigation(trigger.navigation || {}, "publishing-layer");
+              }}
+            >
+              {trigger.id}
+            </button>
+          ))}
         </div>
         <div className="rr-node-chip-row">
           {(driftReflection.subjectChips || []).slice(0, 3).map((chip, index) => (

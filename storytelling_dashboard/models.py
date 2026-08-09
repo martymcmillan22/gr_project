@@ -20,6 +20,11 @@ class StorySession(models.Model):
     
     entry_id = models.IntegerField(unique=True)
     title = models.CharField(max_length=300)
+    visibility = models.CharField(
+        max_length=16,
+        choices=[('public', 'Public'), ('personal', 'Personal')],
+        default='public',
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     format = models.CharField(max_length=20, choices=FORMAT_CHOICES, default='movie')
     
@@ -60,6 +65,11 @@ class SemanticPreset(models.Model):
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='semantic_presets')
     name = models.CharField(max_length=120)
+    visibility = models.CharField(
+        max_length=16,
+        choices=[('public', 'Public'), ('personal', 'Personal')],
+        default='public',
+    )
     preset_type = models.CharField(max_length=20, choices=PRESET_TYPE_CHOICES)
     payload = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,10 +1,12 @@
 from django.http import Http404
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from users.models import User
 from peringram.models import Recycle3Profile
 from peringram.pip_state import PIPState, PIPWorkflowService
 from peringram.srl import SRLService
@@ -124,6 +126,42 @@ CENTER_CELLS = {
         "time": "12 pm",
         "srl": "16,777,216",
     },
+    "philosophy": {
+        "label": "Philosophy",
+        "color": "#4c1d95",
+        "color_tint": "#ebe4ff",
+        "color_name": "Indigo",
+        "subject": "First Principles",
+        "time": "13 pm",
+        "srl": "Meta 1",
+    },
+    "law-governance-insurance": {
+        "label": "Law & Governance: Insurance",
+        "color": "#0f766e",
+        "color_tint": "#d5f6f2",
+        "color_name": "Teal",
+        "subject": "Policy and Assurance",
+        "time": "14 pm",
+        "srl": "Meta 2",
+    },
+    "economics": {
+        "label": "Economics",
+        "color": "#b45309",
+        "color_tint": "#ffedd5",
+        "color_name": "Amber",
+        "subject": "Value Flow",
+        "time": "15 pm",
+        "srl": "Meta 3",
+    },
+    "systemics": {
+        "label": "Systemics",
+        "color": "#be185d",
+        "color_tint": "#ffe4f1",
+        "color_name": "Rose",
+        "subject": "Cross-Layer Coherence",
+        "time": "16 pm",
+        "srl": "Meta 4",
+    },
 }
 
 CENTER_CELL_ALIASES = {
@@ -142,12 +180,30 @@ CENTER_CELL_ALIASES = {
 CENTER_CELLS.update(CENTER_CELL_ALIASES)
 
 
+def resolve_visibility_scope(request):
+    scope = (request.GET.get("visibility") or request.POST.get("visibility") or "public").strip().lower()
+    if scope not in {CorporationItem.VISIBILITY_PUBLIC, CorporationItem.VISIBILITY_PERSONAL}:
+        return CorporationItem.VISIBILITY_PUBLIC
+    return scope
+
+
+def build_scoped_url(route_name, visibility_scope):
+    return f"{reverse(route_name)}?visibility={visibility_scope}"
+
+
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "center/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["profile_name"] = "Public Center"
+        context["matter_scope"] = "public"
+        return context
 
 
 class CellDetailView(LoginRequiredMixin, TemplateView):
     template_name = "center/cell_detail.html"
+    META_CELL_SLUGS = {"philosophy", "law-governance-insurance", "economics", "systemics"}
 
     def get(self, request, *args, **kwargs):
         slug = kwargs.get("slug", "").lower()
@@ -157,6 +213,8 @@ class CellDetailView(LoginRequiredMixin, TemplateView):
             pip_state = PIPState.from_recycle3(recycle, territory=territory)
             if not PIPWorkflowService.can_access_bureau(slug, pip_state):
                 return redirect("center:insufficient_tier")
+        if slug in self.META_CELL_SLUGS and request.user.subscription_tier != User.SUBSCRIPTION_PREMIUM_ENTERPRISE:
+            return redirect("center:insufficient_tier")
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -165,6 +223,8 @@ class CellDetailView(LoginRequiredMixin, TemplateView):
         cell = CENTER_CELLS.get(slug)
         if not cell:
             raise Http404("Center cell not found")
+        context["profile_name"] = "Public Center"
+        context["matter_scope"] = "public"
         context["cell"] = cell
         return context
 
@@ -178,6 +238,8 @@ class CorporationAdminView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        visibility_scope = resolve_visibility_scope(self.request)
+        is_personal_scope = visibility_scope == CorporationItem.VISIBILITY_PERSONAL
         reminder_preference, _ = PolishReminderPreference.objects.get_or_create(user=self.request.user)
         context["create_form"] = kwargs.get("create_form") or CorporationItemForm()
         context["polish_task_form"] = kwargs.get("polish_task_form") or PolishTaskForm()
@@ -193,15 +255,22 @@ class CorporationAdminView(LoginRequiredMixin, TemplateView):
             user=self.request.user,
             is_completed=True,
         )[:8]
-        context["items"] = CorporationItem.objects.filter(owner=self.request.user)
+        context["items"] = CorporationItem.objects.filter(owner=self.request.user, visibility=visibility_scope)
         context["status_draft"] = CorporationItem.STATUS_DRAFT
         context["status_review"] = CorporationItem.STATUS_REVIEW
         context["status_approved"] = CorporationItem.STATUS_APPROVED
         context["status_posted"] = CorporationItem.STATUS_POSTED
+        context["visibility_scope"] = visibility_scope
+        context["visibility_scope_title"] = visibility_scope.title()
+        context["visibility_policy_label"] = "Personal" if is_personal_scope else "Public"
+        context["museum_scope_url"] = build_scoped_url("center:museum_social", visibility_scope)
+        context["center_scope_url"] = reverse("domain:index") if is_personal_scope else reverse("center:index")
         return context
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
+        visibility_scope = resolve_visibility_scope(request)
+        redirect_url = build_scoped_url("center:corporation_admin", visibility_scope)
 
         if action == "add_polish_task":
             task_form = PolishTaskForm(request.POST)
@@ -209,21 +278,21 @@ class CorporationAdminView(LoginRequiredMixin, TemplateView):
                 task = task_form.save(commit=False)
                 task.user = request.user
                 task.save()
-                return redirect("center:corporation_admin")
+                return redirect(redirect_url)
             return self.render_to_response(self.get_context_data(polish_task_form=task_form))
 
         if action == "complete_polish_task":
             task = get_object_or_404(PolishTask, pk=request.POST.get("task_id"), user=request.user)
             task.is_completed = True
             task.save(update_fields=["is_completed", "updated_at"])
-            return redirect("center:corporation_admin")
+            return redirect(redirect_url)
 
         if action == "update_polish_reminder_preference":
             preference, _ = PolishReminderPreference.objects.get_or_create(user=request.user)
             reminder_form = PolishReminderPreferenceForm(request.POST, instance=preference)
             if reminder_form.is_valid():
                 reminder_form.save()
-                return redirect("center:corporation_admin")
+                return redirect(redirect_url)
             return self.render_to_response(self.get_context_data(polish_reminder_form=reminder_form))
 
         if action == "create":
@@ -231,14 +300,20 @@ class CorporationAdminView(LoginRequiredMixin, TemplateView):
             if form.is_valid():
                 item = form.save(commit=False)
                 item.owner = request.user
+                item.visibility = visibility_scope
                 item.save()
-                return redirect("center:corporation_admin")
+                return redirect(redirect_url)
             return self.render_to_response(self.get_context_data(create_form=form))
 
         if action == "transition":
             item_id = request.POST.get("item_id")
             next_status = request.POST.get("next_status")
-            item = get_object_or_404(CorporationItem, pk=item_id, owner=request.user)
+            item = get_object_or_404(
+                CorporationItem,
+                pk=item_id,
+                owner=request.user,
+                visibility=visibility_scope,
+            )
 
             if item.can_transition_to(next_status):
                 item.status = next_status
@@ -246,7 +321,7 @@ class CorporationAdminView(LoginRequiredMixin, TemplateView):
                     item.approved_at = timezone.now()
                 item.save(update_fields=["status", "approved_at", "updated_at"])
 
-        return redirect("center:corporation_admin")
+            return redirect(redirect_url)
 
 
 class MuseumSocialView(LoginRequiredMixin, TemplateView):
@@ -254,28 +329,37 @@ class MuseumSocialView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        visibility_scope = resolve_visibility_scope(self.request)
+        is_personal_scope = visibility_scope == CorporationItem.VISIBILITY_PERSONAL
         context["ready_to_post_items"] = CorporationItem.objects.filter(
             owner=self.request.user,
             status=CorporationItem.STATUS_APPROVED,
+            visibility=visibility_scope,
         )
         context["posted_items"] = CorporationItem.objects.filter(
             owner=self.request.user,
             status=CorporationItem.STATUS_POSTED,
+            visibility=visibility_scope,
         )
+        context["visibility_scope"] = visibility_scope
+        context["visibility_scope_title"] = visibility_scope.title()
+        context["back_scope_url"] = reverse("domain:index") if is_personal_scope else reverse("center:index")
         return context
 
     def post(self, request, *args, **kwargs):
+        visibility_scope = resolve_visibility_scope(request)
         item_id = request.POST.get("item_id")
         item = get_object_or_404(
             CorporationItem,
             pk=item_id,
             owner=request.user,
             status=CorporationItem.STATUS_APPROVED,
+            visibility=visibility_scope,
         )
         item.status = CorporationItem.STATUS_POSTED
         item.work_status = CorporationItem.WORK_STATUS_TODO
         item.save(update_fields=["status", "work_status", "updated_at"])
-        return redirect("center:museum_social")
+        return redirect(build_scoped_url("center:museum_social", visibility_scope))
 
 
 class GardenBoardView(LoginRequiredMixin, TemplateView):
@@ -283,9 +367,12 @@ class GardenBoardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        visibility_scope = resolve_visibility_scope(self.request)
+        is_personal_scope = visibility_scope == CorporationItem.VISIBILITY_PERSONAL
         posted_items = CorporationItem.objects.filter(
             owner=self.request.user,
             status=CorporationItem.STATUS_POSTED,
+            visibility=visibility_scope,
         )
 
         context["todo_items"] = posted_items.filter(
@@ -298,9 +385,13 @@ class GardenBoardView(LoginRequiredMixin, TemplateView):
         context["work_todo"] = CorporationItem.WORK_STATUS_TODO
         context["work_in_progress"] = CorporationItem.WORK_STATUS_IN_PROGRESS
         context["work_done"] = CorporationItem.WORK_STATUS_DONE
+        context["visibility_scope"] = visibility_scope
+        context["visibility_scope_title"] = visibility_scope.title()
+        context["back_scope_url"] = reverse("domain:index") if is_personal_scope else reverse("center:index")
         return context
 
     def post(self, request, *args, **kwargs):
+        visibility_scope = resolve_visibility_scope(request)
         item_id = request.POST.get("item_id")
         next_work_status = request.POST.get("next_work_status")
         item = get_object_or_404(
@@ -308,6 +399,7 @@ class GardenBoardView(LoginRequiredMixin, TemplateView):
             pk=item_id,
             owner=request.user,
             status=CorporationItem.STATUS_POSTED,
+            visibility=visibility_scope,
         )
 
         if item.can_transition_work_to(next_work_status):
@@ -321,4 +413,56 @@ class GardenBoardView(LoginRequiredMixin, TemplateView):
                 update_fields.append("work_completed_at")
             item.save(update_fields=update_fields)
 
-        return redirect("center:garden_board")
+        return redirect(build_scoped_url("center:garden_board", visibility_scope))
+
+
+class MetaInterfaceView(LoginRequiredMixin, TemplateView):
+    template_name = "center/meta_interface.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.subscription_tier != User.SUBSCRIPTION_PREMIUM_ENTERPRISE:
+            return redirect("center:insufficient_tier")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        visibility_scope = resolve_visibility_scope(self.request)
+        is_personal_scope = visibility_scope == CorporationItem.VISIBILITY_PERSONAL
+        context["meta_compartments"] = [
+            {
+                "index": 13,
+                "slug": "philosophy",
+                "title": "Philosophy",
+                "summary": "First principles and worldview framing.",
+                "artifacts": ["Axioms", "Ethics", "Meaning"],
+            },
+            {
+                "index": 14,
+                "slug": "law-governance-insurance",
+                "title": "Law & Governance: Insurance",
+                "summary": "Policy, governance, and insurance logic.",
+                "artifacts": ["Policy", "Compliance", "Coverage"],
+            },
+            {
+                "index": 15,
+                "slug": "economics",
+                "title": "Economics",
+                "summary": "Value flow, incentives, and resource economics.",
+                "artifacts": ["Incentives", "Allocation", "Exchange"],
+            },
+            {
+                "index": 16,
+                "slug": "systemics",
+                "title": "Systemics",
+                "summary": "Systems integration and cross-layer coherence.",
+                "artifacts": ["Feedback", "Systems", "Coherence"],
+            },
+        ]
+        context["visibility_scope"] = visibility_scope
+        context["visibility_scope_title"] = visibility_scope.title()
+        context["recent_meta_artifacts"] = CorporationItem.objects.filter(
+            owner=self.request.user,
+            visibility=visibility_scope,
+        )[:6]
+        context["back_scope_url"] = reverse("domain:index") if is_personal_scope else reverse("center:index")
+        return context

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchRrSemanticIntelligence } from "../api/homepageApi";
-import { buildDriftReflection, buildOptimizationReflection, dispatchSemanticNavigation, executeSemanticAction, normalizeSemanticActionLogEntry, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
+import { buildDriftReflection, buildOptimizationReflection, buildTimelineSignalGroups, buildUnifiedPlatformIntelligenceState, dispatchSemanticNavigation, executeSemanticAction, normalizeSemanticActionLogEntry, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
 import { normalizeBreadcrumbs } from "./semanticOsHelpers";
 import { normalizeTimelineGroups } from "./semanticOsHelpers";
 
@@ -27,6 +27,8 @@ export default function SemanticIntelligencePanel({
   semanticIntelligenceError,
   semanticActionHistory,
   semanticActionFeedback,
+  timelineSignalState,
+  unifiedIntelligenceState,
 }) {
   const hasExternalPayload =
     semanticIntelligence !== undefined || semanticIntelligenceLoading !== undefined || semanticIntelligenceError !== undefined;
@@ -81,7 +83,20 @@ export default function SemanticIntelligencePanel({
   const chapterPreviews = payload?.publishing_intelligence?.chapter_previews || [];
   const chapterAssembly = payload?.publishing_intelligence?.chapter_assembly || [];
   const timeline = payload?.unified_timeline || [];
-  const timelineGroups = normalizeTimelineGroups(payload?.timeline_groups || []);
+  const payloadTimelineGroups = normalizeTimelineGroups(payload?.timeline_groups || []);
+  const timelineSignalGroups = useMemo(() => buildTimelineSignalGroups(timelineSignalState || {}), [timelineSignalState]);
+  const resolvedIntelligenceState = useMemo(
+    () => (unifiedIntelligenceState && typeof unifiedIntelligenceState === "object"
+      ? unifiedIntelligenceState
+      : buildUnifiedPlatformIntelligenceState(timelineSignalState || {})),
+    [timelineSignalState, unifiedIntelligenceState],
+  );
+  const timelineOrchestrationGroups = resolvedIntelligenceState?.groupings || { slot_clusters: [], semantic_phases: [], drift_risk_groups: { high: [], medium: [], low: [] } };
+  const timelinePriorityQueue = Array.isArray(resolvedIntelligenceState?.orchestration?.priority_queue)
+    ? resolvedIntelligenceState.orchestration.priority_queue
+    : [];
+  const mbspSurface = resolvedIntelligenceState?.synthesis?.mbsp_surface || { surface_phase: "n/a", surface_tiers: {} };
+  const timelineGroups = timelineSignalGroups.length > 0 ? timelineSignalGroups : payloadTimelineGroups;
   const subjectMix = Array.isArray(analytics?.subject_mix?.subjects) ? analytics.subject_mix.subjects : [];
   const actionEngine = payload?.semantic_action_engine || {};
   const actionBundles = Array.isArray(actionEngine?.action_bundles) ? actionEngine.action_bundles : [];
@@ -334,6 +349,60 @@ export default function SemanticIntelligencePanel({
 
           <section className="semantic-intelligence-panel">
             <h3>Unified Timeline</h3>
+            <div className="rr-node-chip-row">
+              <span>Timeline source {timelineSignalGroups.length > 0 ? "slot_events" : "payload"}</span>
+              <span>Slots complete {Array.isArray(timelineSignalState?.completed_slots) ? timelineSignalState.completed_slots.length : 0}/16</span>
+              <span>Latest slot {timelineSignalState?.latest_event?.slot_index || "n/a"}</span>
+              <span>Latest phase {timelineSignalState?.latest_event?.phase || "n/a"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span>Policy triggers {timelinePriorityQueue.length}</span>
+              <span>Drift {Number(resolvedIntelligenceState?.semantic_metadata?.drift_score || 0).toFixed(2)}</span>
+              <span>Alignment {Number(resolvedIntelligenceState?.semantic_metadata?.alignment_score || 0).toFixed(2)}</span>
+              <span>Completed slots {Number(resolvedIntelligenceState?.slot_progression?.completed_count || 0)}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              {timelinePriorityQueue.map((trigger) => (
+                <button
+                  key={`timeline-policy-${trigger.id}`}
+                  type="button"
+                  data-orchestration-trigger={trigger.id}
+                  data-orchestration-priority={trigger.priority}
+                  onClick={() => dispatchNavigation(trigger.navigation || {})}
+                >
+                  {trigger.id}
+                </button>
+              ))}
+            </div>
+            <div className="rr-node-chip-row">
+              <span data-intelligence-risk-level={resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}>Risk {resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}</span>
+              <span data-intelligence-drift-trend={resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}>Drift trend {resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}</span>
+              <span data-intelligence-alignment-trajectory={resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}>Alignment trajectory {resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span data-intelligence-mbsp-phase={mbspSurface?.surface_phase || "n/a"}>MBSP phase {mbspSurface?.surface_phase || "n/a"}</span>
+              <span data-intelligence-mbsp-studio={mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}>Studio {mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}</span>
+              <span data-intelligence-mbsp-enterprise={mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}>Enterprise {mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              {(timelineOrchestrationGroups.slot_clusters || []).map((cluster) => (
+                <span key={`timeline-cluster-${cluster.phase}`}>
+                  {cluster.phase}: {cluster.completed_count}/{cluster.slots.length} {cluster.locked ? "locked" : "open"}
+                </span>
+              ))}
+            </div>
+            <div className="rr-node-chip-row">
+              {(timelineOrchestrationGroups.semantic_phases || []).map((phase) => (
+                <span key={`timeline-phase-${phase.phase}`}>
+                  {phase.phase} drift {phase.drift_average.toFixed(2)} align {phase.alignment_average.toFixed(2)}
+                </span>
+              ))}
+            </div>
+            <div className="rr-node-chip-row">
+              <span>Drift-risk high {(timelineOrchestrationGroups.drift_risk_groups?.high || []).length}</span>
+              <span>Drift-risk medium {(timelineOrchestrationGroups.drift_risk_groups?.medium || []).length}</span>
+              <span>Drift-risk low {(timelineOrchestrationGroups.drift_risk_groups?.low || []).length}</span>
+            </div>
             <div className="semantic-intelligence-timeline">
               {(timelineGroups.length > 0 ? timelineGroups : timeline.map((item) => ({
                 subject: item.subject || "Unknown",
@@ -369,6 +438,12 @@ export default function SemanticIntelligencePanel({
                             <span>{item.surface}</span>
                             <span>{item.event_type}</span>
                             <span>C{item.compartment_id ?? "?"}</span>
+                          </div>
+                          <div className="rr-node-chip-row">
+                            <span>Drift {item?.semantic_state?.drift_score ?? "n/a"}</span>
+                            <span>Stability {item?.semantic_state?.stability_score ?? "n/a"}</span>
+                            <span>Alignment {item?.semantic_state?.alignment_score ?? "n/a"}</span>
+                            <span>{item?.industry_metadata?.industry || "n/a"}</span>
                           </div>
                           <div className="rr-node-chip-row">
                             {chips.slice(0, 3).map((crumb) => <span key={`${item.event_type}-${crumb}`}>{crumb}</span>)}

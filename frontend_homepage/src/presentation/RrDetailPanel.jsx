@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchPreferences, fetchRrNodeDetail, saveViewState } from "../api/homepageApi";
-import { buildDriftReflection, buildOptimizationReflection, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
+import { buildDriftReflection, buildOptimizationReflection, buildTimelineSignalGroups, buildUnifiedPlatformIntelligenceState, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
 
 const LOCAL_STORAGE_KEY = "grassroots.semantic-stack.view-state.v1";
 
@@ -22,7 +22,7 @@ function writePersistedState(state) {
   }
 }
 
-export default function RrDetailPanel({ panelId = "rr-detail-panel", semanticIntelligence, semanticActionFeedback }) {
+export default function RrDetailPanel({ panelId = "rr-detail-panel", semanticIntelligence, semanticActionFeedback, timelineSignalState, unifiedIntelligenceState }) {
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const [activeSurface, setActiveSurface] = useState("rr_dashboard");
   const [payload, setPayload] = useState(null);
@@ -172,6 +172,16 @@ export default function RrDetailPanel({ panelId = "rr-detail-panel", semanticInt
       semanticActionFeedback || semanticIntelligence?.semantic_feedback_loop || {},
     ),
   );
+  const timelineGroups = useMemo(() => buildTimelineSignalGroups(timelineSignalState || {}), [timelineSignalState]);
+  const resolvedIntelligenceState = useMemo(
+    () => (unifiedIntelligenceState && typeof unifiedIntelligenceState === "object"
+      ? unifiedIntelligenceState
+      : buildUnifiedPlatformIntelligenceState(timelineSignalState || {})),
+    [timelineSignalState, unifiedIntelligenceState],
+  );
+  const mbspSurface = resolvedIntelligenceState?.synthesis?.mbsp_surface || { surface_phase: "n/a", surface_tiers: {} };
+  const latestTimelineEvent = timelineSignalState?.latest_event || null;
+  const completedTimelineSlots = Array.isArray(timelineSignalState?.completed_slots) ? timelineSignalState.completed_slots : [];
   const publishingReady = Array.isArray(payload?.publishing_ready_signals)
     ? payload.publishing_ready_signals.find((item) => item.signal === "publishing_ready")?.status === "ready"
     : false;
@@ -283,6 +293,23 @@ export default function RrDetailPanel({ panelId = "rr-detail-panel", semanticInt
               <span>Subject mix {optimizationReflection.subjectMixScore}</span>
               <span>Workflow {optimizationReflection.workflowEfficiencyScore}</span>
               <span>Publishing {optimizationReflection.publishingReadinessScore}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span>Timeline slots {completedTimelineSlots.length}/16</span>
+              <span>Latest slot {latestTimelineEvent?.slot_index || "n/a"}</span>
+              <span>Phase {latestTimelineEvent?.phase || "n/a"}</span>
+              <span>Industry {latestTimelineEvent?.industry_metadata?.industry || "n/a"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span>Timeline groups {timelineGroups.length}</span>
+              {timelineGroups.slice(0, 2).map((item) => (
+                <span key={`rr-detail-timeline-group-${item.subject}-${item.phase}`}>{item.subject} {item.phase} ({item.count})</span>
+              ))}
+            </div>
+            <div className="rr-node-chip-row">
+              <span data-intelligence-mbsp-phase={mbspSurface?.surface_phase || "n/a"}>MBSP phase {mbspSurface?.surface_phase || "n/a"}</span>
+              <span data-intelligence-mbsp-studio={mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}>Studio {mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}</span>
+              <span data-intelligence-mbsp-enterprise={mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}>Enterprise {mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}</span>
             </div>
             <div className="rr-node-chip-row">
               {(driftReflection.subjectChips || []).slice(0, 3).map((chip, index) => (

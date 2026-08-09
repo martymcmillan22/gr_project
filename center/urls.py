@@ -12,4 +12,5 @@ urlpatterns = [
     path("boards/corporation-btif/", RedirectView.as_view(pattern_name="center:corporation_admin", permanent=False), name="corporation_btif"),
     path("boards/museum-social/", views.MuseumSocialView.as_view(), name="museum_social"),
     path("boards/garden-board/", views.GardenBoardView.as_view(), name="garden_board"),
+    path("boards/meta-interface/", views.MetaInterfaceView.as_view(), name="meta_interface"),
 ]

@@ -8,6 +8,13 @@ from .forms import ForumPostForm
 from .models import ForumPost
 
 
+def _resolve_visibility_scope(request):
+    visibility_scope = (request.GET.get("visibility") or request.POST.get("visibility") or ForumPost.VISIBILITY_PUBLIC).strip().lower()
+    if visibility_scope not in {ForumPost.VISIBILITY_PUBLIC, ForumPost.VISIBILITY_PERSONAL}:
+        return ForumPost.VISIBILITY_PUBLIC
+    return visibility_scope
+
+
 FORUM_DETAILS = {
     "city": {
         "title": "City Forum",
@@ -67,10 +74,12 @@ class ForumContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         forum = self.get_forum_detail()
+        visibility_scope = _resolve_visibility_scope(self.request)
         context["forum"] = forum
         context["forum_share_path"] = reverse("forums:access", kwargs={"forum_key": self.forum_key})
         context["sevm_branches"] = SEVM_BRANCHES
-        context["posts"] = ForumPost.objects.filter(forum_type=self.forum_key)
+        context["posts"] = ForumPost.objects.filter(forum_type=self.forum_key, visibility=visibility_scope)
+        context["visibility_scope"] = visibility_scope
         context["post_form"] = kwargs.get("post_form") or ForumPostForm()
         return context
 
@@ -85,6 +94,7 @@ class ForumBoardMixin(ForumContextMixin):
             post = form.save(commit=False)
             post.author = request.user
             post.forum_type = self.forum_key
+            post.visibility = _resolve_visibility_scope(request)
             post.save()
             return redirect(request.path)
 

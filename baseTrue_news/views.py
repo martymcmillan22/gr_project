@@ -8,15 +8,24 @@ from .forms import NewsletterSignupForm
 from .models import Issue, NewsletterSubscriber, Story
 
 
+def _resolve_visibility_scope(request):
+	visibility_scope = (request.GET.get("visibility") or Story.Visibility.PUBLIC).strip().lower()
+	if visibility_scope not in {Story.Visibility.PUBLIC, Story.Visibility.PERSONAL}:
+		return Story.Visibility.PUBLIC
+	return visibility_scope
+
+
 class NewsletterHomeView(generic.TemplateView):
 	template_name = "baseTrue_news/index.html"
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		visibility_scope = _resolve_visibility_scope(self.request)
 		published_issues = (
 			Issue.objects.filter(
 				stories__status=Story.Status.PUBLISHED,
 				stories__publish_at__lte=timezone.now(),
+				stories__visibility=visibility_scope,
 			)
 			.distinct()
 			.order_by("-year", "-month")
@@ -27,9 +36,10 @@ class NewsletterHomeView(generic.TemplateView):
 		context["recent_issues"] = published_issues[:12]
 		context["pip_stories"] = Story.objects.none()
 		context["base_true_stories"] = Story.objects.none()
+		context["visibility_scope"] = visibility_scope
 
 		if current_issue:
-			live_stories = current_issue.stories.published()
+			live_stories = current_issue.stories.published().filter(visibility=visibility_scope)
 			context["pip_stories"] = live_stories.filter(feature=Story.Feature.PIP)
 			context["base_true_stories"] = live_stories.filter(feature=Story.Feature.BASE_TRUE)
 			context["lead_story"] = live_stories.first()
@@ -69,6 +79,7 @@ class IssueArchiveView(generic.ListView):
 			Issue.objects.filter(
 				stories__status=Story.Status.PUBLISHED,
 				stories__publish_at__lte=timezone.now(),
+				stories__visibility=Story.Visibility.PUBLIC,
 			)
 			.distinct()
 			.order_by("-year", "-month")
@@ -80,12 +91,14 @@ class IssueDetailView(generic.TemplateView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		visibility_scope = _resolve_visibility_scope(self.request)
 		issue = get_object_or_404(Issue, year=self.kwargs["year"], month=self.kwargs["month"])
-		live_stories = issue.stories.published()
+		live_stories = issue.stories.published().filter(visibility=visibility_scope)
 		context["issue"] = issue
 		context["lead_story"] = live_stories.first()
 		context["pip_stories"] = live_stories.filter(feature=Story.Feature.PIP)
 		context["base_true_stories"] = live_stories.filter(feature=Story.Feature.BASE_TRUE)
+		context["visibility_scope"] = visibility_scope
 		return context
 
 

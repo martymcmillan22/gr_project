@@ -13,9 +13,19 @@ from .serializers import CreativeIdeaSerializer
 from polish.reminders import get_daily_polish_reminder
 
 
-def get_user_idea_or_404(user, pk):
+def _resolve_visibility_scope(request):
+    visibility_scope = (request.GET.get('visibility') or request.POST.get('visibility') or CreativeIdea.VISIBILITY_PUBLIC).strip().lower()
+    if visibility_scope not in {CreativeIdea.VISIBILITY_PUBLIC, CreativeIdea.VISIBILITY_PERSONAL}:
+        return CreativeIdea.VISIBILITY_PUBLIC
+    return visibility_scope
+
+
+def get_user_idea_or_404(user, pk, visibility_scope=None):
     try:
-        return CreativeIdea.objects.get(pk=pk, user=user)
+        lookup = {'pk': pk, 'user': user}
+        if visibility_scope in {CreativeIdea.VISIBILITY_PUBLIC, CreativeIdea.VISIBILITY_PERSONAL}:
+            lookup['visibility'] = visibility_scope
+        return CreativeIdea.objects.get(**lookup)
     except CreativeIdea.DoesNotExist as exc:
         raise Http404() from exc
 
@@ -24,11 +34,12 @@ class CreativeIdeaViewSet(viewsets.ModelViewSet):
 
     # This ensures users only see and modify their own ideas
     def get_queryset(self):
-        return CreativeIdea.objects.filter(user=self.request.user)
+        visibility_scope = _resolve_visibility_scope(self.request)
+        return CreativeIdea.objects.filter(user=self.request.user, visibility=visibility_scope)
 
     # Automatically attaches the logged-in user to the new idea
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user, visibility=_resolve_visibility_scope(self.request))
 
 
 class TwistEntryView(TemplateView):
@@ -41,6 +52,8 @@ class TwistEntryView(TemplateView):
             query = self.request.GET.get('q', '').strip()
             status_filter = self.request.GET.get('status', 'all').strip() or 'all'
             ideas = CreativeIdea.objects.filter(user=self.request.user)
+            visibility_scope = _resolve_visibility_scope(self.request)
+            ideas = ideas.filter(visibility=visibility_scope)
             allowed_statuses = {
                 CreativeIdea.STATUS_RAW,
                 CreativeIdea.STATUS_SEED,
@@ -61,6 +74,7 @@ class TwistEntryView(TemplateView):
             context['search_query'] = query
             context['status_filter'] = status_filter
             context['status_choices'] = [('all', 'All')] + list(CreativeIdea.STATUS_CHOICES)
+            context['visibility_scope'] = visibility_scope
             reminder_payload = get_daily_polish_reminder(self.request.user, source_label='Twist')
             context['show_polish_reminder_popup'] = reminder_payload['show_popup']
             context['polish_reminder_message'] = reminder_payload['message']
@@ -77,6 +91,7 @@ class TwistEntryView(TemplateView):
                 content=form.cleaned_data['content'],
                 tags=form.cleaned_data['tags'],
                 status=form.cleaned_data['status'],
+                visibility=_resolve_visibility_scope(request),
             )
             messages.success(request, 'Idea saved to Twist.')
             return redirect('twist-entry')
@@ -105,16 +120,19 @@ class TwistIdeaEditView(LoginRequiredMixin, TemplateView):
         context['form'] = kwargs.get('form') or CreativeIdeaForm(
             initial={'content': idea.content, 'tags': idea.tags, 'status': idea.status}
         )
+        context['visibility_scope'] = idea.visibility
         return context
 
     def post(self, request, *args, **kwargs):
-        idea = get_user_idea_or_404(request.user, self.kwargs['pk'])
+        visibility_scope = _resolve_visibility_scope(request)
+        idea = get_user_idea_or_404(request.user, self.kwargs['pk'], visibility_scope=visibility_scope)
         form = CreativeIdeaForm(request.POST)
         if form.is_valid():
             idea.content = form.cleaned_data['content']
             idea.tags = form.cleaned_data['tags']
             idea.status = form.cleaned_data['status']
-            idea.save(update_fields=['content', 'tags', 'status'])
+            idea.visibility = visibility_scope
+            idea.save(update_fields=['content', 'tags', 'status', 'visibility'])
             messages.success(request, 'Idea updated.')
             return redirect('twist-entry')
 
@@ -127,11 +145,11 @@ class TwistIdeaDeleteView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['idea'] = get_user_idea_or_404(self.request.user, self.kwargs['pk'])
+        context['idea'] = get_user_idea_or_404(self.request.user, self.kwargs['pk'], visibility_scope=_resolve_visibility_scope(self.request))
         return context
 
     def post(self, request, *args, **kwargs):
-        idea = get_user_idea_or_404(request.user, self.kwargs['pk'])
+        idea = get_user_idea_or_404(request.user, self.kwargs['pk'], visibility_scope=_resolve_visibility_scope(request))
         idea.delete()
         messages.success(request, 'Idea deleted.')
         return redirect('twist-entry')

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchRrVaGuidance } from "../api/homepageApi";
-import { buildDriftReflection, buildOptimizationReflection, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
+import { buildDriftReflection, buildOptimizationReflection, buildUnifiedPlatformIntelligenceState, dispatchSemanticNavigation, executeSemanticAction, normalizeBreadcrumbs, normalizeSemanticFeedbackLoop, SEMANTIC_ACTIONS } from "./semanticOsHelpers";
 
-export default function VaSemanticGuidancePanel({ panelId = "va-guidance-panel", semanticIntelligence, semanticActionFeedback }) {
+export default function VaSemanticGuidancePanel({ panelId = "va-guidance-panel", semanticIntelligence, semanticActionFeedback, timelineSignalState, unifiedIntelligenceState }) {
   const [payload, setPayload] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -49,6 +49,24 @@ export default function VaSemanticGuidancePanel({ panelId = "va-guidance-panel",
   const optimizationReflection = buildOptimizationReflection(
     normalizeSemanticFeedbackLoop(semanticActionFeedback || semanticIntelligence?.semantic_feedback_loop || {}),
   );
+  const resolvedIntelligenceState = useMemo(
+    () => (unifiedIntelligenceState && typeof unifiedIntelligenceState === "object"
+      ? unifiedIntelligenceState
+      : buildUnifiedPlatformIntelligenceState(timelineSignalState || {})),
+    [timelineSignalState, unifiedIntelligenceState],
+  );
+  const latestTimelineEvent = resolvedIntelligenceState?.latest_event || null;
+  const timelinePhaseGates = Array.isArray(resolvedIntelligenceState?.phase_gate_state?.phase_gates)
+    ? resolvedIntelligenceState.phase_gate_state.phase_gates
+    : [];
+  const completedTimelineSlots = Array.isArray(resolvedIntelligenceState?.slot_progression?.completed_slots)
+    ? resolvedIntelligenceState.slot_progression.completed_slots
+    : [];
+  const timelineOrchestrationGroups = resolvedIntelligenceState?.groupings || { slot_clusters: [], semantic_phases: [], drift_risk_groups: { high: [], medium: [], low: [] } };
+  const timelinePriorityQueue = Array.isArray(resolvedIntelligenceState?.orchestration?.priority_queue)
+    ? resolvedIntelligenceState.orchestration.priority_queue
+    : [];
+  const mbspSurface = resolvedIntelligenceState?.synthesis?.mbsp_surface || { surface_phase: "n/a", surface_tiers: {} };
   const [quickFilter, setQuickFilter] = useState("all");
   const [actionStatus, setActionStatus] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
@@ -186,14 +204,66 @@ export default function VaSemanticGuidancePanel({ panelId = "va-guidance-panel",
               <span>Stabilization {driftReflection.stabilization?.status || "monitor"}</span>
             </div>
             <div className="rr-node-chip-row">
+              <span>Timeline slots {completedTimelineSlots.length}/16</span>
+              <span>Slot {latestTimelineEvent?.slot_index || "n/a"}</span>
+              <span>Phase {latestTimelineEvent?.phase || "n/a"}</span>
+              <span>Gate {latestTimelineEvent?.gate_locked ? "locked" : "unlocked"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span>Drift score {latestTimelineEvent?.semantic_state?.drift_score ?? "n/a"}</span>
+              <span>Stability score {latestTimelineEvent?.semantic_state?.stability_score ?? "n/a"}</span>
+              <span>Alignment score {latestTimelineEvent?.semantic_state?.alignment_score ?? "n/a"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span data-intelligence-risk-level={resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}>Risk {resolvedIntelligenceState?.synthesis?.risk_clusters?.primary || "low"}</span>
+              <span data-intelligence-drift-trend={resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}>Drift trend {resolvedIntelligenceState?.synthesis?.drift_trend?.direction || "stable"}</span>
+              <span data-intelligence-alignment-trajectory={resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}>Alignment trajectory {resolvedIntelligenceState?.synthesis?.alignment_trajectory?.direction || "stable"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span data-intelligence-mbsp-phase={mbspSurface?.surface_phase || "n/a"}>MBSP phase {mbspSurface?.surface_phase || "n/a"}</span>
+              <span data-intelligence-mbsp-studio={mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}>Studio {mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}</span>
+              <span data-intelligence-mbsp-enterprise={mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}>Enterprise {mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}</span>
+            </div>
+            <div className="rr-node-chip-row">
+              <span>{latestTimelineEvent?.industry_metadata?.group_name || "n/a"}</span>
+              <span>{latestTimelineEvent?.industry_metadata?.industry || "n/a"}</span>
+              {timelinePhaseGates.map((gate) => (
+                <span key={`va-gate-${gate.phase}`}>{gate.phase}:{gate.locked ? "locked" : "open"}</span>
+              ))}
+            </div>
+            <div className="rr-node-chip-row">
               <span>Optimization {optimizationReflection.status}</span>
               <span>Pressure {optimizationReflection.optimizationPressure}</span>
               <span>Workflow {optimizationReflection.workflowEfficiencyScore}</span>
               <span>Publishing {optimizationReflection.publishingReadinessScore}</span>
             </div>
             <div className="rr-node-chip-row">
+              <span>Policy triggers {timelinePriorityQueue.length}</span>
+              <span>Drift high {(timelineOrchestrationGroups.drift_risk_groups?.high || []).length}</span>
+              <span>Drift medium {(timelineOrchestrationGroups.drift_risk_groups?.medium || []).length}</span>
+              <span>Drift low {(timelineOrchestrationGroups.drift_risk_groups?.low || []).length}</span>
+            </div>
+            <div className="rr-node-chip-row">
               {(driftReflection.subjectChips || []).slice(0, 3).map((chip, index) => (
                 <span key={`va-drift-chip-${index}`}>{chip.subject} {chip.phase} · {chip.severity}</span>
+              ))}
+            </div>
+            <div className="semantic-intelligence-list">
+              {timelinePriorityQueue.map((trigger) => (
+                <button
+                  key={`va-timeline-trigger-${trigger.id}`}
+                  type="button"
+                  data-orchestration-trigger={trigger.id}
+                  data-orchestration-priority={trigger.priority}
+                  disabled={actionLoading}
+                  onClick={() => executeRecommendationAction({
+                    label: trigger.id,
+                    action: trigger.action,
+                    navigation: trigger.navigation,
+                  })}
+                >
+                  {trigger.message}
+                </button>
               ))}
             </div>
             <div className="rr-node-chip-row">

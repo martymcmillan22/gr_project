@@ -283,3 +283,97 @@ class CrossSyncRequestSerializer(serializers.Serializer):
     sync_type = serializers.ChoiceField(choices=["full", "delta", "version", "lineage", "analytics", "insight"])
     target_platform = serializers.CharField(max_length=120)
     project_slug = serializers.SlugField(max_length=120)
+
+
+class CalculusTimelineRuntimeRequestSerializer(serializers.Serializer):
+    selected_slot = serializers.IntegerField(required=False, min_value=1, max_value=16, default=1)
+    completed_slots = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=16),
+        required=False,
+        default=list,
+    )
+    slot_content = serializers.DictField(required=False, default=dict)
+    industry_context = serializers.DictField(required=False, default=dict)
+    prior_slot_states = serializers.DictField(required=False, default=dict)
+
+    def validate_completed_slots(self, value):
+        unique = sorted({int(item) for item in value})
+        return unique
+
+    def validate_slot_content(self, value):
+        normalized = {}
+        for raw_key, raw_value in (value or {}).items():
+            try:
+                slot_index = int(raw_key)
+            except (TypeError, ValueError):
+                continue
+            if slot_index < 1 or slot_index > 16:
+                continue
+            normalized[str(slot_index)] = str(raw_value or "")
+        return normalized
+
+    def validate_industry_context(self, value):
+        context = dict(value or {})
+        normalized = {
+            "group": str(context.get("group", "") or ""),
+            "industry": str(context.get("industry", "") or ""),
+            "sub_industry": str(context.get("sub_industry", "") or ""),
+            "slot_overrides": {},
+        }
+
+        overrides = context.get("slot_overrides", {})
+        if isinstance(overrides, dict):
+            for raw_key, raw_value in overrides.items():
+                try:
+                    slot_index = int(raw_key)
+                except (TypeError, ValueError):
+                    continue
+                if slot_index < 1 or slot_index > 16 or not isinstance(raw_value, dict):
+                    continue
+                normalized["slot_overrides"][str(slot_index)] = {
+                    "industry": str(raw_value.get("industry", "") or ""),
+                    "sub_industry": str(raw_value.get("sub_industry", "") or ""),
+                }
+
+        return normalized
+
+    def validate_prior_slot_states(self, value):
+        normalized = {}
+        for raw_key, raw_value in (value or {}).items():
+            try:
+                slot_index = int(raw_key)
+            except (TypeError, ValueError):
+                continue
+            if slot_index < 1 or slot_index > 16 or not isinstance(raw_value, dict):
+                continue
+            normalized[str(slot_index)] = {
+                "drift_score": raw_value.get("drift_score"),
+                "alignment_score": raw_value.get("alignment_score"),
+                "gate_locked": bool(raw_value.get("gate_locked", False)),
+                "completed": bool(raw_value.get("completed", False)),
+            }
+        return normalized
+
+
+class LfoEngineRequestSerializer(serializers.Serializer):
+    selected_slot = serializers.IntegerField(required=False, min_value=1, max_value=16, default=1)
+    completed_slots = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=16),
+        required=False,
+        default=list,
+    )
+    timeline_snapshot = serializers.DictField(required=False, default=dict)
+    synthesis_snapshot = serializers.DictField(required=False, default=dict)
+    trigger_count = serializers.IntegerField(required=False, min_value=0, default=0)
+    feature_pathways = serializers.ListField(
+        child=serializers.CharField(max_length=120, trim_whitespace=True),
+        required=False,
+        default=list,
+    )
+
+    def validate_completed_slots(self, value):
+        return sorted({int(item) for item in value})
+
+    def validate_feature_pathways(self, value):
+        normalized = [str(item).strip().lower() for item in value if str(item).strip()]
+        return normalized

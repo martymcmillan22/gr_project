@@ -43,6 +43,13 @@ class CorporationItem(models.Model):
 		(PRIORITY_HIGH, "High"),
 	)
 
+	VISIBILITY_PUBLIC = "public"
+	VISIBILITY_PERSONAL = "personal"
+	VISIBILITY_CHOICES = (
+		(VISIBILITY_PUBLIC, "Public"),
+		(VISIBILITY_PERSONAL, "Personal"),
+	)
+
 	owner = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.CASCADE,
@@ -60,6 +67,7 @@ class CorporationItem(models.Model):
 	item_type = models.CharField(max_length=24, choices=TYPE_CHOICES, default=TYPE_GENERAL)
 	status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_DRAFT)
 	priority = models.CharField(max_length=12, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
+	visibility = models.CharField(max_length=16, choices=VISIBILITY_CHOICES, default=VISIBILITY_PUBLIC)
 	due_date = models.DateField(null=True, blank=True)
 	approved_at = models.DateTimeField(null=True, blank=True)
 	work_status = models.CharField(max_length=20, choices=WORK_STATUS_CHOICES, null=True, blank=True)

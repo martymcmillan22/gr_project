@@ -14,6 +14,13 @@ from .forms import StoryCreateForm
 from .git_integration import get_git_integration
 
 
+def _resolve_visibility_scope(request):
+    visibility_scope = (request.GET.get('visibility') or request.POST.get('visibility') or 'public').strip().lower()
+    if visibility_scope not in {'public', 'personal'}:
+        return 'public'
+    return visibility_scope
+
+
 def _parse_metadata_map(block: str) -> dict:
     """Parse markdown bullet metadata like '- Key: Value' into a normalized dict."""
     parsed = {}
@@ -102,23 +109,27 @@ def _semantic_anchor_for_story(story: StoryEntry) -> dict:
     }
 
 
-def _story_sessions_visible_to_user(user):
+def _story_sessions_visible_to_user(user, visibility_scope: str = 'public'):
     if getattr(user, 'is_superuser', False):
-        return StorySession.objects.all()
+        queryset = StorySession.objects.all()
+    else:
+        queryset = StorySession.objects.filter(owner=user)
 
-    return StorySession.objects.filter(
-        owner=user
-    )
-
-
-def _visible_story_entry_ids(user) -> set:
-    return set(_story_sessions_visible_to_user(user).values_list('entry_id', flat=True))
+    if visibility_scope in {'public', 'personal'}:
+        queryset = queryset.filter(visibility=visibility_scope)
+    return queryset
 
 
-def _get_accessible_story_session(*, entry_id: int, user, create: bool = False, story: StoryEntry | None = None):
+def _visible_story_entry_ids(user, visibility_scope: str = 'public') -> set:
+    return set(_story_sessions_visible_to_user(user, visibility_scope=visibility_scope).values_list('entry_id', flat=True))
+
+
+def _get_accessible_story_session(*, entry_id: int, user, visibility_scope: str = 'public', create: bool = False, story: StoryEntry | None = None):
     session = StorySession.objects.filter(entry_id=entry_id).first()
     if session is not None:
         if not getattr(user, 'is_superuser', False) and session.owner_id != user.id:
+            return None
+        if session.visibility != visibility_scope and not getattr(user, 'is_superuser', False):
             return None
         return session
 
@@ -133,15 +144,17 @@ def _get_accessible_story_session(*, entry_id: int, user, create: bool = False, 
         progress=story.calculate_progress(),
         owner=user,
         last_edited_by=user,
+        visibility=visibility_scope,
     )
 
 
 @login_required
 def dashboard(request):
     """Display all stories with status overview."""
-    visible_entry_ids = _visible_story_entry_ids(request.user)
+    visibility_scope = _resolve_visibility_scope(request)
+    visible_entry_ids = _visible_story_entry_ids(request.user, visibility_scope=visibility_scope)
     stories = [story for story in StoryMarkdownParser.load_all_stories() if story.entry_id in visible_entry_ids]
-    session_map = {session.entry_id: session for session in _story_sessions_visible_to_user(request.user)}
+    session_map = {session.entry_id: session for session in _story_sessions_visible_to_user(request.user, visibility_scope=visibility_scope)}
 
     for story in stories:
         session = session_map.get(story.entry_id)
@@ -156,6 +169,7 @@ def dashboard(request):
     
     context = {
         'stories': stories,
+        'visibility_scope': visibility_scope,
         'stats': {
             'total': total,
             'completed': completed,
@@ -171,6 +185,7 @@ def dashboard(request):
 @login_required
 def story_create(request):
     """Create a new story outline and return the user to the dashboard."""
+    visibility_scope = _resolve_visibility_scope(request)
     if request.method == 'POST':
         form = StoryCreateForm(request.POST)
         if form.is_valid():
@@ -188,24 +203,26 @@ def story_create(request):
                         'progress': story.calculate_progress(),
                         'owner': request.user,
                         'last_edited_by': request.user,
+                        'visibility': visibility_scope,
                     },
                 )
                 return redirect('storytelling_dashboard:dashboard')
     else:
         form = StoryCreateForm()
 
-    return render(request, 'storytelling_dashboard/story_create.html', {'form': form})
+    return render(request, 'storytelling_dashboard/story_create.html', {'form': form, 'visibility_scope': visibility_scope})
 
 
 @login_required
 def story_detail(request, entry_id):
     """Display and edit a single story."""
+    visibility_scope = _resolve_visibility_scope(request)
     story = StoryMarkdownParser.get_story_by_id(entry_id)
 
     if not story:
         return HttpResponse('Story not found', status=404)
 
-    session = _get_accessible_story_session(entry_id=entry_id, user=request.user)
+    session = _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=visibility_scope)
 
     if not session:
         return HttpResponse('Story not found', status=404)
@@ -215,6 +232,7 @@ def story_detail(request, entry_id):
         'session': session,
         'format_choices': FORMAT_CHOICES,
         'progress': session.progress,
+        'visibility_scope': visibility_scope,
     }
     
     return render(request, 'storytelling_dashboard/story_detail.html', context)
@@ -224,7 +242,8 @@ def story_detail(request, entry_id):
 @login_required
 def api_stories(request):
     """API endpoint: Get all stories."""
-    visible_entry_ids = _visible_story_entry_ids(request.user)
+    visibility_scope = _resolve_visibility_scope(request)
+    visible_entry_ids = _visible_story_entry_ids(request.user, visibility_scope=visibility_scope)
     stories = [story for story in StoryMarkdownParser.load_all_stories() if story.entry_id in visible_entry_ids]
     return JsonResponse({
         'success': True,
@@ -239,7 +258,9 @@ def api_story(request, entry_id):
     """API endpoint: Get single story."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
 
-    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
+    visibility_scope = _resolve_visibility_scope(request)
+
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=visibility_scope):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     return JsonResponse({
@@ -263,10 +284,10 @@ def api_story_save(request, entry_id):
     if not story:
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
 
-    session = _get_accessible_story_session(entry_id=entry_id, user=request.user)
+    session = _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=_resolve_visibility_scope(request))
 
     if session is None:
-        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, create=True, story=story)
+        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=_resolve_visibility_scope(request), create=True, story=story)
     
     # Update story fields
     if 'title' in data:
@@ -309,7 +330,7 @@ def api_story_save(request, entry_id):
     
     if success:
         # Update session
-        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, create=True, story=story)
+        session = _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=_resolve_visibility_scope(request), create=True, story=story)
         session.title = story.title
         session.status = story.status
         session.format = story.format
@@ -348,7 +369,7 @@ def api_story_validate(request, entry_id):
     """API endpoint: Validate story against ENGINE_SCHEMA.md rules."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
 
-    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=_resolve_visibility_scope(request)):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     # Validation checks
@@ -394,7 +415,7 @@ def api_git_history(request, entry_id: int):
     """API endpoint: Get git commit history for story."""
     story = StoryMarkdownParser.get_story_by_id(entry_id)
 
-    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user):
+    if not story or not _get_accessible_story_session(entry_id=entry_id, user=request.user, visibility_scope=_resolve_visibility_scope(request)):
         return JsonResponse({'success': False, 'error': 'Story not found'}, status=404)
     
     git = get_git_integration()
@@ -687,7 +708,8 @@ def api_semantic_diff(request):
 def api_semantic_presets(request):
     """List or create semantic operation presets for the authenticated user."""
     if request.method == "GET":
-        presets = SemanticPreset.objects.filter(owner=request.user).order_by('preset_type', 'name')
+        visibility_scope = _resolve_visibility_scope(request)
+        presets = SemanticPreset.objects.filter(owner=request.user, visibility=visibility_scope).order_by('preset_type', 'name')
         results = [
             {
                 "id": preset.id,
@@ -712,6 +734,9 @@ def api_semantic_presets(request):
     name = str(data.get("name") or "").strip()
     preset_type = str(data.get("preset_type") or "").strip().lower()
     payload = data.get("payload") if isinstance(data.get("payload"), dict) else {}
+    visibility_scope = str(data.get("visibility") or "public").strip().lower()
+    if visibility_scope not in {"public", "personal"}:
+        visibility_scope = "public"
 
     if not name:
         return JsonResponse({"success": False, "error": "name is required"}, status=400)
@@ -722,7 +747,7 @@ def api_semantic_presets(request):
         owner=request.user,
         name=name,
         preset_type=preset_type,
-        defaults={"payload": payload},
+        defaults={"payload": payload, "visibility": visibility_scope},
     )
 
     return JsonResponse({
@@ -759,6 +784,9 @@ def api_semantic_preset_detail(request, preset_id: int):
 
     name = data.get("name")
     payload = data.get("payload")
+    visibility_scope = str(data.get("visibility") or preset.visibility or "public").strip().lower()
+    if visibility_scope not in {"public", "personal"}:
+        visibility_scope = preset.visibility
 
     if name is not None:
         normalized_name = str(name).strip()
@@ -767,6 +795,7 @@ def api_semantic_preset_detail(request, preset_id: int):
         preset.name = normalized_name
     if isinstance(payload, dict):
         preset.payload = payload
+    preset.visibility = visibility_scope
 
     preset.save()
     return JsonResponse({

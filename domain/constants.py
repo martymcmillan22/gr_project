@@ -127,18 +127,18 @@ DOMAIN_CELL_ALIASES = {
 DOMAIN_CELLS.update(DOMAIN_CELL_ALIASES)
 
 DOMAIN_COMPARTMENT_DEFINITIONS = [
-	{"slug": "cp", "field": "compartment_1_label", "default": "CP", "form_label": "Compartment 1", "editable": True, "min_length": 12},
-	{"slug": "in", "field": "compartment_2_label", "default": "IN", "form_label": "Compartment 2", "editable": True, "min_length": 12},
-	{"slug": "dc-yellow", "field": "compartment_3_label", "default": "DC", "form_label": "Compartment 3", "editable": True, "min_length": 12},
-	{"slug": "no-green", "field": "compartment_4_label", "default": "NO", "form_label": "Compartment 4", "editable": True, "min_length": 12},
-	{"slug": "bot", "field": "compartment_5_label", "default": "BOT", "form_label": "Compartment 5", "editable": True, "min_length": 12},
-	{"slug": "analyze", "field": "compartment_6_label", "default": "Analyze", "form_label": "Compartment 6", "editable": False},
-	{"slug": "evaluate", "field": "compartment_7_label", "default": "Evaluate", "form_label": "Compartment 7", "editable": False},
-	{"slug": "persuasive", "field": "compartment_8_label", "default": "Persuasive", "form_label": "Compartment 8", "editable": True, "min_length": 12},
-	{"slug": "ptg", "field": "compartment_9_label", "default": "PTG", "form_label": "Compartment 9", "editable": True, "min_length": 12},
-	{"slug": "phd", "field": "compartment_10_label", "default": "PH&D", "form_label": "Compartment 10", "editable": True, "min_length": 12},
-	{"slug": "lw", "field": "compartment_11_label", "default": "LW", "form_label": "Compartment 11", "editable": True, "min_length": 12},
-	{"slug": "tr", "field": "compartment_12_label", "default": "TR", "form_label": "Compartment 12", "editable": True, "min_length": 12},
+	{"slug": "cp", "field": "compartment_1_label", "default": "CP", "form_label": "Compartment 1", "editable": True, "display_limit": 12},
+	{"slug": "in", "field": "compartment_2_label", "default": "IN", "form_label": "Compartment 2", "editable": True, "display_limit": 12},
+	{"slug": "dc-yellow", "field": "compartment_3_label", "default": "DC", "form_label": "Compartment 3", "editable": True, "display_limit": 12},
+	{"slug": "no-green", "field": "compartment_4_label", "default": "NO", "form_label": "Compartment 4", "editable": True, "display_limit": 12},
+	{"slug": "bot", "field": "compartment_5_label", "default": "BOT", "form_label": "Compartment 5", "editable": True, "display_limit": 12},
+	{"slug": "analyze", "field": "compartment_6_label", "default": "Analyze", "form_label": "Compartment 6", "editable": False, "display_limit": 12},
+	{"slug": "evaluate", "field": "compartment_7_label", "default": "Evaluate", "form_label": "Compartment 7", "editable": False, "display_limit": 12},
+	{"slug": "persuasive", "field": "compartment_8_label", "default": "Persuasive", "form_label": "Compartment 8", "editable": True, "display_limit": 12},
+	{"slug": "ptg", "field": "compartment_9_label", "default": "PTG", "form_label": "Compartment 9", "editable": True, "display_limit": 12},
+	{"slug": "phd", "field": "compartment_10_label", "default": "PH&D", "form_label": "Compartment 10", "editable": True, "display_limit": 12},
+	{"slug": "lw", "field": "compartment_11_label", "default": "LW", "form_label": "Compartment 11", "editable": True, "display_limit": 12},
+	{"slug": "tr", "field": "compartment_12_label", "default": "TR", "form_label": "Compartment 12", "editable": True, "display_limit": 12},
 ]
 
 DOMAIN_CELL_FIELD_BY_SLUG = {item["slug"]: item["field"] for item in DOMAIN_COMPARTMENT_DEFINITIONS}
@@ -161,9 +161,9 @@ DOMAIN_LOCKED_COMPARTMENT_FIELDS = [item["field"] for item in DOMAIN_COMPARTMENT
 DOMAIN_DEFAULT_COMPARTMENT_VALUES = {item["field"]: item["default"] for item in DOMAIN_COMPARTMENT_DEFINITIONS}
 
 DOMAIN_BOARD_DEFINITIONS = [
-	{"field": "board_corporation_label", "default": "Personal Corporation", "form_label": "Board Card 1", "min_length": 16},
-	{"field": "board_museum_label", "default": "Personal Museum", "form_label": "Board Card 2", "min_length": 16},
-	{"field": "board_garden_label", "default": "Personal Garden", "form_label": "Board Card 3", "min_length": 16},
+	{"field": "board_corporation_label", "default": "Personal Corporation", "form_label": "Board Card 1", "display_limit": 16},
+	{"field": "board_museum_label", "default": "Personal Museum", "form_label": "Board Card 2", "display_limit": 16},
+	{"field": "board_garden_label", "default": "Personal Garden", "form_label": "Board Card 3", "display_limit": 16},
 ]
 
 DOMAIN_EDITABLE_BOARD_FIELDS = [item["field"] for item in DOMAIN_BOARD_DEFINITIONS]

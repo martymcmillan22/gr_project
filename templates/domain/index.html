@@ -377,6 +377,11 @@
         {% include "partials/theme_toggle.html" with toggle_id="domain-theme-toggle" button_class="button is-dark is-outlined domain-theme-toggle" storage_key="domainDarkModeEnabled" legacy_storage_key="domainBlackBackgroundEnabled" body_class="domain-index-dark-mode" enable_label="Enable dark mode" disable_label="Disable dark mode" %}
       </div>
     </div>
+    <article class="notification is-light mb-3">
+      <p class="title is-6">Personal Matters Policy</p>
+      <p class="is-size-7 mb-1">Personal artifacts only: private, not shared, and not published.</p>
+      <p class="is-size-7">Governed by personal policy with philosophy-first guidance.</p>
+    </article>
 
     <div class="columns is-multiline">
       <div class="column is-8">
@@ -387,7 +392,7 @@
             <div class="column is-3">
               <a class="domain-grid-link" href="{% url 'domain:cell_detail' slug=cell.slug %}">
                 <article class="notification is-light has-text-centered p-3">
-                  <p class="title is-6 mb-1">{{ cell.label }}</p>
+                  <p class="title is-6 mb-1">{{ cell.label|truncatechars:cell.display_limit|default:cell.label }}</p>
                 </article>
               </a>
             </div>
@@ -401,10 +406,12 @@
           <h2 class="title is-6">Domain Boards</h2>
           <div class="domain-board-list">
             {% for board in board_cards %}
-            <article class="notification is-light mb-3">
-              <p class="title is-6 domain-board-label mb-1">{{ board.label }}</p>
-              <p class="is-size-7">Board interface {{ forloop.counter }}</p>
-            </article>
+            <a class="domain-grid-link" href="{{ board.href }}">
+              <article class="notification is-light mb-3">
+                <p class="title is-6 domain-board-label mb-1">{{ board.label|truncatechars:board.display_limit|default:board.label }}</p>
+                <p class="is-size-7">Private board interface {{ forloop.counter }} for personal matters.</p>
+              </article>
+            </a>
             {% endfor %}
           </div>
         </div>

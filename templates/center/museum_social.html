@@ -7,6 +7,7 @@
   <div class="box">
     <h1 class="title is-3">Museum Social</h1>
     <p class="subtitle is-6">Post in WPC: coordinate social media content for museum stories and exhibits.</p>
+    <p class="is-size-7">Visibility scope: {{ visibility_scope_title }} matters</p>
     <div class="buttons">
       <a class="button is-link is-light" href="{% url 'forums:state' %}">State Forum</a>
       <a class="button is-light" href="{% url 'povs-home' %}">Open POVs</a>
@@ -40,6 +41,7 @@
             <td>
               <form method="post">
                 {% csrf_token %}
+                <input type="hidden" name="visibility" value="{{ visibility_scope }}">
                 <input type="hidden" name="item_id" value="{{ item.id }}">
                 <button type="submit" class="button is-small is-link">Mark Posted</button>
               </form>
@@ -67,6 +69,6 @@
     {% endif %}
   </div>
 
-  <a class="button is-light ml-2" href="{% url 'center:index' %}">Back to Center</a>
+  <a class="button is-light ml-2" href="{{ back_scope_url }}">Back to {% if visibility_scope == 'personal' %}Domain{% else %}Center{% endif %}</a>
 </section>
 {% endblock %}

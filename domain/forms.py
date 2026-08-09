@@ -28,7 +28,7 @@ class DomainProfileForm(forms.ModelForm):
 			field.help_text = "Leave blank to keep the current value."
 			field.widget.attrs.update({
 				"class": "input",
-				"maxlength": "120",
+				"maxlength": "36",
 				"placeholder": default_value,
 			})
 			if current_value and current_value != default_value:
@@ -43,7 +43,7 @@ class DomainProfileForm(forms.ModelForm):
 			field.help_text = "Leave blank to keep the current value."
 			field.widget.attrs.update({
 				"class": "input",
-				"maxlength": "160",
+				"maxlength": "36",
 				"placeholder": default_value,
 			})
 			if current_value and current_value != default_value:
@@ -60,12 +60,6 @@ class DomainProfileForm(forms.ModelForm):
 			if not value:
 				cleaned_data[field_name] = getattr(self.instance, field_name, "") or definition["default"]
 				continue
-			if len(value) < definition["min_length"]:
-				self.add_error(
-					field_name,
-					f"Use at least {definition['min_length']} characters for this compartment name.",
-				)
-				continue
 			cleaned_data[field_name] = value
 
 		for definition in DOMAIN_BOARD_DEFINITIONS:
@@ -73,12 +67,6 @@ class DomainProfileForm(forms.ModelForm):
 			value = (cleaned_data.get(field_name) or "").strip()
 			if not value:
 				cleaned_data[field_name] = getattr(self.instance, field_name, "") or definition["default"]
-				continue
-			if len(value) < definition["min_length"]:
-				self.add_error(
-					field_name,
-					f"Use at least {definition['min_length']} characters for this board name.",
-				)
 				continue
 			cleaned_data[field_name] = value
 

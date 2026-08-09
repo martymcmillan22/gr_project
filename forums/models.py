@@ -15,10 +15,18 @@ class ForumPost(models.Model):
 		(FORUM_GLOBAL, "Global Forum"),
 	]
 
+	VISIBILITY_PUBLIC = "public"
+	VISIBILITY_PERSONAL = "personal"
+	VISIBILITY_CHOICES = [
+		(VISIBILITY_PUBLIC, "Public"),
+		(VISIBILITY_PERSONAL, "Personal"),
+	]
+
 	forum_type = models.CharField(max_length=20, choices=FORUM_CHOICES)
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="forum_posts")
 	title = models.CharField(max_length=160)
 	body = models.TextField()
+	visibility = models.CharField(max_length=16, choices=VISIBILITY_CHOICES, default=VISIBILITY_PUBLIC)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

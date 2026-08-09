@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Meta Interface{% endblock %}
+
+{% block content %}
+<section>
+  <div class="box">
+    <h1 class="title is-3">Meta Interface</h1>
+    <p class="subtitle is-6">Enterprise-only CRUD surface for read-only meta compartments.</p>
+    <p class="is-size-7">Visibility scope: {{ visibility_scope_title }} matters</p>
+    <p class="is-size-7">Compartments 13 through 16 are visible here, but the compartments themselves remain read-only.</p>
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-8">
+      <div class="box">
+        <h2 class="title is-5">Meta Artifact Panels</h2>
+        <div class="columns is-multiline">
+          {% for compartment in meta_compartments %}
+          <div class="column is-6">
+            <article class="notification is-light">
+              <p class="has-text-weight-semibold">Compartment {{ compartment.index }} - {{ compartment.title }}</p>
+              <p class="is-size-7 mb-2">{{ compartment.summary }}</p>
+              <p class="is-size-7 mb-2">Read-only reflection in the Center Grid.</p>
+              <div class="buttons are-small">
+                <a class="button is-link is-light" href="{% url 'center:cell_detail' slug=compartment.slug %}">Open compartment</a>
+              </div>
+              <ul>
+                {% for artifact in compartment.artifacts %}
+                <li>{{ artifact }}</li>
+                {% endfor %}
+              </ul>
+            </article>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-4">
+      <div class="box">
+        <h2 class="title is-5">Meta Governor Cards</h2>
+        <div class="content is-small">
+          <ul>
+            <li>Enterprise authority for read-only meta compartments</li>
+            <li>Interface-level CRUD only</li>
+            <li>Compartment reflection without mutation</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2 class="title is-5">Meta Visibility Artifacts</h2>
+        {% if recent_meta_artifacts %}
+        <ul>
+          {% for item in recent_meta_artifacts %}
+          <li>{{ item.title }} ({{ item.get_visibility_display }})</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="is-size-7">No artifacts in the {{ visibility_scope_title|lower }} scope yet.</p>
+        {% endif %}
+      </div>
+
+      <div class="box">
+        <h2 class="title is-5">Enterprise CRUD</h2>
+        <div class="buttons is-flex is-flex-wrap-wrap">
+          <button class="button is-link">Create</button>
+          <button class="button is-light">Update</button>
+          <button class="button is-light">Review</button>
+          <button class="button is-light">Archive</button>
+        </div>
+        <p class="is-size-7">CRUD happens at the interface layer only.</p>
+      </div>
+    </div>
+  </div>
+
+  <a class="button is-light" href="{{ back_scope_url }}">Back to {% if visibility_scope == 'personal' %}Domain{% else %}Center{% endif %}</a>
+</section>
+{% endblock %}

@@ -32,7 +32,10 @@ from project_middle_layer.schedules import run_semantic_schedule
 from project_middle_layer.semantic_cross_sync import run_semantic_cross_sync
 from project_middle_layer.semantic_merge import merge_semantic_states
 from project_middle_layer.semantic_search import run_semantic_search
+from project_middle_layer.lfo_engine import build_lfo_engine_envelope
 from project_middle_layer.services import compile_and_store_project_node
+from project_middle_layer.services import build_calculus_timeline_runtime_payload
+from project_middle_layer.services import dispatch_calculus_timeline_runtime_events
 from project_middle_layer.versioning import checkout_semantic_version, commit_semantic_version
 
 from .serializers import (
@@ -62,6 +65,8 @@ from .serializers import (
     CrossSyncRequestSerializer,
     ProjectWizardStartSerializer,
     ProjectWizardTagsSerializer,
+    CalculusTimelineRuntimeRequestSerializer,
+    LfoEngineRequestSerializer,
 )
 
 
@@ -224,6 +229,90 @@ class ProjectMiddleLayerBatchCompileAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class ProjectMiddleLayerCalculusTimelineAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        selected_slot = request.query_params.get("selected_slot", 1)
+        try:
+            normalized_selected_slot = int(selected_slot)
+        except (TypeError, ValueError):
+            normalized_selected_slot = 1
+
+        payload = build_calculus_timeline_runtime_payload(selected_slot=normalized_selected_slot)
+        return Response(payload, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CalculusTimelineRuntimeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = build_calculus_timeline_runtime_payload(**serializer.validated_data)
+        dispatch_calculus_timeline_runtime_events(payload)
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+class ProjectMiddleLayerLfoEngineAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        serializer = LfoEngineRequestSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        params = serializer.validated_data
+
+        timeline_snapshot = params.get("timeline_snapshot") if isinstance(params.get("timeline_snapshot"), dict) else {}
+        synthesis_snapshot = params.get("synthesis_snapshot") if isinstance(params.get("synthesis_snapshot"), dict) else {}
+        trigger_count = int(params.get("trigger_count") or 0)
+
+        if not timeline_snapshot:
+            runtime_payload = build_calculus_timeline_runtime_payload(
+                selected_slot=int(params.get("selected_slot") or 1),
+                completed_slots=params.get("completed_slots") or [],
+            )
+            selected_state = runtime_payload.get("selected_slot_state", {})
+            selected_semantic = selected_state.get("state", {}) if isinstance(selected_state, dict) else {}
+            completed_slots = runtime_payload.get("deterministic_progression", {}).get("completed_slots", [])
+            timeline_snapshot = {
+                "latest_slot_index": int(selected_state.get("slot_index") or 0),
+                "latest_phase": str(selected_state.get("phase") or ""),
+                "drift_score": float(selected_semantic.get("drift_score") or 0.0),
+                "stability_score": float(selected_semantic.get("stability_score") or 0.0),
+                "alignment_score": float(selected_semantic.get("alignment_score") or 0.0),
+                "completion_ratio": round(len(completed_slots) / 16.0, 3),
+            }
+            if not synthesis_snapshot:
+                risk_level = "low"
+                drift_value = float(selected_semantic.get("drift_score") or 0.0)
+                alignment_value = float(selected_semantic.get("alignment_score") or 0.0)
+                if drift_value >= 0.67 or alignment_value <= 0.4:
+                    risk_level = "medium"
+                if drift_value >= 0.85 or alignment_value <= 0.2:
+                    risk_level = "high"
+                synthesis_snapshot = {
+                    "risk_level": risk_level,
+                    "drift_trend": "stable",
+                    "alignment_trajectory": "stable",
+                }
+
+        payload = build_lfo_engine_envelope(
+            timeline_snapshot=timeline_snapshot,
+            synthesis_snapshot=synthesis_snapshot,
+            trigger_count=trigger_count,
+            feature_pathways=params.get("feature_pathways") or [],
+        )
+        return Response(payload, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = LfoEngineRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        params = serializer.validated_data
+        payload = build_lfo_engine_envelope(
+            timeline_snapshot=params.get("timeline_snapshot") if isinstance(params.get("timeline_snapshot"), dict) else {},
+            synthesis_snapshot=params.get("synthesis_snapshot") if isinstance(params.get("synthesis_snapshot"), dict) else {},
+            trigger_count=int(params.get("trigger_count") or 0),
+            feature_pathways=params.get("feature_pathways") or [],
+        )
+        return Response(payload, status=status.HTTP_200_OK)
 
 
 class ProjectCreationWizardStartAPIView(APIView):

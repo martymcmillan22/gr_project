@@ -18,7 +18,7 @@
     color: var(--center-text);
   }
 
-  .center-carousel-shell {
+  .center-index-shell {
     background: linear-gradient(120deg, #eff6ee 0%, #f6f2e9 100%);
     border: 1px solid #d9e2d7;
   }
@@ -96,7 +96,7 @@
     background: transparent;
   }
 
-  body.center-index-dark-mode .center-carousel-shell {
+  body.center-index-dark-mode .center-index-shell {
     background: linear-gradient(120deg, #0f141b 0%, #141a23 100%);
     border-color: #2f3c52;
   }
@@ -318,30 +318,6 @@
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
   }
 
-  .center-carousel {
-    position: relative;
-    min-height: 130px;
-  }
-
-  .center-slide {
-    display: none;
-  }
-
-  .center-slide.is-active {
-    display: block;
-  }
-
-  .center-carousel-controls {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.75rem;
-    gap: 0.75rem;
-  }
-
-  .center-carousel-controls .button {
-    flex: 1;
-  }
-
   .center-grid-link {
     display: block;
     color: inherit;
@@ -391,93 +367,86 @@
 {% endblock %}
 {% block content %}
 <section class="center-index-page">
-  <div class="box center-carousel-shell">
+  <div class="box center-index-shell">
     <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap mb-3" style="gap: 0.75rem;">
-      <h1 class="title is-3 mb-0">Public Center</h1>
+      <h1 class="title is-3 mb-0">{{ profile_name }}</h1>
       {% include "partials/theme_toggle.html" with toggle_id="center-theme-toggle" button_class="button is-dark is-outlined center-theme-toggle" storage_key="centerDarkModeEnabled" body_class="center-index-dark-mode" enable_label="Enable night mode" disable_label="Disable night mode" %}
     </div>
-    <div class="center-carousel" id="center-carousel" aria-live="polite">
-      <div class="center-slide is-active">
-        <article class="notification is-light mb-0">
-          <p class="title is-6">The 12 Colors of Inverse Rule</p>
-          <p class="is-size-7">Each color has an inverse pair: red vs green, blue vs yellow, purple vs lime, teal vs orange, pink vs green-lime, and cyan vs amber.</p>
-        </article>
-      </div>
-      <div class="center-slide">
-        <article class="notification is-light mb-0">
-          <p class="title is-6">The Linear Relay</p>
-          <p class="is-size-7">Each color hands off to the next in sequence: red, blue, yellow, green, purple, teal, orange, lime, pink, cyan, amber, and green-lime.</p>
-        </article>
-      </div>
-      <div class="center-slide">
-        <article class="notification is-light mb-0">
-          <p class="title is-6">The Square Root Lattice</p>
-          <p class="is-size-7">The Square Root Lattice starts with 4 subjects, relates to 16 branches, then 64 terms, and then 256 meta-terms.</p>
-        </article>
-      </div>
-      <div class="center-slide">
-        <article class="notification is-light mb-0">
-          <p class="title is-6">The Four Tenses of Time</p>
-          <p class="is-size-7">The fourth slide covers the four tenses of time: past, present past, present future, and future.</p>
-        </article>
-      </div>
-    </div>
+    <article class="notification is-light mb-3">
+      <p class="title is-6">Public Matters Policy</p>
+      <p class="is-size-7 mb-1">Public artifacts only: visible to others, shareable, and publishable.</p>
+      <p class="is-size-7">Governed by public policy with compliance-first routing.</p>
+    </article>
 
-    <div class="center-carousel-controls">
-      <button class="button is-small is-light" type="button" id="center-carousel-prev">Previous</button>
-      <button class="button is-small is-light" type="button" id="center-carousel-next">Next</button>
-    </div>
-  </div>
+    <div class="columns is-multiline">
+      <div class="column is-8">
+        <div class="box">
+          <h2 class="title is-5">Center Grid</h2>
+          <div class="columns is-mobile is-multiline center-grid-cells">
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bos' %}"><article class="notification is-light has-text-centered p-3">BOS</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bol' %}"><article class="notification is-light has-text-centered p-3">BOL</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='boe' %}"><article class="notification is-light has-text-centered p-3">BOE</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bop' %}"><article class="notification is-light has-text-centered p-3">BOP</article></a></div>
 
-  <div class="columns is-multiline">
-    <div class="column is-8">
-      <div class="box">
-        <h2 class="title is-5">Center Grid</h2>
-        <div class="columns is-mobile is-multiline center-grid-cells">
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bos' %}"><article class="notification is-light has-text-centered p-3">BOS</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bol' %}"><article class="notification is-light has-text-centered p-3">BOL</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='boe' %}"><article class="notification is-light has-text-centered p-3">BOE</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='bop' %}"><article class="notification is-light has-text-centered p-3">BOP</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='library' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-book" aria-hidden="true"></i></span> <span class="label-text">Library</span></div></article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='duseum' %}"><article class="notification is-light has-text-centered p-3">Duseum</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='nuseum' %}"><article class="notification is-light has-text-centered p-3">Nuseum</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='monuments' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Monuments</span></div></article></a></div>
 
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='library' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-book" aria-hidden="true"></i></span> <span class="label-text">Library</span></div></article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='duseum' %}"><article class="notification is-light has-text-centered p-3">Duseum</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='nuseum' %}"><article class="notification is-light has-text-centered p-3">Nuseum</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='monuments' %}"><article class="notification is-light has-text-centered p-3"><div class="center-grid-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Monuments</span></div></article></a></div>
-
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='grassroots' %}"><article class="notification is-light has-text-centered p-3">GR</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='pjs' %}"><article class="notification is-light has-text-centered p-3">PJs</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='agendatime' %}"><article class="notification is-light has-text-centered p-3">AT</article></a></div>
-          <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='harvestcrops' %}"><article class="notification is-light has-text-centered p-3">HC</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='grassroots' %}"><article class="notification is-light has-text-centered p-3">GR</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='pjs' %}"><article class="notification is-light has-text-centered p-3">PJs</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='agendatime' %}"><article class="notification is-light has-text-centered p-3">AT</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='harvestcrops' %}"><article class="notification is-light has-text-centered p-3">HC</article></a></div>
+            {% if request.user.subscription_tier == request.user.SUBSCRIPTION_PREMIUM_ENTERPRISE %}
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='philosophy' %}"><article class="notification is-light has-text-centered p-3">Philosophy</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='law-governance-insurance' %}"><article class="notification is-light has-text-centered p-3">Law &amp; Governance</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='economics' %}"><article class="notification is-light has-text-centered p-3">Economics</article></a></div>
+            <div class="column is-3"><a class="center-grid-link" href="{% url 'center:cell_detail' slug='systemics' %}"><article class="notification is-light has-text-centered p-3">Systemics</article></a></div>
+            {% endif %}
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="column is-4">
-      <div class="box" style="min-height: 277px;">
-        <h2 class="title is-6">Center Boards</h2>
-        <a class="center-board-link" href="{% url 'center:corporation_admin' %}">
-          <article class="notification is-light mb-3">
-            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-building" aria-hidden="true"></i></span> <span class="label-text">Corporation (Create)</span></p>
-          </article>
-        </a>
-        <a class="center-board-link" href="{% url 'center:museum_social' %}">
-          <article class="notification is-light mb-3">
-            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Museum (Post)</span></p>
-          </article>
-        </a>
-        <a class="center-board-link" href="{% url 'center:garden_board' %}">
-          <article class="notification is-light mb-0">
-            <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-leaf" aria-hidden="true"></i></span> <span class="label-text">Garden (Work)</span></p>
-          </article>
-        </a>
-      </div>
+      <div class="column is-4">
+        <div class="box" style="min-height: 277px;">
+          <h2 class="title is-6">Center Boards</h2>
+          <div class="domain-board-list">
+            <a class="center-board-link" href="{% url 'center:corporation_admin' %}">
+              <article class="notification is-light mb-3">
+                <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-building" aria-hidden="true"></i></span> <span class="label-text">Corporation (Create)</span></p>
+                <p class="is-size-7">Public ideas and public creation workflow.</p>
+              </article>
+            </a>
+            <a class="center-board-link" href="{% url 'center:museum_social' %}">
+              <article class="notification is-light mb-3">
+                <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-landmark" aria-hidden="true"></i></span> <span class="label-text">Museum (Post)</span></p>
+                <p class="is-size-7">Public seeds and public publishing flow.</p>
+              </article>
+            </a>
+            <a class="center-board-link" href="{% url 'center:garden_board' %}">
+              <article class="notification is-light mb-0">
+                <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-leaf" aria-hidden="true"></i></span> <span class="label-text">Garden (Work)</span></p>
+                <p class="is-size-7">Public projects and public execution state.</p>
+              </article>
+            </a>
+            {% if request.user.subscription_tier == request.user.SUBSCRIPTION_PREMIUM_ENTERPRISE %}
+            <a class="center-board-link" href="{% url 'center:meta_interface' %}">
+              <article class="notification is-light mt-3">
+                <p class="title is-6 center-board-label"><span class="icon"><i class="fas fa-sitemap" aria-hidden="true"></i></span> <span class="label-text">Meta (Enterprise)</span></p>
+                <p class="is-size-7">Public governance controls and policy surfaces.</p>
+              </article>
+            </a>
+            {% endif %}
+          </div>
+        </div>
 
-      {% if request.user.is_staff %}
-      <div class="box">
-        <h2 class="title is-6">Staff</h2>
-        <a class="button is-dark is-fullwidth" href="{% url 'admin:index' %}">Open Admin</a>
+        {% if request.user.is_staff %}
+        <div class="box">
+          <h2 class="title is-6">Staff</h2>
+          <a class="button is-dark is-fullwidth" href="{% url 'admin:index' %}">Open Admin</a>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
     </div>
   </div>
 </section>
@@ -486,38 +455,6 @@
 {% block page_js %}
 <script>
   (function() {
-    const carousel = document.getElementById('center-carousel');
-    if (!carousel) return;
-
-    const slides = Array.from(carousel.querySelectorAll('.center-slide'));
-    const prevBtn = document.getElementById('center-carousel-prev');
-    const nextBtn = document.getElementById('center-carousel-next');
-
-    if (!slides.length || !prevBtn || !nextBtn) return;
-
-    let activeIndex = 0;
-
-    function renderSlide(index) {
-      slides.forEach((slide, i) => {
-        slide.classList.toggle('is-active', i === index);
-      });
-    }
-
-    function goNext() {
-      activeIndex = (activeIndex + 1) % slides.length;
-      renderSlide(activeIndex);
-    }
-
-    function goPrev() {
-      activeIndex = (activeIndex - 1 + slides.length) % slides.length;
-      renderSlide(activeIndex);
-    }
-
-    prevBtn.addEventListener('click', goPrev);
-    nextBtn.addEventListener('click', goNext);
-
-    setInterval(goNext, 5000);
-
     const cellCards = Array.from(document.querySelectorAll('.center-grid-cells .notification'));
     cellCards.forEach((card) => {
       card.addEventListener('mouseenter', function() {

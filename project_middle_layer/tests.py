@@ -1,3 +1,5 @@
+import json
+
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from unittest.mock import MagicMock, patch
@@ -38,6 +40,19 @@ from project_middle_layer.models import (
     SemanticIntegration,
 )
 from project_middle_layer.pipelines import build_project_creation_payload
+from project_middle_layer.lfo_engine import (
+    build_consumer_gui_science_surface,
+    build_industry_lfo_templates,
+    build_lfo_engine_envelope,
+    build_micro_lfo_templates,
+    build_sevm_group_templates,
+    evaluate_feature_probability,
+    load_macro_industry_groups,
+)
+from project_middle_layer.services import build_calculus_timeline_runtime_payload
+from project_middle_layer.services import dispatch_calculus_timeline_runtime_events
+from project_middle_layer.webhooks import dispatch_semantic_webhook_event
+from project_middle_layer.webhooks import retry_webhook_delivery
 from platform_reference.models import PlatformReferenceGICSReferenceSchema
 from platform_reference.models import PlatformReferenceNAICSReferenceSchema
 from users.models import User
@@ -417,6 +432,12 @@ class ProjectMiddleLayerRouteTests(SimpleTestCase):
             "/project-middle-layer/api/marketplace/install/",
         )
 
+    def test_api_lfo_engine_route_resolves(self):
+        self.assertEqual(
+            reverse("project_middle_layer:project-middle-layer-lfo-engine"),
+            "/project-middle-layer/api/lfo/engine/",
+        )
+
     def test_api_gateway_dispatch_route_resolves(self):
         self.assertEqual(
             reverse("project_middle_layer:project-middle-layer-gateway-dispatch"),
@@ -439,6 +460,12 @@ class ProjectMiddleLayerRouteTests(SimpleTestCase):
         self.assertEqual(
             reverse("project_middle_layer:project-middle-layer-cross-sync-run"),
             "/project-middle-layer/api/cross-sync/run/",
+        )
+
+    def test_api_calculus_timeline_runtime_route_resolves(self):
+        self.assertEqual(
+            reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime"),
+            "/project-middle-layer/api/timeline/calculus/",
         )
 
 
@@ -528,6 +555,904 @@ class ProjectMiddleLayerActivationTests(TestCase):
         self.assertEqual(payload["rr_color_context"]["lane_count"], 16)
         self.assertIn("integrity_strip", payload["rr_color_context"])
         self.assertTrue(payload["deterministic_ready"])
+
+
+class ProjectMiddleLayerCalculusTimelineAPITests(APITestCase):
+    def test_calculus_timeline_runtime_returns_16_slots(self):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        payload = response.data
+        self.assertEqual(payload["mode"], "calculus_temporal_timeline_runtime")
+        self.assertEqual(payload["timeline"]["slot_count"], 16)
+        self.assertEqual(len(payload["slots"]), 16)
+        self.assertIn("selected_slot_state", payload)
+        self.assertIn("deterministic_progression", payload)
+
+    def test_calculus_timeline_runtime_enforces_phase_gating(self):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.post(
+            url,
+            {
+                "selected_slot": 6,
+                "completed_slots": [1, 2, 3],
+                "slot_content": {
+                    "6": "continuity bridge transition sequence with publishing readiness",
+                },
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        payload = response.data
+        seeds_gate = next(item for item in payload["deterministic_progression"]["phase_gates"] if item["phase"] == "Seeds")
+        self.assertTrue(seeds_gate["locked"])
+
+        selected = payload["selected_slot_state"]
+        self.assertEqual(selected["slot_index"], 6)
+        self.assertTrue(selected["gate"]["locked"])
+        self.assertIn("state", selected)
+        self.assertIn("drift_score", selected["state"])
+        self.assertIn("industry_metadata", selected)
+
+    def test_calculus_timeline_runtime_unlocks_seed_after_ideas_complete(self):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.post(
+            url,
+            {
+                "selected_slot": 6,
+                "completed_slots": [1, 2, 3, 4],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        payload = response.data
+        seeds_gate = next(item for item in payload["deterministic_progression"]["phase_gates"] if item["phase"] == "Seeds")
+        self.assertFalse(seeds_gate["locked"])
+
+        selected = payload["selected_slot_state"]
+        self.assertFalse(selected["gate"]["locked"])
+
+    def test_calculus_timeline_runtime_rejects_malformed_payload_shape(self):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.post(
+            url,
+            {
+                "slot_content": ["invalid", "list"],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_calculus_timeline_runtime_normalizes_partial_payloads(self):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.post(
+            url,
+            {
+                "completed_slots": [1, 1, 2, 2, 3],
+                "slot_content": {
+                    "2": " continuity bridge ",
+                    "not-a-slot": "ignored",
+                },
+                "prior_slot_states": {
+                    "2": {"drift_score": 0.4, "alignment_score": 0.6, "gate_locked": False, "completed": False},
+                    "bad": "ignored",
+                },
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.data
+        self.assertEqual(payload["deterministic_progression"]["completed_slots"], [1, 2, 3])
+
+    @patch("project_middle_layer.api.views.dispatch_calculus_timeline_runtime_events")
+    def test_calculus_timeline_post_dispatches_runtime_events(self, mock_dispatch):
+        url = reverse("project_middle_layer:project-middle-layer-calculus-timeline-runtime")
+        response = self.client.post(
+            url,
+            {
+                "selected_slot": 2,
+                "completed_slots": [1],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_dispatch.assert_called_once()
+
+
+class ProjectMiddleLayerCalculusTimelineRuntimeSignalTests(SimpleTestCase):
+    def test_all_16_slots_emit_required_signal_blocks(self):
+        payload = build_calculus_timeline_runtime_payload(selected_slot=1)
+
+        self.assertEqual(payload["mode"], "calculus_temporal_timeline_runtime")
+        self.assertEqual(payload["timeline"]["slot_count"], 16)
+        self.assertEqual(len(payload["slots"]), 16)
+
+        slot_indexes = sorted(int(slot["slot_index"]) for slot in payload["slots"])
+        self.assertEqual(slot_indexes, list(range(1, 17)))
+
+        for slot in payload["slots"]:
+            self.assertIn("calculus_operation", slot)
+            self.assertIn(slot["calculus_operation"], ["Integral", "Continuity", "Limit", "Derivative"])
+            self.assertIn("temporal_alignment", slot)
+            self.assertIn(slot["temporal_alignment"], ["past", "present-past", "present-future", "future"])
+            self.assertIn("gate", slot)
+            self.assertIn("locked", slot["gate"])
+            self.assertIn("state", slot)
+            self.assertIn("drift_score", slot["state"])
+            self.assertIn("stability_score", slot["state"])
+            self.assertIn("alignment_score", slot["state"])
+            self.assertIn("semantic_tags", slot["state"])
+            self.assertIn("micro_signals", slot["state"])
+            self.assertIn("industry_metadata", slot)
+            self.assertIn("sector_name", slot["industry_metadata"])
+            self.assertIn("group_name", slot["industry_metadata"])
+            self.assertIn("industry", slot["industry_metadata"])
+            self.assertIn("sub_industry", slot["industry_metadata"])
+            self.assertIn("event", slot)
+            self.assertEqual(slot["event"]["event_type"], "middle_layer.timeline.slot_state")
+
+    def test_drift_alignment_is_deterministic_for_matching_and_mismatched_content(self):
+        matched = build_calculus_timeline_runtime_payload(
+            selected_slot=1,
+            slot_content={
+                "1": "history integrate foundation context archive",
+            },
+        )
+        mismatched = build_calculus_timeline_runtime_payload(
+            selected_slot=1,
+            slot_content={
+                "1": "future optimize forecast trajectory derivative",
+            },
+        )
+
+        matched_slot = matched["selected_slot_state"]
+        mismatched_slot = mismatched["selected_slot_state"]
+
+        self.assertGreater(matched_slot["state"]["alignment_score"], mismatched_slot["state"]["alignment_score"])
+        self.assertLess(matched_slot["state"]["drift_score"], mismatched_slot["state"]["drift_score"])
+
+    def test_industry_context_overrides_are_propagated_to_slot_payload_and_scoring(self):
+        payload = build_calculus_timeline_runtime_payload(
+            selected_slot=2,
+            slot_content={
+                "2": "software cloud architecture enterprise language systems",
+            },
+            industry_context={
+                "group": "Language",
+                "industry": "Software",
+                "sub_industry": "Enterprise Operating System Architecture",
+            },
+        )
+
+        slot = payload["selected_slot_state"]
+        self.assertEqual(slot["industry_metadata"]["group_name"], "Language")
+        self.assertEqual(slot["industry_metadata"]["industry"], "Software")
+        self.assertEqual(slot["industry_metadata"]["sub_industry"], "Enterprise Operating System Architecture")
+        self.assertTrue(any(tag.startswith("industry:") for tag in slot["state"]["semantic_tags"]))
+
+    def test_phase_gating_is_strictly_enforced(self):
+        locked_payload = build_calculus_timeline_runtime_payload(selected_slot=8, completed_slots=[1, 2, 3])
+        unlocked_payload = build_calculus_timeline_runtime_payload(selected_slot=8, completed_slots=[1, 2, 3, 4])
+
+        self.assertTrue(locked_payload["selected_slot_state"]["gate"]["locked"])
+        self.assertFalse(unlocked_payload["selected_slot_state"]["gate"]["locked"])
+
+    def test_repeated_calls_are_deterministic_for_same_inputs(self):
+        input_payload = {
+            "selected_slot": 4,
+            "completed_slots": [1, 2],
+            "slot_content": {"4": "future threshold readiness gate limit"},
+            "industry_context": {
+                "group": "Science",
+                "industry": "Biotechnology",
+            },
+        }
+        first = build_calculus_timeline_runtime_payload(**input_payload)
+        second = build_calculus_timeline_runtime_payload(**input_payload)
+        self.assertEqual(first, second)
+
+    def test_slot_event_envelope_has_governed_contract_fields(self):
+        payload = build_calculus_timeline_runtime_payload(selected_slot=3)
+        slot_event = payload["selected_slot_state"]["event"]
+
+        self.assertEqual(slot_event["event_type"], "middle_layer.timeline.slot_state")
+        self.assertEqual(slot_event["event_version"], "v1")
+        self.assertEqual(slot_event["source"], "project_middle_layer.calculus_timeline_runtime")
+        self.assertIn("gate_locked", slot_event)
+        self.assertIn("drift_score", slot_event)
+        self.assertIn("alignment_score", slot_event)
+
+    def test_slot_state_changed_events_include_contract_metadata(self):
+        payload = build_calculus_timeline_runtime_payload(
+            selected_slot=2,
+            prior_slot_states={
+                "2": {
+                    "drift_score": 0.95,
+                    "alignment_score": 0.05,
+                    "gate_locked": True,
+                    "completed": True,
+                }
+            },
+            completed_slots=[],
+        )
+        changed = [item for item in payload["events"] if item.get("slot_index") == 2]
+        self.assertTrue(len(changed) > 0)
+        self.assertEqual(changed[0]["event_type"], "middle_layer.timeline.slot_state_changed")
+        self.assertEqual(changed[0]["event_version"], "v1")
+        self.assertEqual(changed[0]["source"], "project_middle_layer.calculus_timeline_runtime")
+        self.assertIn("gate_locked", changed[0])
+        self.assertIn("slot_completed", changed[0])
+        self.assertIn("stability_score", changed[0])
+        self.assertIn("industry_metadata", changed[0])
+        self.assertIn("semantic_state", changed[0])
+        self.assertIn("completed_slots", changed[0])
+
+
+class ProjectMiddleLayerTimelineOrchestrationDispatchTests(SimpleTestCase):
+    @patch("project_middle_layer.services.dispatch_semantic_webhook_event")
+    def test_dispatch_emits_orchestration_events_from_selected_slot(self, mock_dispatch):
+        payload = build_calculus_timeline_runtime_payload(
+            selected_slot=4,
+            completed_slots=[1, 2, 3, 4],
+            slot_content={
+                "4": "misaligned noisy drift with unstable context",
+            },
+            prior_slot_states={
+                "4": {
+                    "alignment_score": 0.9,
+                    "gate_locked": True,
+                    "completed": False,
+                }
+            },
+        )
+
+        dispatch_count = dispatch_calculus_timeline_runtime_events(payload)
+
+        self.assertGreaterEqual(dispatch_count, 4)
+        dispatched_event_types = [call.kwargs.get("event_type") for call in mock_dispatch.call_args_list]
+        self.assertIn("middle_layer.timeline.slot_state", dispatched_event_types)
+        self.assertIn("middle_layer.timeline.slot_completion", dispatched_event_types)
+        self.assertIn("middle_layer.timeline.drift_threshold", dispatched_event_types)
+        self.assertIn("middle_layer.timeline.alignment_shift", dispatched_event_types)
+        self.assertIn("middle_layer.timeline.gate_unlock", dispatched_event_types)
+
+        first_payload = mock_dispatch.call_args_list[0].kwargs.get("payload", {})
+        self.assertEqual(first_payload.get("priority_order"), ["critical", "warn", "info"])
+        queue = first_payload.get("orchestration_priority_queue", [])
+        self.assertTrue(len(queue) > 0)
+        self.assertIn(queue[0].get("priority"), ["critical", "warn", "info"])
+        platform_intelligence = first_payload.get("platform_intelligence", {})
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("priority_order"), ["critical", "warn", "info"])
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("trigger_count"), len(queue))
+        self.assertIn(platform_intelligence.get("synthesis", {}).get("risk_level"), ["high", "medium", "low"])
+        self.assertIn("drift_score", platform_intelligence.get("semantic_metadata", {}))
+        self.assertIn("alignment_score", platform_intelligence.get("semantic_metadata", {}))
+        self.assertEqual(platform_intelligence.get("lfo_engine", {}).get("mode"), "lfo_expansion_v1")
+        self.assertEqual(platform_intelligence.get("lfo_engine", {}).get("group_template_count"), 16)
+        self.assertEqual(platform_intelligence.get("lfo_engine", {}).get("industry_template_count"), 64)
+        self.assertEqual(platform_intelligence.get("lfo_engine", {}).get("science_lens_count"), 4)
+        self.assertEqual(
+            platform_intelligence.get("lfo_engine", {}).get("surface_modes", {}).get("science"),
+            "mbsp_consumer_gui_surface",
+        )
+
+        priority_rank = {"critical": 0, "warn": 1, "info": 2}
+        ranked = [priority_rank.get(item.get("priority"), 3) for item in queue]
+        self.assertEqual(ranked, sorted(ranked))
+
+    @patch("project_middle_layer.services.dispatch_semantic_webhook_event")
+    def test_dispatch_derives_no_gate_unlock_when_phase_stays_locked(self, mock_dispatch):
+        payload = build_calculus_timeline_runtime_payload(
+            selected_slot=8,
+            completed_slots=[1, 2, 3, 4, 5, 6, 7],
+            slot_content={
+                "8": "future optimize forecast trajectory derivative",
+            },
+            prior_slot_states={
+                "8": {
+                    "alignment_score": 0.7,
+                    "gate_locked": False,
+                    "completed": False,
+                }
+            },
+        )
+
+        dispatch_calculus_timeline_runtime_events(payload)
+        gate_unlock_calls = [
+            call
+            for call in mock_dispatch.call_args_list
+            if call.kwargs.get("event_type") == "middle_layer.timeline.gate_unlock"
+        ]
+        gate_unlock_slot_indexes = [
+            call.kwargs.get("payload", {}).get("timeline_event", {}).get("slot_index")
+            for call in gate_unlock_calls
+        ]
+        self.assertNotIn(8, gate_unlock_slot_indexes)
+
+    @patch("project_middle_layer.services.dispatch_semantic_webhook_event")
+    def test_dispatch_prioritizes_critical_before_warn_and_info(self, mock_dispatch):
+        payload = {
+            "mode": "calculus_temporal_timeline_runtime",
+            "deterministic_progression": {
+                "completed_slots": [1, 2, 3, 4],
+                "phase_gates": [
+                    {"phase": "Ideas", "locked": False},
+                    {"phase": "Seeds", "locked": False},
+                    {"phase": "Projects", "locked": True},
+                    {"phase": "MVP", "locked": True},
+                ],
+            },
+            "selected_slot_state": {
+                "event": {
+                    "event_type": "middle_layer.timeline.slot_state",
+                    "slot_index": 4,
+                    "phase": "Ideas",
+                    "slot_completed": True,
+                    "gate_locked": False,
+                    "drift_score": 0.9,
+                    "alignment_score": 0.3,
+                    "semantic_state": {
+                        "drift_score": 0.9,
+                        "alignment_score": 0.3,
+                    },
+                }
+            },
+            "events": [],
+        }
+
+        dispatch_calculus_timeline_runtime_events(payload)
+        queue = mock_dispatch.call_args_list[0].kwargs.get("payload", {}).get("orchestration_priority_queue", [])
+
+        self.assertGreaterEqual(len(queue), 4)
+        priority_rank = {"critical": 0, "warn": 1, "info": 2}
+        ranked = [priority_rank.get(item.get("priority"), 3) for item in queue]
+        self.assertEqual(ranked, sorted(ranked))
+
+        event_types = [item.get("event_type") for item in queue]
+        self.assertIn("middle_layer.timeline.drift_threshold", event_types)
+        self.assertIn("middle_layer.timeline.alignment_shift", event_types)
+        self.assertIn("middle_layer.timeline.slot_completion", event_types)
+        self.assertIn("middle_layer.timeline.gate_unlock", event_types)
+
+
+class ProjectMiddleLayerTimelineWebhookEnvelopeTests(TestCase):
+    @patch("project_middle_layer.webhooks.urllib_request.urlopen")
+    def test_dispatch_normalizes_timeline_event_payload_for_listeners(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"ok"
+        mock_response.status = 200
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        webhook = SemanticWebhook.objects.create(
+            name="Timeline Runtime Webhook",
+            target_url="https://example.com/timeline-webhook",
+            event_type="middle_layer.timeline.slot_state_changed",
+            status="active",
+        )
+
+        dispatch_semantic_webhook_event(
+            event_type="middle_layer.timeline.slot_state_changed",
+            payload={
+                "mode": "calculus_temporal_timeline_runtime",
+                "completed_slots": [1, 2, 3, 4],
+                "timeline_event": {
+                    "event_type": "middle_layer.timeline.slot_state_changed",
+                    "slot_index": 5,
+                    "phase": "Seeds",
+                    "locked": True,
+                    "completed": False,
+                    "drift_score": 0.44,
+                    "alignment_score": 0.56,
+                },
+            },
+        )
+
+        delivery = SemanticWebhookDelivery.objects.filter(webhook=webhook).latest("created_at")
+        event_payload = delivery.payload.get("timeline_event", {})
+        self.assertEqual(event_payload.get("event_type"), "middle_layer.timeline.slot_state_changed")
+        self.assertEqual(event_payload.get("slot_index"), 5)
+        self.assertTrue(event_payload.get("gate_locked"))
+        self.assertFalse(event_payload.get("slot_completed"))
+        self.assertEqual(event_payload.get("priority"), "info")
+        self.assertEqual(event_payload.get("completed_slots"), [1, 2, 3, 4])
+        platform_intelligence = delivery.payload.get("platform_intelligence", {})
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("priority_order"), ["critical", "warn", "info"])
+        self.assertEqual(platform_intelligence.get("slot_progression", {}).get("completed_count"), 4)
+        self.assertIn(platform_intelligence.get("synthesis", {}).get("risk_level"), ["high", "medium", "low"])
+
+    @patch("project_middle_layer.webhooks.urllib_request.urlopen")
+    def test_dispatch_routes_to_matching_subscribers_only_across_event_types(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"ok"
+        mock_response.status = 200
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        slot_state_hook = SemanticWebhook.objects.create(
+            name="Timeline Slot State Hook",
+            target_url="https://example.com/timeline-slot-state",
+            event_type="middle_layer.timeline.slot_state",
+            status="active",
+        )
+        slot_changed_hook = SemanticWebhook.objects.create(
+            name="Timeline Slot Changed Hook",
+            target_url="https://example.com/timeline-slot-changed",
+            event_type="middle_layer.timeline.slot_state_changed",
+            status="active",
+        )
+        pipeline_hook = SemanticWebhook.objects.create(
+            name="Pipeline Hook",
+            target_url="https://example.com/pipeline",
+            event_type="pipeline.completed",
+            status="active",
+        )
+
+        dispatch_semantic_webhook_event(
+            event_type="middle_layer.timeline.slot_state_changed",
+            payload={
+                "timeline_event": {
+                    "event_type": "middle_layer.timeline.slot_state_changed",
+                    "slot_index": 6,
+                    "phase": "Seeds",
+                    "locked": False,
+                    "completed": True,
+                },
+                "completed_slots": [1, 2, 3, 4, 5, 6],
+            },
+        )
+
+        self.assertEqual(
+            SemanticWebhookDelivery.objects.filter(webhook=slot_state_hook).count(),
+            0,
+        )
+        self.assertEqual(
+            SemanticWebhookDelivery.objects.filter(webhook=pipeline_hook).count(),
+            0,
+        )
+        delivery = SemanticWebhookDelivery.objects.filter(webhook=slot_changed_hook).latest("created_at")
+        event_payload = delivery.payload.get("timeline_event", {})
+        self.assertFalse(event_payload.get("gate_locked"))
+        self.assertTrue(event_payload.get("slot_completed"))
+
+    @patch("project_middle_layer.webhooks.urllib_request.urlopen")
+    def test_dispatch_routes_derived_orchestration_event_to_matching_listener(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"ok"
+        mock_response.status = 200
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        completion_hook = SemanticWebhook.objects.create(
+            name="Timeline Completion Hook",
+            target_url="https://example.com/timeline-completion",
+            event_type="middle_layer.timeline.slot_completion",
+            status="active",
+        )
+        changed_hook = SemanticWebhook.objects.create(
+            name="Timeline Slot Changed Hook",
+            target_url="https://example.com/timeline-slot-changed",
+            event_type="middle_layer.timeline.slot_state_changed",
+            status="active",
+        )
+
+        dispatch_semantic_webhook_event(
+            event_type="middle_layer.timeline.slot_completion",
+            payload={
+                "timeline_event": {
+                    "event_type": "middle_layer.timeline.slot_completion",
+                    "slot_index": 4,
+                    "phase": "Ideas",
+                    "locked": False,
+                    "completed": True,
+                    "drift_score": 0.77,
+                    "alignment_score": 0.3,
+                },
+                "completed_slots": [1, 2, 3, 4],
+            },
+        )
+
+        self.assertEqual(SemanticWebhookDelivery.objects.filter(webhook=changed_hook).count(), 0)
+        delivery = SemanticWebhookDelivery.objects.filter(webhook=completion_hook).latest("created_at")
+        event_payload = delivery.payload.get("timeline_event", {})
+        self.assertEqual(event_payload.get("event_type"), "middle_layer.timeline.slot_completion")
+        self.assertEqual(event_payload.get("slot_index"), 4)
+        self.assertTrue(event_payload.get("slot_completed"))
+        self.assertEqual(event_payload.get("priority"), "info")
+
+    @patch("project_middle_layer.webhooks.urllib_request.urlopen")
+    def test_retry_webhook_delivery_sends_normalized_timeline_payload(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"ok"
+        mock_response.status = 200
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        webhook = SemanticWebhook.objects.create(
+            name="Timeline Retry Hook",
+            target_url="https://example.com/retry-hook",
+            event_type="middle_layer.timeline.slot_state_changed",
+            status="active",
+        )
+
+        delivery = SemanticWebhookDelivery.objects.create(
+            webhook=webhook,
+            event_type="middle_layer.timeline.slot_state_changed",
+            payload={
+                "timeline_event": {
+                    "event_type": "middle_layer.timeline.slot_state_changed",
+                    "slot_index": 7,
+                    "phase": "Seeds",
+                    "locked": True,
+                    "completed": False,
+                },
+                "completed_slots": [1, 2, 3, 4, 5, 6],
+            },
+            status="failed",
+        )
+
+        retried = retry_webhook_delivery(delivery)
+        self.assertEqual(retried.status, "delivered")
+
+        request_obj = mock_urlopen.call_args[0][0]
+        payload = json.loads(request_obj.data.decode("utf-8"))
+        timeline_event = payload.get("timeline_event", {})
+        self.assertTrue(timeline_event.get("gate_locked"))
+        self.assertFalse(timeline_event.get("slot_completed"))
+        self.assertEqual(timeline_event.get("priority"), "info")
+        self.assertEqual(timeline_event.get("completed_slots"), [1, 2, 3, 4, 5, 6])
+        platform_intelligence = payload.get("platform_intelligence", {})
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("priority_order"), ["critical", "warn", "info"])
+        self.assertEqual(platform_intelligence.get("slot_progression", {}).get("completed_count"), 6)
+
+    @patch("project_middle_layer.webhooks.urllib_request.urlopen")
+    def test_retry_webhook_delivery_normalizes_priority_queue_order(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"ok"
+        mock_response.status = 200
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        webhook = SemanticWebhook.objects.create(
+            name="Timeline Priority Retry Hook",
+            target_url="https://example.com/retry-priority-hook",
+            event_type="middle_layer.timeline.slot_state_changed",
+            status="active",
+        )
+
+        delivery = SemanticWebhookDelivery.objects.create(
+            webhook=webhook,
+            event_type="middle_layer.timeline.slot_state_changed",
+            payload={
+                "timeline_event": {
+                    "event_type": "middle_layer.timeline.slot_state_changed",
+                    "slot_index": 7,
+                    "phase": "Seeds",
+                    "locked": True,
+                    "completed": False,
+                },
+                "orchestration_priority_queue": [
+                    {"queue_index": 2, "event_type": "middle_layer.timeline.slot_completion", "slot_index": 4, "priority": "info"},
+                    {"queue_index": 0, "event_type": "middle_layer.timeline.drift_threshold", "slot_index": 4, "priority": "critical"},
+                    {"queue_index": 1, "event_type": "middle_layer.timeline.alignment_shift", "slot_index": 4, "priority": "warn"},
+                ],
+            },
+            status="failed",
+        )
+
+        retried = retry_webhook_delivery(delivery)
+        self.assertEqual(retried.status, "delivered")
+
+        request_obj = mock_urlopen.call_args[0][0]
+        payload = json.loads(request_obj.data.decode("utf-8"))
+        queue = payload.get("orchestration_priority_queue", [])
+        self.assertEqual([item.get("priority") for item in queue], ["critical", "warn", "info"])
+        platform_intelligence = payload.get("platform_intelligence", {})
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("trigger_count"), 3)
+        self.assertEqual(platform_intelligence.get("orchestration", {}).get("highest_priority"), "critical")
+
+
+class ProjectMiddleLayerLfoEngineTests(APITestCase):
+    def test_lfo_engine_generates_16_group_and_64_industry_templates(self):
+        catalog = load_macro_industry_groups()
+        group_templates = build_sevm_group_templates(
+            group_catalog=catalog,
+            timeline_snapshot={
+                "latest_slot_index": 8,
+                "latest_phase": "Seeds",
+                "drift_score": 0.2,
+                "stability_score": 0.8,
+                "alignment_score": 0.8,
+                "completion_ratio": 0.5,
+            },
+            synthesis_snapshot={
+                "risk_level": "low",
+                "drift_trend": "stable",
+                "alignment_trajectory": "improving",
+            },
+        )
+        industry_templates = build_industry_lfo_templates(group_templates)
+
+        self.assertEqual(len(group_templates), 16)
+        self.assertEqual(len(industry_templates), 64)
+        self.assertTrue(all(item.get("sevm_template", {}).get("logical_branch_count") == 16 for item in group_templates))
+        self.assertEqual(
+            sorted(int(item.get("group_metadata", {}).get("group_id") or 0) for item in group_templates),
+            list(range(1, 17)),
+        )
+        self.assertTrue(all(str(item.get("inherits_from") or "").startswith("group_lfo_") for item in industry_templates))
+        self.assertTrue(all(len(item.get("branch_ids", [])) == 16 for item in industry_templates))
+        self.assertEqual(len(industry_templates), 64)
+        self.assertTrue(all(item.get("sevm_template", {}).get("logical_branch_count") == 16 for item in group_templates))
+        self.assertEqual(
+            sorted(int(item.get("group_metadata", {}).get("group_id") or 0) for item in group_templates),
+            list(range(1, 17)),
+        )
+        self.assertTrue(all(str(item.get("inherits_from") or "").startswith("group_lfo_") for item in industry_templates))
+        self.assertTrue(all(len(item.get("branch_ids", [])) == 16 for item in industry_templates))
+
+    def test_feature_probability_pipeline_is_deterministic(self):
+        first = evaluate_feature_probability(
+            feature_name="mvp_ui_synthesis",
+            timeline_snapshot={
+                "drift_score": 0.2,
+                "alignment_score": 0.82,
+                "completion_ratio": 0.5,
+            },
+            synthesis_snapshot={"risk_level": "medium"},
+        )
+        second = evaluate_feature_probability(
+            feature_name="mvp_ui_synthesis",
+            timeline_snapshot={
+                "drift_score": 0.2,
+                "alignment_score": 0.82,
+                "completion_ratio": 0.5,
+            },
+            synthesis_snapshot={"risk_level": "medium"},
+        )
+
+        self.assertEqual(first, second)
+        self.assertIn(first.get("grade"), ["A", "B", "C"])
+        self.assertIn("statistics", first.get("pipeline", {}))
+        self.assertIn("algebra", first.get("pipeline", {}))
+        self.assertIn("calculus", first.get("pipeline", {}))
+        self.assertIn("probability", first.get("pipeline", {}))
+
+    def test_lfo_engine_api_returns_four_surface_contract(self):
+        url = reverse("project_middle_layer:project-middle-layer-lfo-engine")
+        response = self.client.post(
+            url,
+            {
+                "timeline_snapshot": {
+                    "latest_slot_index": 12,
+                    "latest_phase": "Projects",
+                    "drift_score": 0.31,
+                    "stability_score": 0.72,
+                    "alignment_score": 0.69,
+                    "completion_ratio": 0.75,
+                },
+                "synthesis_snapshot": {
+                    "risk_level": "medium",
+                    "drift_trend": "rising",
+                    "alignment_trajectory": "stable",
+                },
+                "trigger_count": 2,
+                "feature_pathways": ["project_to_mvp_slot_12", "consumer_gui_science_surface"],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.data
+        self.assertEqual(payload.get("mode"), "lfo_expansion_v1")
+        self.assertEqual(payload.get("template_summary", {}).get("group_template_count"), 16)
+        self.assertEqual(payload.get("template_summary", {}).get("industry_template_count"), 64)
+        self.assertEqual(len(payload.get("sevm_logical_branches", [])), 16)
+        self.assertGreaterEqual(len(payload.get("feature_probability", [])), 2)
+        self.assertEqual(payload.get("math_surface", {}).get("mode"), "sacp_probability_surface")
+        self.assertEqual(payload.get("language_surface", {}).get("mode"), "ednp_transcript_surface")
+        self.assertEqual(payload.get("arts_surface", {}).get("mode"), "vlsm_creator_surface")
+        self.assertEqual(payload.get("science_surface", {}).get("mode"), "mbsp_consumer_gui_surface")
+        self.assertEqual(len(payload.get("language_surface", {}).get("documents", [])), 4)
+        self.assertEqual(len(payload.get("arts_surface", {}).get("creator_scaffolds", [])), 16)
+        self.assertEqual(len(payload.get("science_surface", {}).get("lenses", [])), 4)
+        self.assertEqual(len(payload.get("industry_templates", [])), 64)
+        self.assertTrue(all("surface_contract" in item for item in payload.get("industry_templates", [])))
+        self.assertTrue(all("timeline_binding" in item for item in payload.get("industry_templates", [])))
+        self.assertTrue(all("sevm_branch_lineage" in item for item in payload.get("industry_templates", [])))
+        self.assertTrue(all(item.get("inheritance", {}).get("override_allowed") is False for item in payload.get("industry_templates", [])))
+        self.assertTrue(all(len(item.get("surface_contract", {}).get("science", {}).get("lenses", [])) == 4 for item in payload.get("industry_templates", [])))
+        interaction_models = {
+            str(item.get("interaction_model") or "")
+            for item in payload.get("science_surface", {}).get("lenses", [])
+        }
+        self.assertEqual(
+            interaction_models,
+            {
+                "deterministic_behavior",
+                "organic_interaction_flow",
+                "collaborative_community_patterns",
+                "deployment_visual_physics",
+            },
+        )
+
+    def test_mbsp_science_gui_surface_binds_timeline_orchestration_and_unified_metadata(self):
+        surface = build_consumer_gui_science_surface(
+            timeline_snapshot={
+                "latest_slot_index": 12,
+                "latest_phase": "Projects",
+                "drift_score": 0.22,
+                "stability_score": 0.81,
+                "alignment_score": 0.79,
+                "completion_ratio": 0.75,
+            },
+            synthesis_snapshot={
+                "risk_level": "medium",
+                "drift_trend": "rising",
+                "alignment_trajectory": "improving",
+            },
+            trigger_count=3,
+        )
+
+        self.assertEqual(surface.get("mode"), "mbsp_consumer_gui_surface")
+        self.assertEqual(surface.get("latest_phase"), "projects")
+        self.assertEqual(surface.get("trigger_count"), 3)
+        self.assertEqual(len(surface.get("lenses", [])), 4)
+        self.assertTrue(all(item.get("binds_to_timeline") for item in surface.get("lenses", [])))
+        self.assertTrue(all(item.get("binds_to_orchestration") for item in surface.get("lenses", [])))
+        self.assertTrue(all(item.get("binds_to_unified_intelligence") for item in surface.get("lenses", [])))
+        self.assertTrue(all("timeline_progression" in item for item in surface.get("lenses", [])))
+        self.assertTrue(all("orchestration" in item for item in surface.get("lenses", [])))
+        self.assertTrue(all("unified_intelligence" in item for item in surface.get("lenses", [])))
+        self.assertTrue(all("surface_tiers" in item for item in surface.get("lenses", [])))
+
+    def test_mbsp_science_gui_surface_emits_studio_and_enterprise_post_mvp_states(self):
+        studio_surface = build_consumer_gui_science_surface(
+            timeline_snapshot={
+                "latest_slot_index": 16,
+                "latest_phase": "MVP",
+                "drift_score": 0.26,
+                "stability_score": 0.7,
+                "alignment_score": 0.72,
+                "completion_ratio": 1.0,
+            },
+            synthesis_snapshot={
+                "risk_level": "medium",
+                "drift_trend": "stable",
+                "alignment_trajectory": "improving",
+            },
+            trigger_count=4,
+        )
+        enterprise_surface = build_consumer_gui_science_surface(
+            timeline_snapshot={
+                "latest_slot_index": 16,
+                "latest_phase": "MVP",
+                "drift_score": 0.12,
+                "stability_score": 0.84,
+                "alignment_score": 0.88,
+                "completion_ratio": 1.0,
+            },
+            synthesis_snapshot={
+                "risk_level": "low",
+                "drift_trend": "falling",
+                "alignment_trajectory": "improving",
+            },
+            trigger_count=1,
+        )
+
+        self.assertEqual(studio_surface.get("surface_phase"), "studio")
+        self.assertTrue(studio_surface.get("surface_tiers", {}).get("studio", {}).get("active"))
+        self.assertFalse(studio_surface.get("surface_tiers", {}).get("enterprise", {}).get("active"))
+        self.assertEqual(enterprise_surface.get("surface_phase"), "enterprise")
+        self.assertTrue(enterprise_surface.get("surface_tiers", {}).get("enterprise", {}).get("active"))
+        self.assertTrue(enterprise_surface.get("surface_tiers", {}).get("studio", {}).get("unlocked"))
+
+    def test_lfo_engine_envelope_builder_outputs_full_contract(self):
+        payload = build_lfo_engine_envelope(
+            timeline_snapshot={
+                "latest_slot_index": 10,
+                "latest_phase": "Projects",
+                "drift_score": 0.34,
+                "stability_score": 0.71,
+                "alignment_score": 0.66,
+                "completion_ratio": 0.625,
+            },
+            synthesis_snapshot={
+                "risk_level": "medium",
+                "drift_trend": "rising",
+                "alignment_trajectory": "declining",
+            },
+            trigger_count=3,
+            feature_pathways=["timeline_gate_progression"],
+        )
+        self.assertEqual(payload.get("mode"), "lfo_expansion_v1")
+        self.assertEqual(payload.get("template_summary", {}).get("group_template_count"), 16)
+        self.assertEqual(payload.get("template_summary", {}).get("industry_template_count"), 64)
+        self.assertEqual(len(payload.get("sevm_logical_branches", [])), 16)
+        self.assertEqual(payload.get("math_surface", {}).get("mode"), "sacp_probability_surface")
+        self.assertEqual(payload.get("language_surface", {}).get("mode"), "ednp_transcript_surface")
+        self.assertEqual(payload.get("arts_surface", {}).get("mode"), "vlsm_creator_surface")
+        self.assertEqual(payload.get("science_surface", {}).get("mode"), "mbsp_consumer_gui_surface")
+        self.assertEqual(len(payload.get("industry_templates", [])), 64)
+
+    def test_micro_templates_generate_256_rows_with_inherited_surfaces(self):
+        payload = build_lfo_engine_envelope(
+            timeline_snapshot={
+                "latest_slot_index": 12,
+                "latest_phase": "Projects",
+                "drift_score": 0.28,
+                "stability_score": 0.76,
+                "alignment_score": 0.74,
+                "completion_ratio": 0.75,
+            },
+            synthesis_snapshot={
+                "risk_level": "medium",
+                "drift_trend": "rising",
+                "alignment_trajectory": "improving",
+            },
+            trigger_count=2,
+        )
+        micro_templates = payload.get("micro_templates", [])
+
+        self.assertEqual(len(micro_templates), 256)
+        self.assertEqual(payload.get("micro_template_summary", {}).get("micro_template_count"), 256)
+        self.assertTrue(all(str(item.get("inherits_from") or "").startswith("industry_lfo_") for item in micro_templates))
+        self.assertTrue(all(item.get("inheritance", {}).get("override_allowed") is False for item in micro_templates))
+        self.assertTrue(all(len(item.get("surface_contract", {}).get("math", {}).get("feature_rows", [])) == 1 for item in micro_templates))
+        self.assertTrue(all(len(item.get("surface_contract", {}).get("language", {}).get("documents", [])) == 4 for item in micro_templates))
+        self.assertTrue(all(len(item.get("surface_contract", {}).get("science", {}).get("lenses", [])) == 4 for item in micro_templates))
+        self.assertTrue(all(item.get("surface_contract", {}).get("math", {}).get("mode") == "sacp_probability_surface" for item in micro_templates))
+        self.assertTrue(all(item.get("surface_contract", {}).get("science", {}).get("mode") == "mbsp_consumer_gui_surface" for item in micro_templates))
+
+    def test_micro_template_generation_is_deterministically_inherited_from_industry(self):
+        group_templates = build_sevm_group_templates(
+            group_catalog=load_macro_industry_groups(),
+            timeline_snapshot={"latest_slot_index": 8, "drift_score": 0.2, "alignment_score": 0.8},
+            synthesis_snapshot={"risk_level": "medium", "drift_trend": "stable", "alignment_trajectory": "stable"},
+        )
+        industry_templates = build_industry_lfo_templates(group_templates)
+        micro_templates = build_micro_lfo_templates(industry_templates)
+
+        self.assertEqual(len(micro_templates), 256)
+        self.assertTrue(all(str(item.get("inherits_from") or "").startswith("industry_lfo_") for item in micro_templates))
+        self.assertTrue(all(len(item.get("branch_ids", [])) == 16 for item in micro_templates))
+        self.assertTrue(all(len(item.get("surface_contract", {}).get("science", {}).get("lenses", [])) == 4 for item in micro_templates))
+        self.assertTrue(all(item.get("inheritance", {}).get("override_allowed") is False for item in micro_templates))
+        self.assertTrue(
+            all(
+                lens.get("unified_intelligence", {}).get("drift_trend") == "stable"
+                and lens.get("unified_intelligence", {}).get("alignment_trajectory") == "stable"
+                for item in micro_templates
+                for lens in item.get("surface_contract", {}).get("science", {}).get("lenses", [])
+            )
+        )
+
+    def test_industry_template_inheritance_matrix_is_stable(self):
+        payload = build_lfo_engine_envelope(
+            timeline_snapshot={
+                "latest_slot_index": 8,
+                "latest_phase": "Seeds",
+                "drift_score": 0.22,
+                "stability_score": 0.79,
+                "alignment_score": 0.77,
+                "completion_ratio": 0.5,
+            },
+            synthesis_snapshot={
+                "risk_level": "medium",
+                "drift_trend": "rising",
+                "alignment_trajectory": "improving",
+            },
+            trigger_count=1,
+        )
+        templates = payload.get("industry_templates", [])
+        first = templates[0]
+        self.assertEqual(first.get("mode") if isinstance(first, dict) else None, None)
+        self.assertTrue(first.get("template_id", "").startswith("industry_lfo_"))
+        self.assertTrue(first.get("inherits_from", "").startswith("group_lfo_"))
+        self.assertEqual(first.get("surface_contract", {}).get("math", {}).get("mode"), "sacp_probability_surface")
+        self.assertEqual(first.get("surface_contract", {}).get("language", {}).get("mode"), "ednp_transcript_surface")
+        self.assertEqual(first.get("surface_contract", {}).get("arts", {}).get("mode"), "vlsm_creator_surface")
+        self.assertEqual(first.get("surface_contract", {}).get("science", {}).get("mode"), "mbsp_consumer_gui_surface")
+        self.assertEqual(len(first.get("surface_contract", {}).get("science", {}).get("lenses", [])), 4)
+        self.assertFalse(first.get("inheritance", {}).get("override_allowed"))
 
 
 class ProjectMiddleLayerWizardAPITests(APITestCase):

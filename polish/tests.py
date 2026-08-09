@@ -148,6 +148,7 @@ class PolishTaskManagerIntegrationTests(TestCase):
 		self.assertContains(response, "Event Type")
 		self.assertContains(response, "Grouped by item for replay and audit readability")
 		self.assertContains(response, "Risk Rollup")
+		self.assertNotContains(response, 'name="visibility"')
 
 	def test_task_manager_admin_metrics_tab_query_is_honored(self):
 		self.client.login(username="engineer@example.com", password="testpass123")

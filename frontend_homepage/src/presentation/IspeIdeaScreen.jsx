@@ -12,6 +12,7 @@ import {
   promoteSeed,
 } from "../api/homepageApi";
 import MiddleLayerColorContextPanel from "./MiddleLayerColorContextPanel";
+import LfoExpansionPanel from "./LfoExpansionPanel";
 import PublishingLayerHooksPanel from "./PublishingLayerHooksPanel";
 import RrCardSpecPanel from "./RrCardSpecPanel";
 import RrDashboardPanel from "./RrDashboardPanel";
@@ -21,7 +22,15 @@ import SemanticActionLogPanel from "./SemanticActionLogPanel";
 import SemanticIntelligencePanel from "./SemanticIntelligencePanel";
 import SopWorkflowScaffoldPanel from "./SopWorkflowScaffoldPanel";
 import VaSemanticGuidancePanel from "./VaSemanticGuidancePanel";
-import { buildDriftReflection, buildOptimizationReflection, mergeSemanticActionHistory, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
+import {
+  buildUnifiedPlatformIntelligenceState,
+  buildDriftReflection,
+  buildOptimizationReflection,
+  createTimelineSignalState,
+  mergeSemanticActionHistory,
+  normalizeSemanticFeedbackLoop,
+  reduceTimelineSlotSignal,
+} from "./semanticOsHelpers";
 
 const PHASE_OPTIONS = [
   {
@@ -77,6 +86,7 @@ const SEMANTIC_PANELS = [
   { id: "rr_va", label: "VA Guidance", panelId: "va-guidance-panel" },
   { id: "rr_workflows", label: "Workflows", panelId: "sop-workflow-panel" },
   { id: "rr_publishing", label: "Publishing", panelId: "publishing-layer-panel" },
+  { id: "rr_lfo", label: "LFO Engine", panelId: "lfo-expansion-panel" },
   { id: "semantic_action_log", label: "Action Log", panelId: "semantic-action-log-panel" },
 ];
 
@@ -106,6 +116,7 @@ export default function IspeIdeaScreen() {
   const [semanticIntelligenceLoading, setSemanticIntelligenceLoading] = useState(true);
   const [semanticActionHistory, setSemanticActionHistory] = useState([]);
   const [semanticActionFeedback, setSemanticActionFeedback] = useState({});
+  const [timelineSignalState, setTimelineSignalState] = useState(() => createTimelineSignalState());
   const [activeSemanticPanel, setActiveSemanticPanel] = useState("rr_dashboard");
   const [semanticViewHydrated, setSemanticViewHydrated] = useState(false);
   const [form, setForm] = useState(DEFAULT_FORM);
@@ -128,6 +139,10 @@ export default function IspeIdeaScreen() {
   const semanticHostHealth = semanticIntelligencePayload?.semantic_os_health || {};
   const semanticHostDrift = buildDriftReflection(semanticActionFeedback);
   const semanticHostOptimization = buildOptimizationReflection(semanticActionFeedback);
+  const unifiedPlatformIntelligenceState = useMemo(
+    () => buildUnifiedPlatformIntelligenceState(timelineSignalState),
+    [timelineSignalState],
+  );
   const semanticHostReady = Boolean(semanticHostHealth.ready) && !semanticIntelligenceLoading && Boolean(operatingStackPayload);
   const isSeedPhase = phase === "seed";
   const isProjectPhase = phase === "project";
@@ -295,6 +310,18 @@ export default function IspeIdeaScreen() {
       window.removeEventListener("grassroots:semantic-action-result", handleSemanticActionResult);
     };
   }, [semanticIntelligencePayload]);
+
+  useEffect(() => {
+    const handleTimelineSlotSignal = (event) => {
+      const detail = event?.detail || {};
+      setTimelineSignalState((previous) => reduceTimelineSlotSignal(previous, detail));
+    };
+
+    window.addEventListener("grassroots:middle-layer-slot-state-change", handleTimelineSlotSignal);
+    return () => {
+      window.removeEventListener("grassroots:middle-layer-slot-state-change", handleTimelineSlotSignal);
+    };
+  }, []);
 
   useEffect(() => {
     const persistedRaw = window.localStorage.getItem("grassroots.semantic-stack.view-state.v1");
@@ -947,13 +974,35 @@ export default function IspeIdeaScreen() {
           semanticIntelligenceLoading={semanticIntelligenceLoading}
           semanticActionHistory={semanticActionHistory}
           semanticActionFeedback={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
         />
         <RrDashboardPanel panelId="rr-dashboard-panel" onDataChange={setRrDashboardPayload} />
         <RrCardSpecPanel panelId="rr-card-spec-panel" />
         <RrIndustryMapPanel panelId="rr-industry-map-panel" />
-        <RrDetailPanel panelId="rr-detail-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} semanticActionFeedback={semanticActionFeedback} />
-        <MiddleLayerColorContextPanel panelId="middle-layer-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} />
-        <VaSemanticGuidancePanel panelId="va-guidance-panel" semanticIntelligence={semanticIntelligencePayload} semanticActionHistory={semanticActionHistory} semanticActionFeedback={semanticActionFeedback} />
+        <RrDetailPanel
+          panelId="rr-detail-panel"
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticActionHistory={semanticActionHistory}
+          semanticActionFeedback={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
+        />
+        <MiddleLayerColorContextPanel
+          panelId="middle-layer-panel"
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticActionHistory={semanticActionHistory}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
+        />
+        <VaSemanticGuidancePanel
+          panelId="va-guidance-panel"
+          semanticIntelligence={semanticIntelligencePayload}
+          semanticActionHistory={semanticActionHistory}
+          semanticActionFeedback={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
+        />
         <SopWorkflowScaffoldPanel
           panelId="sop-workflow-panel"
           rrDashboard={rrDashboardPayload}
@@ -961,6 +1010,8 @@ export default function IspeIdeaScreen() {
           semanticIntelligence={semanticIntelligencePayload}
           semanticActionHistory={semanticActionHistory}
           semanticActionFeedback={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
         />
         <PublishingLayerHooksPanel
           panelId="publishing-layer-panel"
@@ -969,11 +1020,20 @@ export default function IspeIdeaScreen() {
           semanticIntelligence={semanticIntelligencePayload}
           semanticActionHistory={semanticActionHistory}
           semanticActionFeedback={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
+        />
+        <LfoExpansionPanel
+          panelId="lfo-expansion-panel"
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
         />
         <SemanticActionLogPanel
           panelId="semantic-action-log-panel"
           actionHistory={semanticActionHistory}
           feedbackLoop={semanticActionFeedback}
+          timelineSignalState={timelineSignalState}
+          unifiedIntelligenceState={unifiedPlatformIntelligenceState}
         />
       </section>
     </main>

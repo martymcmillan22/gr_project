@@ -1,4 +1,4 @@
-import { buildDriftReflection, buildOptimizationReflection, normalizeSemanticActionLogEntry, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
+import { buildDriftReflection, buildOptimizationReflection, buildUnifiedPlatformIntelligenceState, normalizeSemanticActionLogEntry, normalizeSemanticFeedbackLoop } from "./semanticOsHelpers";
 
 function renderHintText(hint) {
   if (typeof hint === "string") {
@@ -29,11 +29,19 @@ export default function SemanticActionLogPanel({
   panelId = "semantic-action-log-panel",
   actionHistory,
   feedbackLoop,
+  timelineSignalState,
+  unifiedIntelligenceState,
 }) {
   const history = Array.isArray(actionHistory) ? actionHistory : [];
   const feedback = normalizeSemanticFeedbackLoop(feedbackLoop || {}, { actionLog: history });
   const driftReflection = buildDriftReflection(feedback);
   const optimizationReflection = buildOptimizationReflection(feedback);
+  const resolvedIntelligenceState = (unifiedIntelligenceState && typeof unifiedIntelligenceState === "object")
+    ? unifiedIntelligenceState
+    : buildUnifiedPlatformIntelligenceState(timelineSignalState || {});
+  const mbspSurface = resolvedIntelligenceState?.synthesis?.mbsp_surface || { surface_phase: "n/a", surface_tiers: {} };
+  const latestTimelineEvent = timelineSignalState?.latest_event || null;
+  const completedTimelineSlots = Array.isArray(timelineSignalState?.completed_slots) ? timelineSignalState.completed_slots : [];
 
   return (
     <section id={panelId} className="panel semantic-stack-panel">
@@ -50,6 +58,18 @@ export default function SemanticActionLogPanel({
         <span>Drift {feedback.drift_detected ? "detected" : "clear"}</span>
         <span>Severity {driftReflection.severity}</span>
         <span>Score {driftReflection.score}</span>
+      </div>
+      <div className="rr-node-chip-row">
+        <span>Timeline slots {completedTimelineSlots.length}/16</span>
+        <span>Slot {latestTimelineEvent?.slot_index || "n/a"}</span>
+        <span>Phase {latestTimelineEvent?.phase || "n/a"}</span>
+        <span>{latestTimelineEvent?.industry_metadata?.group_name || "n/a"}</span>
+        <span>{latestTimelineEvent?.industry_metadata?.industry || "n/a"}</span>
+      </div>
+      <div className="rr-node-chip-row">
+        <span data-intelligence-mbsp-phase={mbspSurface?.surface_phase || "n/a"}>MBSP phase {mbspSurface?.surface_phase || "n/a"}</span>
+        <span data-intelligence-mbsp-studio={mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}>Studio {mbspSurface?.surface_tiers?.studio?.active ? "active" : mbspSurface?.surface_tiers?.studio?.unlocked ? "unlocked" : "locked"}</span>
+        <span data-intelligence-mbsp-enterprise={mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}>Enterprise {mbspSurface?.surface_tiers?.enterprise?.active ? "active" : mbspSurface?.surface_tiers?.enterprise?.unlocked ? "unlocked" : "locked"}</span>
       </div>
       <div className="rr-node-chip-row">
         {(driftReflection.subjectChips || []).slice(0, 4).map((chip, index) => (

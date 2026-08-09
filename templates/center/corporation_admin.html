@@ -131,6 +131,7 @@
       <div>
         <h1 class="title is-3">Corporation Admin</h1>
         <p class="subtitle is-6">Create in WPC: define and manage corporation board operations from this Center workspace.</p>
+        <p class="is-size-7">Visibility scope: {{ visibility_scope_title }} ({{ visibility_policy_label }} matters)</p>
       </div>
       <button
         id="corporation-theme-toggle"
@@ -184,6 +185,7 @@
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_polish_task">
+          <input type="hidden" name="visibility" value="{{ visibility_scope }}">
 
           <div class="field">
             <label class="label" for="id_title">Title</label>
@@ -209,6 +211,7 @@
         <form method="post" class="mb-4">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_polish_reminder_preference">
+          <input type="hidden" name="visibility" value="{{ visibility_scope }}">
           <label class="checkbox">
             {{ polish_reminder_form.enabled }}
             Enable daily Twist reminders
@@ -253,6 +256,7 @@
                 <form method="post">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="complete_polish_task">
+                  <input type="hidden" name="visibility" value="{{ visibility_scope }}">
                   <input type="hidden" name="task_id" value="{{ task.id }}">
                   <button type="submit" class="button is-small is-success is-light">Complete</button>
                 </form>
@@ -272,6 +276,7 @@
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="create">
+      <input type="hidden" name="visibility" value="{{ visibility_scope }}">
 
       <div class="columns is-multiline">
         <div class="column is-6">
@@ -331,6 +336,7 @@
               <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="transition">
+                <input type="hidden" name="visibility" value="{{ visibility_scope }}">
                 <input type="hidden" name="item_id" value="{{ item.id }}">
                 <input type="hidden" name="next_status" value="{{ status_review }}">
                 <button type="submit" class="button is-small is-warning">Send to Review</button>
@@ -340,6 +346,7 @@
                 <form method="post">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="transition">
+                  <input type="hidden" name="visibility" value="{{ visibility_scope }}">
                   <input type="hidden" name="item_id" value="{{ item.id }}">
                   <input type="hidden" name="next_status" value="{{ status_approved }}">
                   <button type="submit" class="button is-small is-success">Approve</button>
@@ -347,13 +354,14 @@
                 <form method="post">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="transition">
+                  <input type="hidden" name="visibility" value="{{ visibility_scope }}">
                   <input type="hidden" name="item_id" value="{{ item.id }}">
                   <input type="hidden" name="next_status" value="{{ status_draft }}">
                   <button type="submit" class="button is-small is-light">Return to Draft</button>
                 </form>
               </div>
               {% elif item.status == status_approved %}
-              <a class="button is-small is-link" href="{% url 'center:museum_social' %}">Go to Museum to Post</a>
+              <a class="button is-small is-link" href="{{ museum_scope_url }}">Go to Museum to Post</a>
               {% else %}
               <span class="tag is-success is-light">Posted</span>
               {% endif %}
@@ -371,7 +379,7 @@
   {% if request.user.is_staff %}
   <a class="button is-dark" href="{% url 'admin:index' %}">Open Django Admin</a>
   {% endif %}
-  <a class="button is-light ml-2" href="{% url 'center:index' %}">Back to Center</a>
+  <a class="button is-light ml-2" href="{{ center_scope_url }}">Back to {% if visibility_scope == 'personal' %}Domain{% else %}Center{% endif %}</a>
 </section>
 {% endblock %}
 

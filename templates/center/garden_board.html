@@ -7,6 +7,7 @@
   <div class="box">
     <h1 class="title is-3">Garden Board</h1>
     <p class="subtitle is-6">Work in WPC: plan and track growth-oriented initiatives for the Center Garden board.</p>
+    <p class="is-size-7">Visibility scope: {{ visibility_scope_title }} matters</p>
     <a class="button is-link is-light" href="{% url 'forums:city' %}">City Forum</a>
   </div>
 
@@ -21,6 +22,7 @@
           <p class="is-size-7 mb-2">{{ item.get_item_type_display }} | {{ item.get_priority_display }}</p>
           <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="visibility" value="{{ visibility_scope }}">
             <input type="hidden" name="item_id" value="{{ item.id }}">
             <input type="hidden" name="next_work_status" value="{{ work_in_progress }}">
             <button type="submit" class="button is-small is-warning">Start Work</button>
@@ -43,6 +45,7 @@
           <p class="is-size-7 mb-1">Started: {{ item.work_started_at|default:"-" }}</p>
           <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="visibility" value="{{ visibility_scope }}">
             <input type="hidden" name="item_id" value="{{ item.id }}">
             <input type="hidden" name="next_work_status" value="{{ work_done }}">
             <button type="submit" class="button is-small is-success">Mark Done</button>
@@ -74,6 +77,6 @@
     </div>
   </div>
 
-  <a class="button is-light" href="{% url 'center:index' %}">Back to Center</a>
+  <a class="button is-light" href="{{ back_scope_url }}">Back to {% if visibility_scope == 'personal' %}Domain{% else %}Center{% endif %}</a>
 </section>
 {% endblock %}

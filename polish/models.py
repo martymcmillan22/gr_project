@@ -10,6 +10,11 @@ class PolishTask(models.Model):
 	)
 	title = models.CharField(max_length=200)
 	details = models.TextField(blank=True)
+	visibility = models.CharField(
+		max_length=16,
+		choices=[("public", "Public"), ("personal", "Personal")],
+		default="public",
+	)
 	due_date = models.DateField(null=True, blank=True)
 	is_completed = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -32,6 +37,11 @@ class SectorAgenda(models.Model):
 	idea = models.CharField(max_length=240)
 	objective = models.CharField(max_length=240, blank=True)
 	agenda_text = models.TextField()
+	visibility = models.CharField(
+		max_length=16,
+		choices=[("public", "Public"), ("personal", "Personal")],
+		default="public",
+	)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

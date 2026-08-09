@@ -25,6 +25,37 @@ export interface WorkflowRules {
 	allowed_compartments: number[]
 }
 
+export type WorkflowCompartmentPhase =
+	| "Ideas"
+	| "Seeds"
+	| "Projects"
+	| "MVP"
+	| "Enterprise"
+	| "Studio"
+
+export const CANONICAL_COMPARTMENT_MAX = 16
+export const EXTENDED_COMPARTMENT_MAX = 24
+
+export const WORKFLOW_PHASE_RANGES: Array<{
+	phase: WorkflowCompartmentPhase
+	start: number
+	end: number
+}> = [
+	{ phase: "Ideas", start: 1, end: 4 },
+	{ phase: "Seeds", start: 5, end: 8 },
+	{ phase: "Projects", start: 9, end: 12 },
+	{ phase: "MVP", start: 13, end: 16 },
+	{ phase: "Studio", start: 17, end: 20 },
+	{ phase: "Enterprise", start: 21, end: 24 },
+]
+
+export function resolveWorkflowCompartmentPhase(compartmentId: number): WorkflowCompartmentPhase | null {
+	const range = WORKFLOW_PHASE_RANGES.find(
+		(item) => compartmentId >= item.start && compartmentId <= item.end,
+	)
+	return range ? range.phase : null
+}
+
 function buildAllowedInterfaces(tier: TierKey): InterfaceId[] {
 	if (!TierEngine.canExpandInterface(tier)) {
 		return ["public_profile", "personal_profile", "storytelling"]
@@ -41,7 +72,7 @@ function buildAllowedInterfaces(tier: TierKey): InterfaceId[] {
 }
 
 function buildAllowedCompartments(tier: TierKey): number[] {
-	const max = TierEngine.canCrossCompartments(tier) ? 24 : 6
+	const max = TierEngine.canCrossCompartments(tier) ? EXTENDED_COMPARTMENT_MAX : 6
 	return Array.from({ length: max }, (_, idx) => idx + 1)
 }
 

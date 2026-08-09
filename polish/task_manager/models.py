@@ -18,6 +18,11 @@ from polish.task_manager.assignment_engine import resolve_step
 class TaskAssignment(models.Model):
     assignment_type = models.CharField(max_length=32, choices=ASSIGNMENT_CHOICES, default=ASSIGNMENT_LINEAR)
     title = models.CharField(max_length=200)
+    visibility = models.CharField(
+        max_length=16,
+        choices=[("public", "Public"), ("personal", "Personal")],
+        default="public",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -61,6 +66,11 @@ class TaskObjective(models.Model):
         related_name="objectives",
     )
     objective_text = models.TextField()
+    visibility = models.CharField(
+        max_length=16,
+        choices=[("public", "Public"), ("personal", "Personal")],
+        default="public",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

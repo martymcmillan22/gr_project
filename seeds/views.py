@@ -31,6 +31,11 @@ from .rr_visual_system import build_semantic_intelligence_payload
 from .rr_visual_system import build_va_guidance_payload
 from .rr_visual_system import execute_semantic_action
 from .services import find_similar_ideas, validate_idea_submission
+def _resolve_visibility_scope(request):
+	visibility_scope = (request.GET.get("visibility") or request.POST.get("visibility") or Idea.VISIBILITY_PUBLIC).strip().lower()
+	if visibility_scope not in {Idea.VISIBILITY_PUBLIC, Idea.VISIBILITY_PERSONAL}:
+		return Idea.VISIBILITY_PUBLIC
+	return visibility_scope
 
 
 ISPE_INDUSTRY_ALIASES = {
@@ -149,6 +154,7 @@ class IdeaCaptureAPIView(APIView):
 			industry=industry,
 			raw_content=raw_content,
 			status=Idea.STATUS_RAW,
+			visibility=_resolve_visibility_scope(request),
 		)
 		candidates = find_similar_ideas(raw_content, industry_id=industry.id, exclude_idea_id=idea.id)
 
@@ -208,6 +214,7 @@ class SeedPromotionAPIView(APIView):
 				industry=industry,
 				raw_content=raw_content,
 				status=Idea.STATUS_SEED,
+				visibility=_resolve_visibility_scope(request),
 			)
 			idea._seed_promotion_payload = promotion_context
 			idea.save()
@@ -257,6 +264,8 @@ class ProjectActivationAPIView(APIView):
 					metadata=payload.get("metadata", {}),
 					project_notes=project_notes,
 				)
+				business.visibility = seed.idea.visibility
+				business.save(update_fields=["visibility"])
 		except RRAccessDeniedError as error:
 			return Response(
 				{
@@ -296,6 +305,8 @@ class RRDashboardAPIView(APIView):
 		except ValueError:
 			return Response({"detail": "limit must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
 		payload = build_rr_dashboard_payload(user=request.user, phase_filter=phase_filter, limit_per_lane=max(limit_value, 0))
+		for lane in payload.get("lanes", []):
+			lane["ideas"] = [idea for idea in lane.get("ideas", []) if idea.get("visibility", Idea.VISIBILITY_PUBLIC) == _resolve_visibility_scope(request)]
 		return Response(payload, status=status.HTTP_200_OK)
 
 

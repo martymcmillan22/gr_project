@@ -275,6 +275,56 @@ export async function fetchProjectMiddleLayerActivation() {
   return response.json();
 }
 
+export async function fetchProjectMiddleLayerCalculusTimeline(payload = {}) {
+  const response = await fetch("/project-middle-layer/api/timeline/calculus/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || "Unable to load calculus timeline runtime");
+  }
+
+  return data;
+}
+
+export async function fetchProjectMiddleLayerLfoEngine(payload = {}) {
+  const response = await fetch("/project-middle-layer/api/lfo/engine/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...HEADERS,
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || "Unable to load LFO engine envelope");
+  }
+
+  return data;
+}
+
 export async function postAction(label) {
   const response = await fetch("/homepage/api/actions/", {
     method: "POST",

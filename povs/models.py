@@ -11,6 +11,11 @@ class ExpoFact(models.Model):
         on_delete=models.CASCADE,
         related_name='expo_facts',
     )
+    visibility = models.CharField(
+        max_length=16,
+        choices=[('public', 'Public'), ('personal', 'Personal')],
+        default='public',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
@@ -41,6 +46,11 @@ class POVResponse(models.Model):
         ExpoFact,
         on_delete=models.CASCADE,
         related_name='responses',
+    )
+    visibility = models.CharField(
+        max_length=16,
+        choices=[('public', 'Public'), ('personal', 'Personal')],
+        default='public',
     )
 
     # Blue

@@ -33,6 +33,11 @@ import SettingsPanel from "./ui/SettingsPanel";
 import Taskboard from "./ui/Taskboard";
 import BaseTrueWheelDemo from "./presentation/BaseTrueWheelDemo";
 import IspeIdeaScreen from "./presentation/IspeIdeaScreen";
+import GovernedMvpSurface from "./presentation/GovernedMvpSurface";
+import PhasePanelScreen from "./presentation/PhasePanelScreen";
+import HumanUiSurface from "./presentation/HumanUiSurface";
+import AgentUiSurface from "./presentation/AgentUiSurface";
+import MetaUiSurface from "./presentation/MetaUiSurface";
 import { DeterministicErrorBoundary, DeterministicGuardedSurface } from "./ui/DeterministicBoundary";
 import { getDeterministicReleaseMetadata } from "./config/deterministicRelease";
 import { getTierDeploymentRules } from "./config/tierDeploymentRules";
@@ -235,6 +240,16 @@ export default function App() {
   const isIspeRoute = pathname === "/ispe";
   const isDiagnosticsRoute = pathname === "/diagnostics";
   const isBaseTrueWheelRoute = pathname === "/base-true-wheel";
+  const isGovernedMvpRoute = pathname === "/governed-mvp";
+  const isHumanUiRoute = pathname === "/human-ui";
+  const isAgentUiRoute = pathname === "/agent-ui";
+  const isMetaUiRoute = pathname === "/meta-ui";
+  const isIdeaRoute = pathname === "/idea";
+  const isSeedRoute = pathname === "/seed";
+  const isProjectRoute = pathname === "/project";
+  const isMvpRoute = pathname === "/mvp";
+  const isStudioRoute = pathname === "/studio";
+  const isEnterpriseRoute = pathname === "/enterprise";
   const isStudioWorkspaceRoute = pathname === "/basetrue/studio";
   const isEnterpriseWorkspaceRoute = pathname === "/basetrue/enterprise" || pathname === "/basetrue/tower";
   const studioTierParam = new URLSearchParams(window.location.search).get("tier");
@@ -2219,6 +2234,62 @@ export default function App() {
 
   if (isIspeRoute) {
     return <IspeIdeaScreen />;
+  }
+
+  if (isGovernedMvpRoute) {
+    return (
+      <main className="homepage-wrap">
+        <GovernedMvpSurface />
+      </main>
+    );
+  }
+
+  if (isHumanUiRoute) {
+    return (
+      <main className="homepage-wrap">
+        <HumanUiSurface />
+      </main>
+    );
+  }
+
+  if (isAgentUiRoute) {
+    return (
+      <main className="homepage-wrap">
+        <AgentUiSurface />
+      </main>
+    );
+  }
+
+  if (isMetaUiRoute) {
+    return (
+      <main className="homepage-wrap">
+        <MetaUiSurface enterpriseAllowed={enterpriseRouteAllowed} />
+      </main>
+    );
+  }
+
+  if (isIdeaRoute) {
+    return <PhasePanelScreen phase="idea" />;
+  }
+
+  if (isSeedRoute) {
+    return <PhasePanelScreen phase="seed" />;
+  }
+
+  if (isProjectRoute) {
+    return <PhasePanelScreen phase="project" />;
+  }
+
+  if (isMvpRoute) {
+    return <PhasePanelScreen phase="mvp" />;
+  }
+
+  if (isStudioRoute) {
+    return <PhasePanelScreen phase="studio" />;
+  }
+
+  if (isEnterpriseRoute) {
+    return <PhasePanelScreen phase="enterprise" />;
   }
 
   if (baseTrueCompartmentRoute) {

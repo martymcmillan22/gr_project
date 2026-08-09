@@ -14,6 +14,13 @@ class Idea(models.Model):
 		(STATUS_BUSINESS, "Business (Legacy)"),
 	]
 
+	VISIBILITY_PUBLIC = "public"
+	VISIBILITY_PERSONAL = "personal"
+	VISIBILITY_CHOICES = [
+		(VISIBILITY_PUBLIC, "Public"),
+		(VISIBILITY_PERSONAL, "Personal"),
+	]
+
 	user = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.CASCADE,
@@ -26,6 +33,7 @@ class Idea(models.Model):
 	)
 	raw_content = models.TextField()
 	status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_RAW)
+	visibility = models.CharField(max_length=16, choices=VISIBILITY_CHOICES, default=VISIBILITY_PUBLIC)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -39,6 +47,7 @@ class Idea(models.Model):
 class Seed(models.Model):
 	idea = models.OneToOneField(Idea, on_delete=models.CASCADE, related_name="seed")
 	polish_notes = models.JSONField(default=dict, blank=True)
+	visibility = models.CharField(max_length=16, choices=Idea.VISIBILITY_CHOICES, default=Idea.VISIBILITY_PUBLIC)
 	germination_date = models.DateField(auto_now_add=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -54,6 +63,7 @@ class Business(models.Model):
 	seed = models.OneToOneField(Seed, on_delete=models.CASCADE, related_name="business")
 	brand_name = models.CharField(max_length=160)
 	market_status = models.CharField(max_length=80)
+	visibility = models.CharField(max_length=16, choices=Idea.VISIBILITY_CHOICES, default=Idea.VISIBILITY_PUBLIC)
 	project_notes = models.JSONField(default=dict, blank=True)
 	color_code = models.PositiveIntegerField(null=True, blank=True, db_index=True)
 	compartment_id = models.PositiveSmallIntegerField(null=True, blank=True, db_index=True)

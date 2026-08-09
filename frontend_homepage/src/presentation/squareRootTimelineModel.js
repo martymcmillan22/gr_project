@@ -1,168 +1,67 @@
 export const TIMELINE_PHASES = [
-  { id: "phase_1", timelineLabel: "Beginning", cpwState: "Force", family: "create" },
-  { id: "phase_2", timelineLabel: "Middle", cpwState: "Transition", family: "post" },
-  { id: "phase_3", timelineLabel: "End", cpwState: "State", family: "work" },
+  { id: "phase_1", timelineLabel: "Ideas", cpwState: "Intent", family: "idea" },
+  { id: "phase_2", timelineLabel: "Seeds", cpwState: "Formation", family: "seed" },
+  { id: "phase_3", timelineLabel: "Projects", cpwState: "Execution", family: "project" },
+  { id: "phase_4", timelineLabel: "MVP", cpwState: "Validation", family: "mvp" },
 ];
 
-// Canonical 12-slot mapping used by the Square Root Lattice timeline grid.
-const RAW_SQUARE_ROOT_TIMELINE_CELLS = [
-  {
-    latticeIndex: 1,
-    rowPhase: 1,
-    colSlot: 1,
-    timelineLabel: "Beginning",
-    cpwState: "Force",
-    family: "create",
-    presetId: "create.red.math",
-    mlasSubject: "math",
-    mlasColorToken: "red",
-    colorHex: "#E53935",
-    semanticIntentId: "intent_01",
-  },
-  {
-    latticeIndex: 2,
-    rowPhase: 1,
-    colSlot: 2,
-    timelineLabel: "Beginning",
-    cpwState: "Force",
-    family: "create",
-    presetId: "create.blue.language",
-    mlasSubject: "language",
-    mlasColorToken: "blue",
-    colorHex: "#1E88E5",
-    semanticIntentId: "intent_02",
-  },
-  {
-    latticeIndex: 3,
-    rowPhase: 1,
-    colSlot: 3,
-    timelineLabel: "Beginning",
-    cpwState: "Force",
-    family: "create",
-    presetId: "create.yellow.arts",
-    mlasSubject: "arts",
-    mlasColorToken: "yellow",
-    colorHex: "#FBC02D",
-    semanticIntentId: "intent_03",
-  },
-  {
-    latticeIndex: 4,
-    rowPhase: 1,
-    colSlot: 4,
-    timelineLabel: "Beginning",
-    cpwState: "Force",
-    family: "create",
-    presetId: "create.green.science",
-    mlasSubject: "science",
-    mlasColorToken: "green",
-    colorHex: "#43A047",
-    semanticIntentId: "intent_04",
-  },
-  {
-    latticeIndex: 5,
-    rowPhase: 2,
-    colSlot: 1,
-    timelineLabel: "Middle",
-    cpwState: "Transition",
-    family: "post",
-    presetId: "post.purple.statistics",
-    mlasSubject: "sacp",
-    mlasColorToken: "purple",
-    colorHex: "#8E24AA",
-    semanticIntentId: "intent_05",
-  },
-  {
-    latticeIndex: 6,
-    rowPhase: 2,
-    colSlot: 2,
-    timelineLabel: "Middle",
-    cpwState: "Transition",
-    family: "post",
-    presetId: "post.teal.literature",
-    mlasSubject: "ednp",
-    mlasColorToken: "teal",
-    colorHex: "#00897B",
-    semanticIntentId: "intent_06",
-  },
-  {
-    latticeIndex: 7,
-    rowPhase: 2,
-    colSlot: 3,
-    timelineLabel: "Middle",
-    cpwState: "Transition",
-    family: "post",
-    presetId: "post.orange.crafts",
-    mlasSubject: "vlsm",
-    mlasColorToken: "orange",
-    colorHex: "#FB8C00",
-    semanticIntentId: "intent_07",
-  },
-  {
-    latticeIndex: 8,
-    rowPhase: 2,
-    colSlot: 4,
-    timelineLabel: "Middle",
-    cpwState: "Transition",
-    family: "post",
-    presetId: "post.lime.technology",
-    mlasSubject: "mbsp",
-    mlasColorToken: "lime",
-    colorHex: "#7CB342",
-    semanticIntentId: "intent_08",
-  },
-  {
-    latticeIndex: 9,
-    rowPhase: 3,
-    colSlot: 1,
-    timelineLabel: "End",
-    cpwState: "State",
-    family: "work",
-    presetId: "work.pink.history",
-    mlasSubject: "history",
-    mlasColorToken: "pink",
-    colorHex: "#D81B60",
-    semanticIntentId: "intent_09",
-  },
-  {
-    latticeIndex: 10,
-    rowPhase: 3,
-    colSlot: 2,
-    timelineLabel: "End",
-    cpwState: "State",
-    family: "work",
-    presetId: "work.cyan.geography",
-    mlasSubject: "geography",
-    mlasColorToken: "cyan",
-    colorHex: "#00ACC1",
-    semanticIntentId: "intent_10",
-  },
-  {
-    latticeIndex: 11,
-    rowPhase: 3,
-    colSlot: 3,
-    timelineLabel: "End",
-    cpwState: "State",
-    family: "work",
-    presetId: "work.amber.industry",
-    mlasSubject: "industry",
-    mlasColorToken: "amber",
-    colorHex: "#FFB300",
-    semanticIntentId: "intent_11",
-  },
-  {
-    latticeIndex: 12,
-    rowPhase: 3,
-    colSlot: 4,
-    timelineLabel: "End",
-    cpwState: "State",
-    family: "work",
-    presetId: "work.greenlime.systems",
-    mlasSubject: "systems",
-    mlasColorToken: "green-lime",
-    colorHex: "#9CCC65",
-    semanticIntentId: "intent_12",
-  },
+export const TEMPORAL_ALIGNMENTS = ["past", "present-past", "present-future", "future"];
+export const CALCULUS_OPERATIONS = ["Integral", "Continuity", "Limit", "Derivative"];
+
+const GROUP_CATALOG = [
+  { subject: "Math", colorToken: "red", colorHex: "#E53935" },
+  { subject: "Language", colorToken: "blue", colorHex: "#1E88E5" },
+  { subject: "Arts", colorToken: "yellow", colorHex: "#FBC02D" },
+  { subject: "Science", colorToken: "green", colorHex: "#43A047" },
+  { subject: "General Information", colorToken: "purple", colorHex: "#8E24AA" },
+  { subject: "Literature", colorToken: "teal", colorHex: "#00897B" },
+  { subject: "Crafts", colorToken: "orange", colorHex: "#FB8C00" },
+  { subject: "Technology", colorToken: "lime", colorHex: "#7CB342" },
+  { subject: "History", colorToken: "red-purple", colorHex: "#C2185B" },
+  { subject: "Geography", colorToken: "blue-teal", colorHex: "#00ACC1" },
+  { subject: "Architecture", colorToken: "yellow-orange", colorHex: "#FFB300" },
+  { subject: "Ecology", colorToken: "green-lime", colorHex: "#9CCC65" },
+  { subject: "Philosophy", colorToken: "deep-crimson", colorHex: "#8E2430" },
+  { subject: "Law & Governance", colorToken: "deep-indigo", colorHex: "#3949AB" },
+  { subject: "Economics", colorToken: "gold-ochre", colorHex: "#B8860B" },
+  { subject: "Systemics", colorToken: "deep-forest", colorHex: "#1B5E20" },
 ];
+
+function slugify(value = "") {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+const RAW_SQUARE_ROOT_TIMELINE_CELLS = GROUP_CATALOG.map((item, index) => {
+  const latticeIndex = index + 1;
+  const rowPhase = Math.floor(index / 4) + 1;
+  const colSlot = (index % 4) + 1;
+  const phase = TIMELINE_PHASES[rowPhase - 1] || TIMELINE_PHASES[0];
+  const temporalAlignment = TEMPORAL_ALIGNMENTS[colSlot - 1];
+  const calculusOperation = CALCULUS_OPERATIONS[colSlot - 1];
+  const phaseSlug = slugify(phase.family || phase.timelineLabel || "timeline");
+  const subjectSlug = slugify(item.subject || `group-${latticeIndex}`);
+
+  return {
+    latticeIndex,
+    rowPhase,
+    colSlot,
+    timelineLabel: phase.timelineLabel,
+    cpwState: phase.cpwState,
+    family: phase.family,
+    temporalAlignment,
+    temporal_alignment: temporalAlignment,
+    calculusOperation,
+    calculus_operation: calculusOperation,
+    presetId: `${phaseSlug}.${temporalAlignment.toLowerCase()}.${subjectSlug}`,
+    mlasSubject: item.subject,
+    mlasColorToken: item.colorToken,
+    colorHex: item.colorHex,
+    semanticIntentId: `intent_${String(latticeIndex).padStart(2, "0")}`,
+  };
+});
 
 export const SQUARE_ROOT_TIMELINE_CELLS = RAW_SQUARE_ROOT_TIMELINE_CELLS.map((cell) => ({
   ...cell,

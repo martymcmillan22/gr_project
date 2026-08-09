@@ -26,6 +26,20 @@ type RoutingSample = {
   result: ReturnType<typeof routeWorkflow>
 }
 
+function buildRoutingTimelineState() {
+  return {
+    completed_slots: [1, 2, 3, 4, 5, 6, 7, 8],
+    phase_gates: [
+      { phase: "Ideas", locked: false },
+      { phase: "Seeds", locked: false },
+      { phase: "Projects", locked: true },
+      { phase: "MVP", locked: false },
+      { phase: "Studio", locked: true },
+      { phase: "Enterprise", locked: false },
+    ],
+  }
+}
+
 function renderList(items: string[]) {
   return React.createElement(
     "ul",
@@ -50,21 +64,37 @@ function renderWorkflowRule(rule: WorkflowRule) {
 }
 
 function buildRoutingSamples(tier: ReturnType<TierSelector["getCurrentTier"]>): RoutingSample[] {
+  const timelineState = buildRoutingTimelineState()
   return [
     {
       label: "Public Profile / Compartment 1",
       input: { interfaceId: "public_profile", compartmentId: 1 },
-      result: routeWorkflow({ tier, interfaceId: "public_profile", compartmentId: 1 }),
+      result: routeWorkflow({ tier, interfaceId: "public_profile", compartmentId: 1, timelineState }),
     },
     {
       label: "Corporation / Compartment 1",
       input: { interfaceId: "corporation", compartmentId: 1 },
-      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 1 }),
+      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 1, timelineState }),
     },
     {
-      label: "Corporation / Compartment 13",
+      label: "Corporation / Compartment 13 (MVP)",
       input: { interfaceId: "corporation", compartmentId: 13 },
-      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 13 }),
+      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 13, timelineState }),
+    },
+    {
+      label: "Corporation / Compartment 10 (gate-locked)",
+      input: { interfaceId: "corporation", compartmentId: 10 },
+      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 10, timelineState }),
+    },
+    {
+      label: "Corporation / Compartment 18 (Studio gate-locked)",
+      input: { interfaceId: "corporation", compartmentId: 18 },
+      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 18, timelineState }),
+    },
+    {
+      label: "Corporation / Compartment 22 (Enterprise open)",
+      input: { interfaceId: "corporation", compartmentId: 22 },
+      result: routeWorkflow({ tier, interfaceId: "corporation", compartmentId: 22, timelineState }),
     },
   ]
 }
