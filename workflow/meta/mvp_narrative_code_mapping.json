@@ -1,0 +1,152 @@
+{
+  "manifest_id": "basetrue_grassroots_mvp_narrative_code_mapping",
+  "generated_on": "2026-08-08",
+  "source_of_truth": {
+    "snapshot_doc": "docs/architecture/basetrue_grassroots_mvp_snapshot.md",
+    "acceptance_manifest": "workflow/meta/mvp_acceptance_manifest.json"
+  },
+  "phase_binding": {
+    "Idea": {
+      "narrative": "Minimal entry with title and intentions.",
+      "repo_bindings": [
+        "project_middle_layer/api/views.py",
+        "frontend_homepage/src/presentation/IspeIdeaScreen.jsx"
+      ],
+      "governance_contracts": [
+        "AC-IDEA-001",
+        "AC-IDEA-002"
+      ]
+    },
+    "Seed": {
+      "narrative": "Seed introduces thesis formation and preserves intent.",
+      "repo_bindings": [
+        "project_middle_layer/api/views.py",
+        "project_middle_layer/services.py"
+      ],
+      "governance_contracts": [
+        "AC-SEED-001",
+        "AC-SEED-002"
+      ]
+    },
+    "Project": {
+      "narrative": "Project activates the deterministic backbone, timeline, workflows, SOP, versioning, and GUI surfaces.",
+      "repo_bindings": [
+        "project_middle_layer/lfo_engine.py",
+        "project_middle_layer/services.py",
+        "project_middle_layer/versioning.py",
+        "project_middle_layer/api/views.py",
+        "frontend_homepage/src/presentation/LfoExpansionPanel.jsx",
+        "frontend_homepage/src/presentation/SopWorkflowScaffoldPanel.jsx",
+        "frontend_homepage/src/presentation/SemanticIntelligencePanel.jsx"
+      ],
+      "governance_contracts": [
+        "AC-PROJECT-001",
+        "AC-PROJECT-002",
+        "AC-PROJECT-003",
+        "AC-PROJECT-004",
+        "AC-PROJECT-005",
+        "AC-PROJECT-006",
+        "AC-PROJECT-007"
+      ]
+    },
+    "MVP": {
+      "narrative": "MVP publishes investor and product-usage identities from deterministic project state.",
+      "repo_bindings": [
+        "project_middle_layer/api/views.py",
+        "frontend_homepage/src/presentation/PublishingLayerHooksPanel.jsx"
+      ],
+      "governance_contracts": [
+        "AC-MVP-001",
+        "AC-MVP-002",
+        "AC-MVP-003"
+      ]
+    }
+  },
+  "cross_phase_backbone": {
+    "lfo_surfaces": {
+      "math": "project_middle_layer/lfo_engine.py",
+      "language": "project_middle_layer/lfo_engine.py",
+      "arts": "project_middle_layer/lfo_engine.py",
+      "science": "project_middle_layer/lfo_engine.py"
+    },
+    "inheritance": {
+      "macro_map": "platform_semantic/catalogs/macro_map.json",
+      "engine": "project_middle_layer/lfo_engine.py"
+    },
+    "timeline": {
+      "runtime": "project_middle_layer/services.py",
+      "api": "project_middle_layer/api/views.py"
+    },
+    "governance": {
+      "acceptance_manifest": "workflow/meta/mvp_acceptance_manifest.json",
+      "validator": "scripts/operations/validate_mvp_acceptance_manifest.py",
+      "ci_gate": ".github/workflows/mvp-acceptance-gate.yml"
+    }
+  },
+  "gui_surface_mapping": {
+    "idea_surface": "frontend_homepage/src/presentation/IspeIdeaScreen.jsx",
+    "project_surface": "frontend_homepage/src/presentation/LfoExpansionPanel.jsx",
+    "workflow_surface": "frontend_homepage/src/presentation/SopWorkflowScaffoldPanel.jsx",
+    "publishing_surface": "frontend_homepage/src/presentation/PublishingLayerHooksPanel.jsx"
+  },
+  "micro_template_runtime": {
+    "backend_rows_when_present": 256,
+    "frontend_fallback_rows_when_industry_only": 64,
+    "fallback_behavior_expected": true,
+    "binding": "project_middle_layer/lfo_engine.py"
+  },
+  "unified_blueprint": {
+    "governance_mode": "narrative_to_code_contract",
+    "panel_contracts": [
+      {
+        "phase": "Idea",
+        "panel": "frontend_homepage/src/presentation/IspeIdeaScreen.jsx",
+        "contract": "Render the minimal entry state and preserve friction-free intent capture."
+      },
+      {
+        "phase": "Seed",
+        "panel": "frontend_homepage/src/presentation/LfoExpansionPanel.jsx",
+        "contract": "Expose deterministic seed promotion and preserve the thesis chain."
+      },
+      {
+        "phase": "Project",
+        "panel": "frontend_homepage/src/presentation/SopWorkflowScaffoldPanel.jsx",
+        "contract": "Show workflow scaffolding, timeline state, and SOP structure with semantic backing."
+      },
+      {
+        "phase": "MVP",
+        "panel": "frontend_homepage/src/presentation/PublishingLayerHooksPanel.jsx",
+        "contract": "Publish investor and product-usage identities from deterministic project state."
+      }
+    ],
+    "backend_row_contracts": [
+      {
+        "phase": "Idea",
+        "rows": 4,
+        "contract": "Capture initial subject-level records."
+      },
+      {
+        "phase": "Seed",
+        "rows": 16,
+        "contract": "Promote seed state into structured branch rows."
+      },
+      {
+        "phase": "Project",
+        "rows": 64,
+        "contract": "Generate industry-level scaffolding and workflow rows."
+      },
+      {
+        "phase": "MVP",
+        "rows": 256,
+        "contract": "Publish sub-industry rows when backend runtime data is present."
+      }
+    ],
+    "governance_rules": {
+      "inheritance_chain": "4 -> 16 -> 64 -> 256",
+      "frontend_fallback_rows": 64,
+      "backend_rows_when_present": 256,
+      "panel_semantics_must_be_explicit": true,
+      "backend_row_contracts_must_be_enforced": true
+    }
+  }
+}

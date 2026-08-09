@@ -30,6 +30,7 @@ Use this docs set to operate, integrate, and scale semantic capabilities with co
 ## Architecture Docs
 
 - [Architecture](architecture/architecture.md)
+- [BaseTrue Grassroots MVP Snapshot](architecture/basetrue_grassroots_mvp_snapshot.md)
 - [MLAS BTIF Canonical Spec](architecture/mlas_btif_canonical_spec.md)
 - [MLAS BTIF Implementation Schemas](architecture/mlas_btif_implementation_schemas.md)
 - [MLAS BTIF Copilot Handoff](architecture/mlas_btif_copilot_handoff.md)
@@ -45,6 +46,8 @@ Use this docs set to operate, integrate, and scale semantic capabilities with co
 
 ## Operations Docs
 
+- [BaseTrue Grassroots MVP Acceptance Criteria](operations/basetrue_grassroots_mvp_acceptance_criteria.md)
+- [MVP Acceptance Manifest (JSON)](../workflow/meta/mvp_acceptance_manifest.json)
 - [Project Middle Layer Operator Quickstart](operations/project_middle_layer_operator_quickstart.md)
 - [Project Middle Layer Production Readiness Pass (2026-07-11)](operations/project_middle_layer_production_readiness_pass_2026_07_11.md)
 - [Environment Profiles](operations/environment_profiles.md)

@@ -1,0 +1,36 @@
+name: MVP Acceptance Gate
+
+on:
+  pull_request:
+    paths:
+      - "workflow/meta/mvp_acceptance_manifest.json"
+      - "docs/architecture/basetrue_grassroots_mvp_snapshot.md"
+      - "docs/operations/basetrue_grassroots_mvp_acceptance_criteria.md"
+      - "scripts/operations/validate_mvp_acceptance_manifest.py"
+      - ".github/workflows/mvp-acceptance-gate.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "workflow/meta/mvp_acceptance_manifest.json"
+      - "docs/architecture/basetrue_grassroots_mvp_snapshot.md"
+      - "docs/operations/basetrue_grassroots_mvp_acceptance_criteria.md"
+      - "scripts/operations/validate_mvp_acceptance_manifest.py"
+      - ".github/workflows/mvp-acceptance-gate.yml"
+  workflow_dispatch:
+
+jobs:
+  validate-mvp-acceptance-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate MVP acceptance manifest contract
+        run: |
+          python scripts/operations/validate_mvp_acceptance_manifest.py

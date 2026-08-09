@@ -53,7 +53,8 @@
     "workflow:improve-all-quarterly": "python3 workflow/cli.py improve-all --profile quarterly",
     "workflow:improve-all-annual": "python3 workflow/cli.py improve-all --profile annual",
     "workflow:improve-preview": "python3 workflow/cli.py improve-preview",
-    "workflow:test": "python3 -m unittest discover workflow/tests -v"
+    "workflow:test": "python3 -m unittest discover workflow/tests -v",
+    "governance:acceptance-manifest": "python3 scripts/operations/validate_mvp_acceptance_manifest.py"
   },
   "dependencies": {
     "react": "^18.2.0",

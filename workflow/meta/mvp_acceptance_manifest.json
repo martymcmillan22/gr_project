@@ -1,0 +1,170 @@
+{
+  "manifest_version": "1.0.0",
+  "manifest_id": "basetrue_grassroots_mvp_acceptance_manifest",
+  "generated_on": "2026-08-08",
+  "owner": "basetrue-grassroots",
+  "source_of_truth": {
+    "snapshot_doc": "docs/architecture/basetrue_grassroots_mvp_snapshot.md",
+    "criteria_doc": "docs/operations/basetrue_grassroots_mvp_acceptance_criteria.md"
+  },
+  "deterministic_contract": {
+    "phase_order": [
+      "Idea",
+      "Seed",
+      "Project",
+      "MVP"
+    ],
+    "inheritance": {
+      "subjects": 4,
+      "sevm_branches": 16,
+      "industries": 64,
+      "sub_industries": 256
+    },
+    "lfo_surface_modes": {
+      "math": "sacp_probability_surface",
+      "language": "ednp_transcript_surface",
+      "arts": "vlsm_creator_surface",
+      "science": "mbsp_consumer_gui_surface"
+    },
+    "micro_template_runtime": {
+      "backend_rows_when_present": 256,
+      "frontend_fallback_rows_when_industry_only": 64,
+      "fallback_behavior_expected": true
+    },
+    "narrative_code_blueprint": {
+      "panel_contracts": {
+        "Idea": "frontend_homepage/src/presentation/IspeIdeaScreen.jsx",
+        "Seed": "frontend_homepage/src/presentation/LfoExpansionPanel.jsx",
+        "Project": "frontend_homepage/src/presentation/SopWorkflowScaffoldPanel.jsx",
+        "MVP": "frontend_homepage/src/presentation/PublishingLayerHooksPanel.jsx"
+      },
+      "backend_row_contracts": {
+        "Idea": 4,
+        "Seed": 16,
+        "Project": 64,
+        "MVP": 256
+      },
+      "governance_rules": {
+        "inheritance_chain": "4 -> 16 -> 64 -> 256",
+        "frontend_fallback_rows": 64,
+        "backend_rows_when_present": 256,
+        "panel_semantics_must_be_explicit": true,
+        "backend_row_contracts_must_be_enforced": true
+      }
+    }
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-IDEA-001",
+      "phase": "Idea",
+      "title": "Minimal entry is available",
+      "required": true
+    },
+    {
+      "id": "AC-IDEA-002",
+      "phase": "Idea",
+      "title": "Friction-free start is preserved",
+      "required": true
+    },
+    {
+      "id": "AC-SEED-001",
+      "phase": "Seed",
+      "title": "Deterministic promotion from Idea to Seed",
+      "required": true
+    },
+    {
+      "id": "AC-SEED-002",
+      "phase": "Seed",
+      "title": "Seed thesis structure is captured",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-001",
+      "phase": "Project",
+      "title": "Economic hierarchy alignment is active",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-002",
+      "phase": "Project",
+      "title": "Four-surface LFO contract is active",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-003",
+      "phase": "Project",
+      "title": "Deterministic inheritance is present",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-004",
+      "phase": "Project",
+      "title": "Runtime timeline governance is active",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-005",
+      "phase": "Project",
+      "title": "Operational engines are available",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-006",
+      "phase": "Project",
+      "title": "GUI endpoint path is available",
+      "required": true
+    },
+    {
+      "id": "AC-PROJECT-007",
+      "phase": "Project",
+      "title": "Documented micro-template fallback behavior is preserved",
+      "required": true
+    },
+    {
+      "id": "AC-MVP-001",
+      "phase": "MVP",
+      "title": "Investor e-book generation contract",
+      "required": true
+    },
+    {
+      "id": "AC-MVP-002",
+      "phase": "MVP",
+      "title": "Product usage e-book generation contract",
+      "required": true
+    },
+    {
+      "id": "AC-MVP-003",
+      "phase": "MVP",
+      "title": "Dual identity output",
+      "required": true
+    },
+    {
+      "id": "AC-INV-001",
+      "phase": "Invariant",
+      "title": "Deterministic continuity",
+      "required": true
+    },
+    {
+      "id": "AC-INV-002",
+      "phase": "Invariant",
+      "title": "Unified intelligence envelope continuity",
+      "required": true
+    },
+    {
+      "id": "AC-INV-003",
+      "phase": "Invariant",
+      "title": "No silent contract drift",
+      "required": true
+    }
+  ],
+  "required_regression_commands": [
+    "./a_gr_venv/bin/python manage.py test project_middle_layer.tests.ProjectMiddleLayerLfoEngineTests project_middle_layer.tests.ProjectMiddleLayerTimelineOrchestrationDispatchTests",
+    "cd frontend_homepage && npm test -- src/presentation/lfoEngineHelpers.test.js src/presentation/LfoExpansionPanel.integration.test.jsx"
+  ],
+  "ci_policy": {
+    "block_merge_on_manifest_validation_failure": true,
+    "block_merge_on_missing_ac_ids": true,
+    "block_merge_on_contract_value_drift": true,
+    "block_merge_on_snapshot_criteria_mismatch": true
+  }
+}
